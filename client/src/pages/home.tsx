@@ -100,7 +100,7 @@ export default function Home() {
             <p className="text-xl text-slate-600 max-w-3xl mx-auto">Select the perfect plan for your lifestyle and budget. All plans include our core protection services with varying coverage levels.</p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 items-center md:items-stretch">
             {/* OPPORTUNITY Plan */}
             <Card className="pricing-card">
               <CardContent className="p-8">

@@ -128,7 +128,23 @@
   }
 
   .pricing-card-featured {
-    @apply bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 relative transform scale-105 z-10;
+    @apply bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 relative z-10;
+  }
+
+  @media (min-width: 768px) {
+    .pricing-card-featured {
+      @apply transform scale-105;
+      margin-top: -1rem;
+      margin-bottom: -1rem;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .pricing-card-featured {
+      @apply transform scale-110;
+      margin-top: -1.5rem;
+      margin-bottom: -1.5rem;
+    }
   }
 
   .feature-card {
