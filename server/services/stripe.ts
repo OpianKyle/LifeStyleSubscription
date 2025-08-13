@@ -38,6 +38,37 @@ export class StripeService {
       throw new Error('Stripe price ID not configured for this plan');
     }
 
+    // Check if this is a development price ID (for demo purposes)
+    const isDevelopmentMode = plan.stripePriceId.startsWith('price_dev_');
+    
+    if (isDevelopmentMode) {
+      // Development mode: Create subscription without Stripe
+      const now = new Date();
+      const nextMonth = new Date();
+      nextMonth.setMonth(nextMonth.getMonth() + 1);
+      
+      const subscriptionData = {
+        userId,
+        planId: plan.id,
+        stripeSubscriptionId: `sub_dev_${userId}_${Date.now()}`,
+        status: 'ACTIVE' as const,
+        currentPeriodStart: now,
+        currentPeriodEnd: nextMonth
+      };
+
+      const subscription = await storage.createSubscription(subscriptionData);
+      
+      // Update user with subscription ID
+      await storage.updateUser(userId, { stripeSubscriptionId: subscriptionData.stripeSubscriptionId });
+
+      return {
+        subscriptionId: subscriptionData.stripeSubscriptionId,
+        clientSecret: null,
+        message: 'Development subscription created successfully'
+      };
+    }
+
+    // Production mode: Use actual Stripe
     const customerId = await this.createOrGetCustomer(userId, user.email, user.name);
 
     const subscription = await stripe.subscriptions.create({
