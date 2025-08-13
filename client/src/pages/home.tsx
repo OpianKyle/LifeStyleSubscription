@@ -120,72 +120,91 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-white">
       <Navbar />
       
-      {/* Hero Section */}
-      <section className="hero-gradient pt-16 pb-20">
+      {/* Hero Section - Santander Style */}
+      <section className="santander-hero pt-20 pb-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-4xl mx-auto animate-fade-in">
-            <h1 className="text-4xl md:text-6xl font-bold text-slate-900 mb-6 leading-tight">
-              Comprehensive 
-              <span className="bg-gradient-to-r from-brand-500 to-indigo-600 bg-clip-text text-transparent"> Lifestyle Protection</span>
-              for Every Journey
+          <div className="max-w-4xl">
+            <h1 className="text-5xl md:text-7xl font-bold text-white mb-8 leading-tight">
+              Life Protection
+              <br />
+              <span className="text-white/90">That Matters</span>
             </h1>
-            <p className="text-xl text-slate-600 mb-8 leading-relaxed max-w-3xl mx-auto">
-              From emergency medical services to legal assistance, our comprehensive plans provide peace of mind for you and your family with 24/7 support and nationwide coverage.
+            <p className="text-xl md:text-2xl text-white/90 mb-12 leading-relaxed max-w-2xl">
+              Comprehensive lifestyle protection for South African families. From emergency medical services to legal assistance - we've got you covered.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <div className="flex flex-col sm:flex-row gap-6">
               <Button 
-                className="btn-primary px-8 py-4 text-lg"
+                className="btn-outline text-lg"
                 onClick={scrollToPricing}
                 data-testid="button-view-plans"
               >
-                View Plans & Pricing
-              </Button>
-              <Button 
-                variant="ghost" 
-                className="text-brand-600 hover:text-brand-700 font-semibold text-lg flex items-center space-x-2"
-                data-testid="button-learn-more"
-              >
-                <span>Learn More</span>
-                <ArrowRight className="w-5 h-5" />
+                Choose Your Plan
+                <ArrowRight className="w-6 h-6 ml-2" />
               </Button>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section id="features" className="py-20 bg-white">
+      {/* Stats Section */}
+      <section className="stats-section py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16 animate-slide-up">
-            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">Everything You Need, All in One Place</h2>
-            <p className="text-xl text-slate-600 max-w-3xl mx-auto">Our comprehensive protection plans include essential services to keep you and your family safe and secure.</p>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-center">
+            <div className="py-6">
+              <div className="text-4xl md:text-5xl font-bold text-slate-900 mb-2">24/7</div>
+              <div className="text-lg text-slate-600">Emergency Support</div>
+            </div>
+            <div className="py-6">
+              <div className="text-4xl md:text-5xl font-bold text-slate-900 mb-2">5</div>
+              <div className="text-lg text-slate-600">Protection Plans</div>
+            </div>
+            <div className="py-6">
+              <div className="text-4xl md:text-5xl font-bold text-slate-900 mb-2">R350</div>
+              <div className="text-lg text-slate-600">Starting From</div>
+            </div>
+            <div className="py-6">
+              <div className="text-4xl md:text-5xl font-bold text-slate-900 mb-2">100%</div>
+              <div className="text-lg text-slate-600">Coverage Guarantee</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section - Corporate Style */}
+      <section id="features" className="py-24 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-20">
+            <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-6">Protection Services That Make a Difference</h2>
+            <p className="text-xl text-slate-600 max-w-4xl mx-auto leading-relaxed">
+              We deliver comprehensive lifestyle protection through innovative services designed specifically for South African families and their unique needs.
+            </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
             {features.map((feature, index) => (
-              <Card key={index} className="feature-card card-hover" data-testid={`card-feature-${index}`}>
-                <CardContent className="p-8">
-                  <div className="w-14 h-14 bg-gradient-to-br from-brand-500 to-brand-600 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-200">
-                    <feature.icon className="w-7 h-7 text-white" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-slate-900 mb-3">{feature.title}</h3>
-                  <p className="text-slate-600 leading-relaxed">{feature.description}</p>
-                </CardContent>
-              </Card>
+              <div key={index} className="text-center" data-testid={`feature-${index}`}>
+                <div className="w-20 h-20 bg-gradient-to-br from-brand-500 to-brand-600 rounded-2xl flex items-center justify-center mb-8 mx-auto shadow-lg">
+                  <feature.icon className="w-10 h-10 text-white" />
+                </div>
+                <h3 className="text-2xl font-bold text-slate-900 mb-4">{feature.title}</h3>
+                <p className="text-lg text-slate-600 leading-relaxed">{feature.description}</p>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Complete Pricing Section */}
-      <section id="pricing" className="py-20 pricing-gradient">
+      {/* Complete Pricing Section - Corporate Style */}
+      <section id="pricing" className="py-24 pricing-gradient">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">Choose Your Protection Plan</h2>
-            <p className="text-xl text-slate-600 max-w-3xl mx-auto">Select the perfect plan for your lifestyle and budget. All plans include our core protection services with varying coverage levels and benefits.</p>
+          <div className="text-center mb-20">
+            <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-6">Choose Your Protection Plan</h2>
+            <p className="text-xl text-slate-600 max-w-4xl mx-auto leading-relaxed">
+              Designed for South African families, our protection plans provide comprehensive coverage with transparent pricing and immediate activation. Select the plan that best fits your lifestyle and budget.
+            </p>
           </div>
           
           {isLoading ? (
@@ -208,22 +227,30 @@ export default function Home() {
             </div>
           )}
 
-          <div className="text-center mt-12">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-              <div className="text-center">
-                <Shield className="w-12 h-12 text-brand-500 mx-auto mb-4" />
-                <h3 className="text-xl font-bold text-slate-900 mb-3">Comprehensive Coverage</h3>
-                <p className="text-slate-600">All plans include essential protection services with varying coverage levels and benefits.</p>
-              </div>
-              <div className="text-center">
-                <Users className="w-12 h-12 text-brand-500 mx-auto mb-4" />
-                <h3 className="text-xl font-bold text-slate-900 mb-3">Family Focused</h3>
-                <p className="text-slate-600">Protect your entire family with coverage that includes spouse and children benefits.</p>
-              </div>
-              <div className="text-center">
-                <Heart className="w-12 h-12 text-brand-500 mx-auto mb-4" />
-                <h3 className="text-xl font-bold text-slate-900 mb-3">Instant Activation</h3>
-                <p className="text-slate-600">Your protection starts immediately after payment, with no waiting periods or delays.</p>
+          <div className="mt-20">
+            <div className="bg-white rounded-3xl p-12 shadow-lg">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                    <Shield className="w-8 h-8 text-brand-600" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-slate-900 mb-4">Comprehensive Coverage</h3>
+                  <p className="text-lg text-slate-600 leading-relaxed">All plans include essential protection services with varying coverage levels and benefits tailored for your needs.</p>
+                </div>
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                    <Users className="w-8 h-8 text-brand-600" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-slate-900 mb-4">Family Focused</h3>
+                  <p className="text-lg text-slate-600 leading-relaxed">Protect your entire family with coverage that includes spouse and children benefits across all plans.</p>
+                </div>
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                    <Heart className="w-8 h-8 text-brand-600" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-slate-900 mb-4">Instant Activation</h3>
+                  <p className="text-lg text-slate-600 leading-relaxed">Your protection starts immediately after payment, with no waiting periods or delays - just instant peace of mind.</p>
+                </div>
               </div>
             </div>
           </div>
