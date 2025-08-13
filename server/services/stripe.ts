@@ -148,15 +148,32 @@ export class StripeService {
       throw new Error('User, subscription, or plan not found');
     }
 
-    const stripeSubscription = await stripe.subscriptions.retrieve(currentSubscription.stripeSubscriptionId!);
-    
-    // If current subscription is incomplete, cancel it and create a new one
-    if (stripeSubscription.status === 'incomplete') {
-      await stripe.subscriptions.cancel(currentSubscription.stripeSubscriptionId!);
+    // Handle development subscriptions (which don't exist in Stripe)
+    if (currentSubscription.stripeSubscriptionId!.startsWith('sub_dev_')) {
+      // Cancel dev subscription and create new one
       await storage.cancelSubscription(currentSubscription.id);
-      
-      // Create new subscription (but avoid the recursion)
       return this.createNewSubscription(userId, newPlanName);
+    }
+
+    let stripeSubscription;
+    try {
+      stripeSubscription = await stripe.subscriptions.retrieve(currentSubscription.stripeSubscriptionId!);
+      
+      // If current subscription is incomplete, cancel it and create a new one
+      if (stripeSubscription.status === 'incomplete') {
+        await stripe.subscriptions.cancel(currentSubscription.stripeSubscriptionId!);
+        await storage.cancelSubscription(currentSubscription.id);
+        
+        // Create new subscription (but avoid the recursion)
+        return this.createNewSubscription(userId, newPlanName);
+      }
+    } catch (stripeError: any) {
+      // If subscription doesn't exist in Stripe, treat as new subscription
+      if (stripeError.code === 'resource_missing') {
+        await storage.cancelSubscription(currentSubscription.id);
+        return this.createNewSubscription(userId, newPlanName);
+      }
+      throw stripeError;
     }
     
     // For active subscriptions, update normally
