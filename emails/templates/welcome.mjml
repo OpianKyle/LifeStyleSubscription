@@ -1,0 +1,121 @@
+<mjml>
+  <mj-head>
+    <mj-title>Welcome to LifeGuard</mj-title>
+    <mj-font name="Inter" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" />
+    <mj-attributes>
+      <mj-all font-family="Inter, Arial, sans-serif" />
+    </mj-attributes>
+  </mj-head>
+  <mj-body background-color="#f8fafc">
+    <!-- Header -->
+    <mj-section background-color="#ffffff" padding="40px 20px 20px">
+      <mj-column>
+        <mj-image 
+          src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iMTYiIGZpbGw9InVybCgjZ3JhZGllbnQwX2xpbmVhcl8xXzEpIi8+CjxwYXRoIGQ9Ik0yMCAzMkg0NEwyOCA0OFoiIGZpbGw9IndoaXRlIi8+CjxkZWZzPgo8bGluZWFyR3JhZGllbnQgaWQ9ImdyYWRpZW50MF9saW5lYXJfMV8xIiB4MT0iMCIgeTE9IjAiIHgyPSI2NCIgeTI9IjY0IiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+CjxzdG9wIHN0b3AtY29sb3I9IiMzQjgyRjYiLz4KPHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMjU2M0VCIi8+CjwvbGluZWFyR3JhZGllbnQ+CjwvZGVmcz4KPHN2Zz4K" 
+          width="64px" 
+          align="center" 
+        />
+        <mj-text align="center" font-size="32px" font-weight="700" color="#1e293b" padding-top="20px">
+          LifeGuard
+        </mj-text>
+        <mj-text align="center" font-size="18px" color="#64748b" padding-top="10px">
+          Comprehensive Lifestyle Protection
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <!-- Main Content -->
+    <mj-section background-color="#ffffff" padding="20px">
+      <mj-column>
+        <mj-text font-size="24px" font-weight="600" color="#1e293b" padding-bottom="20px">
+          Welcome to LifeGuard, {{name}}!
+        </mj-text>
+        
+        <mj-text font-size="16px" line-height="24px" color="#475569" padding-bottom="20px">
+          Thank you for joining thousands of families who trust LifeGuard for their comprehensive lifestyle protection. Your account has been created successfully, and you're now part of our protected community.
+        </mj-text>
+
+        <mj-text font-size="16px" line-height="24px" color="#475569" padding-bottom="20px">
+          With LifeGuard, you have access to:
+        </mj-text>
+
+        <!-- Features List -->
+        <mj-table>
+          <tr>
+            <td style="padding: 8px 0; vertical-align: top;">
+              <div style="width: 20px; height: 20px; background: #10b981; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-right: 12px;">
+                <span style="color: white; font-size: 12px;">✓</span>
+              </div>
+            </td>
+            <td style="padding: 8px 0; color: #475569; font-size: 16px;">
+              24/7 Emergency Medical Services
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0; vertical-align: top;">
+              <div style="width: 20px; height: 20px; background: #10b981; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-right: 12px;">
+                <span style="color: white; font-size: 12px;">✓</span>
+              </div>
+            </td>
+            <td style="padding: 8px 0; color: #475569; font-size: 16px;">
+              Professional Legal Assistance
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0; vertical-align: top;">
+              <div style="width: 20px; height: 20px; background: #10b981; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-right: 12px;">
+                <span style="color: white; font-size: 12px;">✓</span>
+              </div>
+            </td>
+            <td style="padding: 8px 0; color: #475569; font-size: 16px;">
+              Comprehensive Family Protection
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0; vertical-align: top;">
+              <div style="width: 20px; height: 20px; background: #10b981; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-right: 12px;">
+                <span style="color: white; font-size: 12px;">✓</span>
+              </div>
+            </td>
+            <td style="padding: 8px 0; color: #475569; font-size: 16px;">
+              Nationwide Coverage
+            </td>
+          </tr>
+        </mj-table>
+
+        <mj-text font-size="16px" line-height="24px" color="#475569" padding="20px 0">
+          Ready to explore your protection plans? Visit your dashboard to get started.
+        </mj-text>
+
+        <mj-button 
+          background-color="#3b82f6" 
+          color="#ffffff" 
+          font-size="16px" 
+          font-weight="600" 
+          border-radius="12px" 
+          padding="12px 24px"
+          href="https://lifeguard.co.za/dashboard"
+        >
+          Go to Dashboard
+        </mj-button>
+      </mj-column>
+    </mj-section>
+
+    <!-- Footer -->
+    <mj-section background-color="#1e293b" padding="40px 20px">
+      <mj-column>
+        <mj-text align="center" color="#94a3b8" font-size="14px" line-height="20px">
+          You're receiving this email because you created an account with LifeGuard.
+        </mj-text>
+        <mj-text align="center" color="#94a3b8" font-size="14px" line-height="20px" padding-top="10px">
+          © 2024 LifeGuard. All rights reserved.
+        </mj-text>
+        <mj-text align="center" color="#94a3b8" font-size="14px" padding-top="20px">
+          <a href="#" style="color: #94a3b8; text-decoration: underline;">Unsubscribe</a> | 
+          <a href="#" style="color: #94a3b8; text-decoration: underline;">Privacy Policy</a> | 
+          <a href="#" style="color: #94a3b8; text-decoration: underline;">Contact Support</a>
+        </mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

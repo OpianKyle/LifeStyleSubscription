@@ -1,0 +1,165 @@
+<mjml>
+  <mj-head>
+    <mj-title>Payment Receipt - LifeGuard</mj-title>
+    <mj-font name="Inter" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" />
+    <mj-attributes>
+      <mj-all font-family="Inter, Arial, sans-serif" />
+    </mj-attributes>
+  </mj-head>
+  <mj-body background-color="#f8fafc">
+    <!-- Header -->
+    <mj-section background-color="#ffffff" padding="40px 20px 20px">
+      <mj-column>
+        <mj-image 
+          src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iMTYiIGZpbGw9InVybCgjZ3JhZGllbnQwX2xpbmVhcl8xXzEpIi8+CjxwYXRoIGQ9Ik0yMCAzMkg0NEwyOCA0OFoiIGZpbGw9IndoaXRlIi8+CjxkZWZzPgo8bGluZWFyR3JhZGllbnQgaWQ9ImdyYWRpZW50MF9saW5lYXJfMV8xIiB4MT0iMCIgeTE9IjAiIHgyPSI2NCIgeTI9IjY0IiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+CjxzdG9wIHN0b3AtY29sb3I9IiMzQjgyRjYiLz4KPHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMjU2M0VCIi8+CjwvbGluZWFyR3JhZGllbnQ+CjwvZGVmcz4KPHN2Zz4K" 
+          width="64px" 
+          align="center" 
+        />
+        <mj-text align="center" font-size="32px" font-weight="700" color="#1e293b" padding-top="20px">
+          LifeGuard
+        </mj-text>
+        <mj-text align="center" font-size="18px" color="#10b981" font-weight="600" padding-top="10px">
+          PAYMENT RECEIVED
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <!-- Main Content -->
+    <mj-section background-color="#ffffff" padding="20px">
+      <mj-column>
+        <mj-text font-size="24px" font-weight="600" color="#1e293b" padding-bottom="20px">
+          Payment Receipt
+        </mj-text>
+        
+        <mj-text font-size="16px" line-height="24px" color="#475569" padding-bottom="20px">
+          Hi {{name}},
+        </mj-text>
+
+        <mj-text font-size="16px" line-height="24px" color="#475569" padding-bottom="30px">
+          Thank you for your payment! Your subscription has been successfully processed and your protection is now active.
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <!-- Payment Details -->
+    <mj-section background-color="#f8fafc" padding="20px" border-radius="12px">
+      <mj-column>
+        <mj-text font-size="18px" font-weight="600" color="#1e293b" padding-bottom="15px">
+          Payment Details
+        </mj-text>
+        
+        <mj-table>
+          <tr style="border-bottom: 1px solid #e2e8f0;">
+            <td style="padding: 12px 0; color: #64748b; font-size: 14px;">Plan:</td>
+            <td style="padding: 12px 0; color: #1e293b; font-size: 14px; font-weight: 600; text-align: right;">{{planName}}</td>
+          </tr>
+          <tr style="border-bottom: 1px solid #e2e8f0;">
+            <td style="padding: 12px 0; color: #64748b; font-size: 14px;">Amount:</td>
+            <td style="padding: 12px 0; color: #1e293b; font-size: 14px; font-weight: 600; text-align: right;">{{amount}}</td>
+          </tr>
+          <tr style="border-bottom: 1px solid #e2e8f0;">
+            <td style="padding: 12px 0; color: #64748b; font-size: 14px;">Date:</td>
+            <td style="padding: 12px 0; color: #1e293b; font-size: 14px; font-weight: 600; text-align: right;">{{date}}</td>
+          </tr>
+          <tr style="border-bottom: 1px solid #e2e8f0;">
+            <td style="padding: 12px 0; color: #64748b; font-size: 14px;">Transaction ID:</td>
+            <td style="padding: 12px 0; color: #1e293b; font-size: 14px; font-weight: 600; text-align: right;">{{transactionId}}</td>
+          </tr>
+          <tr>
+            <td style="padding: 12px 0; color: #64748b; font-size: 14px;">Status:</td>
+            <td style="padding: 12px 0; color: #10b981; font-size: 14px; font-weight: 600; text-align: right;">PAID</td>
+          </tr>
+        </mj-table>
+      </mj-column>
+    </mj-section>
+
+    <!-- Next Steps -->
+    <mj-section background-color="#ffffff" padding="20px">
+      <mj-column>
+        <mj-text font-size="18px" font-weight="600" color="#1e293b" padding-bottom="15px">
+          What's Next?
+        </mj-text>
+
+        <mj-text font-size="16px" line-height="24px" color="#475569" padding-bottom="15px">
+          Your protection is now active! You can access all your plan benefits immediately. Visit your dashboard to:
+        </mj-text>
+
+        <mj-table>
+          <tr>
+            <td style="padding: 8px 0; vertical-align: top;">
+              <div style="width: 20px; height: 20px; background: #10b981; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-right: 12px;">
+                <span style="color: white; font-size: 12px;">✓</span>
+              </div>
+            </td>
+            <td style="padding: 8px 0; color: #475569; font-size: 16px;">
+              View your policy details and coverage
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0; vertical-align: top;">
+              <div style="width: 20px; height: 20px; background: #10b981; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-right: 12px;">
+                <span style="color: white; font-size: 12px;">✓</span>
+              </div>
+            </td>
+            <td style="padding: 8px 0; color: #475569; font-size: 16px;">
+              Download this receipt for your records
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0; vertical-align: top;">
+              <div style="width: 20px; height: 20px; background: #10b981; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-right: 12px;">
+                <span style="color: white; font-size: 12px;">✓</span>
+              </div>
+            </td>
+            <td style="padding: 8px 0; color: #475569; font-size: 16px;">
+              Access 24/7 emergency services
+            </td>
+          </tr>
+        </mj-table>
+
+        <mj-button 
+          background-color="#3b82f6" 
+          color="#ffffff" 
+          font-size="16px" 
+          font-weight="600" 
+          border-radius="12px" 
+          padding="12px 24px"
+          href="https://lifeguard.co.za/dashboard"
+        >
+          View Dashboard
+        </mj-button>
+      </mj-column>
+    </mj-section>
+
+    <!-- Support -->
+    <mj-section background-color="#fef3c7" padding="20px" border-radius="12px">
+      <mj-column>
+        <mj-text align="center" font-size="16px" font-weight="600" color="#92400e" padding-bottom="10px">
+          Need Help?
+        </mj-text>
+        <mj-text align="center" font-size="14px" line-height="20px" color="#92400e">
+          If you have any questions about your payment or coverage, our support team is here to help 24/7.
+        </mj-text>
+        <mj-text align="center" font-size="14px" padding-top="10px">
+          <a href="mailto:support@lifeguard.co.za" style="color: #92400e; text-decoration: underline;">Contact Support</a>
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <!-- Footer -->
+    <mj-section background-color="#1e293b" padding="40px 20px">
+      <mj-column>
+        <mj-text align="center" color="#94a3b8" font-size="14px" line-height="20px">
+          Keep this receipt for your records.
+        </mj-text>
+        <mj-text align="center" color="#94a3b8" font-size="14px" line-height="20px" padding-top="10px">
+          © 2024 LifeGuard. All rights reserved.
+        </mj-text>
+        <mj-text align="center" color="#94a3b8" font-size="14px" padding-top="20px">
+          <a href="#" style="color: #94a3b8; text-decoration: underline;">Privacy Policy</a> | 
+          <a href="#" style="color: #94a3b8; text-decoration: underline;">Contact Support</a>
+        </mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

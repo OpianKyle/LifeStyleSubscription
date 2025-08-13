@@ -1,0 +1,214 @@
+import Stripe from 'stripe';
+import { storage } from '../storage';
+import { sendEmail } from './email';
+
+if (!process.env.STRIPE_SECRET_KEY) {
+  throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
+}
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+
+export class StripeService {
+  static async createOrGetCustomer(userId: string, email: string, name: string) {
+    const user = await storage.getUserById(userId);
+    
+    if (user?.stripeCustomerId) {
+      return user.stripeCustomerId;
+    }
+
+    const customer = await stripe.customers.create({
+      email,
+      name,
+      metadata: { userId }
+    });
+
+    await storage.updateUser(userId, { stripeCustomerId: customer.id });
+    return customer.id;
+  }
+
+  static async createSubscription(userId: string, planName: string) {
+    const user = await storage.getUserById(userId);
+    const plan = await storage.getSubscriptionPlanByName(planName);
+    
+    if (!user || !plan) {
+      throw new Error('User or plan not found');
+    }
+
+    if (!plan.stripePriceId) {
+      throw new Error('Stripe price ID not configured for this plan');
+    }
+
+    const customerId = await this.createOrGetCustomer(userId, user.email, user.name);
+
+    const subscription = await stripe.subscriptions.create({
+      customer: customerId,
+      items: [{ price: plan.stripePriceId }],
+      payment_behavior: 'default_incomplete',
+      expand: ['latest_invoice.payment_intent'],
+      metadata: { userId, planId: plan.id }
+    });
+
+    // Store subscription in database
+    await storage.createSubscription({
+      userId,
+      planId: plan.id,
+      stripeSubscriptionId: subscription.id,
+      status: 'INCOMPLETE',
+      currentPeriodStart: new Date((subscription as any).current_period_start * 1000),
+      currentPeriodEnd: new Date((subscription as any).current_period_end * 1000)
+    });
+
+    // Update user with subscription ID
+    await storage.updateUser(userId, { stripeSubscriptionId: subscription.id });
+
+    const invoice = subscription.latest_invoice as Stripe.Invoice;
+    const paymentIntent = (invoice as any).payment_intent as Stripe.PaymentIntent;
+
+    return {
+      subscriptionId: subscription.id,
+      clientSecret: paymentIntent.client_secret,
+      invoice: invoice
+    };
+  }
+
+  static async updateSubscription(userId: string, newPlanName: string) {
+    const user = await storage.getUserById(userId);
+    const currentSubscription = await storage.getUserSubscription(userId);
+    const newPlan = await storage.getSubscriptionPlanByName(newPlanName);
+    
+    if (!user || !currentSubscription || !newPlan) {
+      throw new Error('User, subscription, or plan not found');
+    }
+
+    const stripeSubscription = await stripe.subscriptions.retrieve(currentSubscription.stripeSubscriptionId!);
+    
+    await stripe.subscriptions.update(currentSubscription.stripeSubscriptionId!, {
+      items: [{
+        id: stripeSubscription.items.data[0].id,
+        price: newPlan.stripePriceId!
+      }],
+      proration_behavior: 'create_prorations'
+    });
+
+    // Update subscription in database
+    await storage.updateSubscription(currentSubscription.id, {
+      planId: newPlan.id
+    });
+
+    // Send subscription change email
+    await sendEmail('subscriptionChange', {
+      name: user.name,
+      oldPlan: currentSubscription.plan.name,
+      newPlan: newPlan.name,
+      changeDate: new Date().toLocaleDateString(),
+      nextBilling: new Date(currentSubscription.currentPeriodEnd!).toLocaleDateString()
+    }, user.email, 'Your LifeGuard subscription has been updated');
+
+    return { message: 'Subscription updated successfully' };
+  }
+
+  static async cancelSubscription(userId: string) {
+    const user = await storage.getUserById(userId);
+    const subscription = await storage.getUserSubscription(userId);
+    
+    if (!user || !subscription) {
+      throw new Error('User or subscription not found');
+    }
+
+    await stripe.subscriptions.update(subscription.stripeSubscriptionId!, {
+      cancel_at_period_end: true
+    });
+
+    await storage.cancelSubscription(subscription.id);
+
+    // Send subscription change email
+    await sendEmail('subscriptionChange', {
+      name: user.name,
+      oldPlan: subscription.plan.name,
+      newPlan: 'Canceled',
+      changeDate: new Date().toLocaleDateString(),
+      nextBilling: new Date(subscription.currentPeriodEnd!).toLocaleDateString()
+    }, user.email, 'Your LifeGuard subscription has been canceled');
+
+    return { message: 'Subscription canceled successfully' };
+  }
+
+  static async handleWebhook(event: Stripe.Event) {
+    switch (event.type) {
+      case 'invoice.payment_succeeded':
+        await this.handlePaymentSucceeded(event.data.object as Stripe.Invoice);
+        break;
+      case 'invoice.payment_failed':
+        await this.handlePaymentFailed(event.data.object as Stripe.Invoice);
+        break;
+      case 'customer.subscription.updated':
+        await this.handleSubscriptionUpdated(event.data.object as Stripe.Subscription);
+        break;
+      case 'customer.subscription.deleted':
+        await this.handleSubscriptionDeleted(event.data.object as Stripe.Subscription);
+        break;
+    }
+  }
+
+  private static async handlePaymentSucceeded(invoice: Stripe.Invoice) {
+    const subscription = await stripe.subscriptions.retrieve((invoice as any).subscription as string);
+    const userId = subscription.metadata.userId;
+    const user = await storage.getUserById(userId);
+    
+    if (!user) return;
+
+    // Create invoice record
+    await storage.createInvoice({
+      userId,
+      stripeInvoiceId: invoice.id,
+      amount: (invoice.amount_paid / 100).toString(),
+      currency: invoice.currency.toUpperCase(),
+      status: 'paid',
+      paidAt: new Date(invoice.status_transitions?.paid_at ? invoice.status_transitions.paid_at * 1000 : Date.now())
+    });
+
+    // Update subscription status
+    await storage.updateSubscription(subscription.metadata.planId, {
+      status: 'ACTIVE',
+      currentPeriodStart: new Date((subscription as any).current_period_start * 1000),
+      currentPeriodEnd: new Date((subscription as any).current_period_end * 1000)
+    });
+
+    // Send payment receipt email
+    const plan = await storage.getSubscriptionPlanByName(subscription.metadata.planId);
+    await sendEmail('paymentReceipt', {
+      name: user.name,
+      planName: plan?.name || 'Unknown',
+      amount: `R${(invoice.amount_paid / 100).toFixed(2)}`,
+      date: new Date().toLocaleDateString(),
+      transactionId: invoice.id
+    }, user.email, 'Payment receipt for your LifeGuard subscription');
+  }
+
+  private static async handlePaymentFailed(invoice: Stripe.Invoice) {
+    // Handle failed payment logic
+    console.log('Payment failed for invoice:', invoice.id);
+  }
+
+  private static async handleSubscriptionUpdated(subscription: Stripe.Subscription) {
+    const userId = subscription.metadata.userId;
+    if (!userId) return;
+
+    await storage.updateSubscription(subscription.metadata.planId, {
+      status: subscription.status.toUpperCase() as any,
+      currentPeriodStart: new Date((subscription as any).current_period_start * 1000),
+      currentPeriodEnd: new Date((subscription as any).current_period_end * 1000),
+      cancelAtPeriodEnd: subscription.cancel_at_period_end
+    });
+  }
+
+  private static async handleSubscriptionDeleted(subscription: Stripe.Subscription) {
+    const userId = subscription.metadata.userId;
+    if (!userId) return;
+
+    await storage.updateSubscription(subscription.metadata.planId, {
+      status: 'CANCELED',
+      canceledAt: new Date()
+    });
+  }
+}

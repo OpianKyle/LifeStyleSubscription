@@ -1,0 +1,162 @@
+<mjml>
+  <mj-head>
+    <mj-title>Subscription Updated - LifeGuard</mj-title>
+    <mj-font name="Inter" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" />
+    <mj-attributes>
+      <mj-all font-family="Inter, Arial, sans-serif" />
+    </mj-attributes>
+  </mj-head>
+  <mj-body background-color="#f8fafc">
+    <!-- Header -->
+    <mj-section background-color="#ffffff" padding="40px 20px 20px">
+      <mj-column>
+        <mj-image 
+          src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iMTYiIGZpbGw9InVybCgjZ3JhZGllbnQwX2xpbmVhcl8xXzEpIi8+CjxwYXRoIGQ9Ik0yMCAzMkg0NEwyOCA0OFoiIGZpbGw9IndoaXRlIi8+CjxkZWZzPgo8bGluZWFyR3JhZGllbnQgaWQ9ImdyYWRpZW50MF9saW5lYXJfMV8xIiB4MT0iMCIgeTE9IjAiIHgyPSI2NCIgeTI9IjY0IiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+CjxzdG9wIHN0b3AtY29sb3I9IiMzQjgyRjYiLz4KPHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMjU2M0VCIi8+CjwvbGluZWFyR3JhZGllbnQ+CjwvZGVmcz4KPHN2Zz4K" 
+          width="64px" 
+          align="center" 
+        />
+        <mj-text align="center" font-size="32px" font-weight="700" color="#1e293b" padding-top="20px">
+          LifeGuard
+        </mj-text>
+        <mj-text align="center" font-size="18px" color="#3b82f6" font-weight="600" padding-top="10px">
+          SUBSCRIPTION UPDATED
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <!-- Main Content -->
+    <mj-section background-color="#ffffff" padding="20px">
+      <mj-column>
+        <mj-text font-size="24px" font-weight="600" color="#1e293b" padding-bottom="20px">
+          Your Subscription Has Been Updated
+        </mj-text>
+        
+        <mj-text font-size="16px" line-height="24px" color="#475569" padding-bottom="20px">
+          Hi {{name}},
+        </mj-text>
+
+        <mj-text font-size="16px" line-height="24px" color="#475569" padding-bottom="30px">
+          We wanted to confirm that your LifeGuard subscription has been successfully updated. Here are the details of your change:
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <!-- Subscription Change Details -->
+    <mj-section background-color="#f8fafc" padding="20px" border-radius="12px">
+      <mj-column>
+        <mj-text font-size="18px" font-weight="600" color="#1e293b" padding-bottom="15px">
+          Change Details
+        </mj-text>
+        
+        <mj-table>
+          <tr style="border-bottom: 1px solid #e2e8f0;">
+            <td style="padding: 12px 0; color: #64748b; font-size: 14px;">Previous Plan:</td>
+            <td style="padding: 12px 0; color: #ef4444; font-size: 14px; font-weight: 600; text-align: right;">{{oldPlan}}</td>
+          </tr>
+          <tr style="border-bottom: 1px solid #e2e8f0;">
+            <td style="padding: 12px 0; color: #64748b; font-size: 14px;">New Plan:</td>
+            <td style="padding: 12px 0; color: #10b981; font-size: 14px; font-weight: 600; text-align: right;">{{newPlan}}</td>
+          </tr>
+          <tr style="border-bottom: 1px solid #e2e8f0;">
+            <td style="padding: 12px 0; color: #64748b; font-size: 14px;">Change Date:</td>
+            <td style="padding: 12px 0; color: #1e293b; font-size: 14px; font-weight: 600; text-align: right;">{{changeDate}}</td>
+          </tr>
+          <tr>
+            <td style="padding: 12px 0; color: #64748b; font-size: 14px;">Next Billing:</td>
+            <td style="padding: 12px 0; color: #1e293b; font-size: 14px; font-weight: 600; text-align: right;">{{nextBilling}}</td>
+          </tr>
+        </mj-table>
+      </mj-column>
+    </mj-section>
+
+    <!-- Important Information -->
+    <mj-section background-color="#ffffff" padding="20px">
+      <mj-column>
+        <mj-text font-size="18px" font-weight="600" color="#1e293b" padding-bottom="15px">
+          Important Information
+        </mj-text>
+
+        <mj-table>
+          <tr>
+            <td style="padding: 8px 0; vertical-align: top;">
+              <div style="width: 20px; height: 20px; background: #3b82f6; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-right: 12px;">
+                <span style="color: white; font-size: 12px;">i</span>
+              </div>
+            </td>
+            <td style="padding: 8px 0; color: #475569; font-size: 16px;">
+              Your new coverage is effective immediately
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0; vertical-align: top;">
+              <div style="width: 20px; height: 20px; background: #3b82f6; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-right: 12px;">
+                <span style="color: white; font-size: 12px;">i</span>
+              </div>
+            </td>
+            <td style="padding: 8px 0; color: #475569; font-size: 16px;">
+              You'll be billed for the new plan on your next billing cycle
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0; vertical-align: top;">
+              <div style="width: 20px; height: 20px; background: #3b82f6; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-right: 12px;">
+                <span style="color: white; font-size: 12px;">i</span>
+              </div>
+            </td>
+            <td style="padding: 8px 0; color: #475569; font-size: 16px;">
+              Any prorated charges will appear on your next invoice
+            </td>
+          </tr>
+        </mj-table>
+
+        <mj-text font-size="16px" line-height="24px" color="#475569" padding="20px 0 10px">
+          You can view your updated coverage and manage your subscription anytime in your dashboard.
+        </mj-text>
+
+        <mj-button 
+          background-color="#3b82f6" 
+          color="#ffffff" 
+          font-size="16px" 
+          font-weight="600" 
+          border-radius="12px" 
+          padding="12px 24px"
+          href="https://lifeguard.co.za/dashboard"
+        >
+          View Dashboard
+        </mj-button>
+      </mj-column>
+    </mj-section>
+
+    <!-- Support -->
+    <mj-section background-color="#fef3c7" padding="20px" border-radius="12px">
+      <mj-column>
+        <mj-text align="center" font-size="16px" font-weight="600" color="#92400e" padding-bottom="10px">
+          Questions About Your Change?
+        </mj-text>
+        <mj-text align="center" font-size="14px" line-height="20px" color="#92400e">
+          Our support team is available 24/7 to help with any questions about your subscription changes or coverage.
+        </mj-text>
+        <mj-text align="center" font-size="14px" padding-top="10px">
+          <a href="mailto:support@lifeguard.co.za" style="color: #92400e; text-decoration: underline;">Contact Support</a>
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <!-- Footer -->
+    <mj-section background-color="#1e293b" padding="40px 20px">
+      <mj-column>
+        <mj-text align="center" color="#94a3b8" font-size="14px" line-height="20px">
+          You're receiving this email because your LifeGuard subscription was modified.
+        </mj-text>
+        <mj-text align="center" color="#94a3b8" font-size="14px" line-height="20px" padding-top="10px">
+          © 2024 LifeGuard. All rights reserved.
+        </mj-text>
+        <mj-text align="center" color="#94a3b8" font-size="14px" padding-top="20px">
+          <a href="#" style="color: #94a3b8; text-decoration: underline;">Manage Subscription</a> | 
+          <a href="#" style="color: #94a3b8; text-decoration: underline;">Privacy Policy</a> | 
+          <a href="#" style="color: #94a3b8; text-decoration: underline;">Contact Support</a>
+        </mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>
