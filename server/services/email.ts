@@ -20,10 +20,11 @@ export async function sendEmail(templateName: string, data: any, to: string, sub
     console.error('MJML compilation errors:', errors);
   }
 
+  const port = Number(process.env.SMTP_PORT || 587);
   const transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST || 'smtp.gmail.com',
-    port: Number(process.env.SMTP_PORT || 587),
-    secure: false,
+    port: port,
+    secure: port === 465, // true for 465 (SSL), false for other ports (TLS)
     auth: { 
       user: process.env.SMTP_USER || process.env.EMAIL_USER, 
       pass: process.env.SMTP_PASS || process.env.EMAIL_PASS 

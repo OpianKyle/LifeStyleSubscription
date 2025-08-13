@@ -238,6 +238,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Manual email verification route (temporary workaround)
+  app.post('/api/auth/manual-verify', async (req: Request, res: Response) => {
+    try {
+      const { email } = req.body;
+      const user = await storage.getUserByEmail(email);
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      const updatedUser = await storage.updateUser(user.id, { emailVerified: true });
+      res.json({ message: 'Email verified successfully', user: updatedUser });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   // Admin routes
   app.get('/api/admin/users', authenticateToken, requireAdmin, async (_req: Request, res: Response) => {
     try {
