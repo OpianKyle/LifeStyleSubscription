@@ -26,7 +26,7 @@ export default function PlanCard({ plan, featured = false, onSelect, disabled = 
     )}>
       {featured && !isCurrentPlan && (
         <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-          <span className="bg-gradient-to-r from-brand-500 to-brand-600 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg">
+          <span className="bg-gradient-to-r from-brand-500 to-brand-600 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg whitespace-nowrap">
             Most Popular
           </span>
         </div>

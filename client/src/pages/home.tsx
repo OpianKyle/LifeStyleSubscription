@@ -65,7 +65,7 @@ export default function Home() {
     }
 
     // Find the selected plan details
-    const plan = plans?.find((p: any) => p.name === planName);
+    const plan = plans.find((p: any) => p.name === planName);
     if (!plan) return;
 
     // Check if this is a development plan (skip payment) or production (require payment)
