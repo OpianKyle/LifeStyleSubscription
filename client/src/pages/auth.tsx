@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { AlertCircle, CheckCircle } from "lucide-react";
+import { apiRequest } from "@/lib/queryClient";
 
 type AuthMode = 'login' | 'register' | 'verify-email' | 'reset-password' | 'forgot-password';
 
@@ -30,12 +31,44 @@ export default function Auth() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
+  // Check URL for verification token and handle email verification
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+    const currentPath = window.location.pathname;
+
+    if (currentPath === '/verify-email' && token) {
+      setMode('verify-email');
+      verifyEmailToken(token);
+    }
+  }, []);
+
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
       setLocation('/dashboard');
     }
   }, [isAuthenticated, setLocation]);
+
+  const verifyEmailToken = async (token: string) => {
+    try {
+      const response = await apiRequest('POST', '/api/auth/verify-email', { token });
+      setSuccess('Email verified successfully! You can now sign in.');
+      setMode('login');
+      toast({
+        title: "Email Verified",
+        description: "Your email has been verified successfully. You can now sign in.",
+      });
+    } catch (error: any) {
+      setError(error.message || 'Email verification failed');
+      setMode('login');
+      toast({
+        title: "Verification Failed",
+        description: error.message || 'Email verification failed',
+        variant: "destructive",
+      });
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

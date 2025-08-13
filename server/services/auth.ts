@@ -61,9 +61,10 @@ export class AuthService {
     });
 
     // Send verification email
+    const baseUrl = process.env.REPLIT_DOMAIN ? `https://${process.env.REPLIT_DOMAIN}` : (process.env.FRONTEND_URL || 'http://localhost:5000');
     await sendEmail('verifyEmail', {
       name: user.name,
-      verificationLink: `${process.env.FRONTEND_URL || 'http://localhost:5000'}/verify-email?token=${emailVerificationToken}`,
+      verificationLink: `${baseUrl}/verify-email?token=${emailVerificationToken}`,
       expiresAt: '24 hours'
     }, user.email, 'Verify your LifeGuard account');
 
