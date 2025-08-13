@@ -132,8 +132,8 @@ export default function Dashboard() {
     return null;
   }
 
-  const subscription = subscriptionData?.subscription;
-  const invoices = invoicesData?.invoices || [];
+  const subscription = (subscriptionData as any)?.subscription;
+  const invoices = (invoicesData as any)?.invoices || [];
 
   return (
     <div className="min-h-screen bg-slate-50">
