@@ -6,7 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuthState } from "@/hooks/useAuthState";
 import Home from "@/pages/home";
 import Auth from "@/pages/auth";
-import Pricing from "@/pages/pricing";
+
 import Dashboard from "@/pages/dashboard";
 import Admin from "@/pages/admin";
 import NotFound from "@/pages/not-found";
@@ -26,7 +26,7 @@ function Router() {
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/auth" component={Auth} />
-      <Route path="/pricing" component={Pricing} />
+
       <Route path="/verify-email" component={Auth} />
       <Route path="/reset-password" component={Auth} />
       {isAuthenticated && (
