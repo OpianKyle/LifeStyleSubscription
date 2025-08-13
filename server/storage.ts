@@ -29,6 +29,7 @@ export interface IStorage {
   createSubscriptionPlan(plan: InsertSubscriptionPlan): Promise<SubscriptionPlan>;
   getAllSubscriptionPlans(): Promise<SubscriptionPlan[]>;
   getSubscriptionPlanByName(name: string): Promise<SubscriptionPlan | undefined>;
+  getSubscriptionPlanById(id: string): Promise<SubscriptionPlan | undefined>;
   
   // Subscription operations
   createSubscription(subscription: InsertSubscription): Promise<Subscription>;
@@ -144,6 +145,14 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(subscriptionPlans)
       .where(eq(subscriptionPlans.name, name as any));
+    return plan;
+  }
+
+  async getSubscriptionPlanById(id: string): Promise<SubscriptionPlan | undefined> {
+    const [plan] = await db
+      .select()
+      .from(subscriptionPlans)
+      .where(eq(subscriptionPlans.id, id));
     return plan;
   }
 

@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Check } from "lucide-react";
+import { Check, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface PlanCardProps {
@@ -13,18 +13,29 @@ interface PlanCardProps {
   featured?: boolean;
   onSelect: (planName: string) => void;
   disabled?: boolean;
+  isCurrentPlan?: boolean;
+  loading?: boolean;
 }
 
-export default function PlanCard({ plan, featured = false, onSelect, disabled = false }: PlanCardProps) {
+export default function PlanCard({ plan, featured = false, onSelect, disabled = false, isCurrentPlan = false, loading = false }: PlanCardProps) {
   return (
     <div className={cn(
       "bg-white rounded-2xl p-8 shadow-sm border border-slate-200/60 hover:shadow-xl transition-all duration-300 group relative",
-      featured && "bg-gradient-to-br from-brand-50 to-indigo-50 border-2 border-brand-200 transform scale-105"
+      featured && "bg-gradient-to-br from-brand-50 to-indigo-50 border-2 border-brand-200 transform scale-105",
+      isCurrentPlan && "border-2 border-emerald-300 bg-gradient-to-br from-emerald-50 to-green-50"
     )}>
-      {featured && (
+      {featured && !isCurrentPlan && (
         <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
           <span className="bg-gradient-to-r from-brand-500 to-brand-600 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg">
             Most Popular
+          </span>
+        </div>
+      )}
+      
+      {isCurrentPlan && (
+        <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+          <span className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg">
+            Current Plan
           </span>
         </div>
       )}
@@ -51,15 +62,23 @@ export default function PlanCard({ plan, featured = false, onSelect, disabled = 
       <Button 
         className={cn(
           "w-full py-3 rounded-xl font-semibold transition-all duration-200",
-          featured 
-            ? "btn-primary" 
-            : "btn-secondary"
+          isCurrentPlan
+            ? "bg-emerald-500 hover:bg-emerald-600 text-white"
+            : featured 
+              ? "btn-primary" 
+              : "btn-secondary"
         )}
         onClick={() => onSelect(plan.name)}
-        disabled={disabled}
+        disabled={disabled || isCurrentPlan}
         data-testid={`button-select-${plan.name.toLowerCase()}`}
       >
-        Choose Plan
+        {loading ? (
+          <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Updating...</>
+        ) : isCurrentPlan ? (
+          "Current Plan"
+        ) : (
+          "Choose Plan"
+        )}
       </Button>
     </div>
   );

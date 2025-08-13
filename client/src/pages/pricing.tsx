@@ -21,20 +21,23 @@ export default function Pricing() {
     queryKey: ["/api/plans"],
   });
 
+  const { data: currentSubscription } = useQuery({
+    queryKey: ["/api/subscriptions/current"],
+    enabled: isAuthenticated,
+  });
+
   const createSubscriptionMutation = useMutation({
     mutationFn: async (planName: string) => {
       const response = await apiRequest("POST", "/api/subscriptions/create", { planName });
       return response.json();
     },
     onSuccess: (data) => {
-      // Handle Stripe payment flow
-      if (data.clientSecret) {
-        // Redirect to Stripe payment
-        toast({
-          title: "Redirecting to Payment",
-          description: "Please complete your payment to activate your subscription.",
-        });
-      }
+      queryClient.invalidateQueries({ queryKey: ["/api/subscriptions/current"] });
+      toast({
+        title: "Plan Updated Successfully",
+        description: "Your subscription plan has been updated.",
+      });
+      setSelectedPlan(null);
     },
     onError: (error: any) => {
       toast({
@@ -75,7 +78,7 @@ export default function Pricing() {
     );
   }
 
-  const plans = plansData?.plans || [];
+  const plans = (plansData as any)?.plans || [];
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -107,6 +110,8 @@ export default function Pricing() {
                 featured={plan.name === 'PROSPER'}
                 onSelect={handleSelectPlan}
                 disabled={createSubscriptionMutation.isPending && selectedPlan === plan.name}
+                isCurrentPlan={(currentSubscription as any)?.subscription?.plan?.name === plan.name}
+                loading={createSubscriptionMutation.isPending && selectedPlan === plan.name}
               />
             ))}
           </div>

@@ -26,10 +26,62 @@ export class StripeService {
     return customer.id;
   }
 
+  static async createNewSubscription(userId: string, planName: string) {
+    const user = await storage.getUserById(userId);
+    const plan = await storage.getSubscriptionPlanByName(planName);
+    
+    if (!user || !plan) {
+      throw new Error('User or plan not found');
+    }
+
+    if (!plan.stripePriceId) {
+      throw new Error('Stripe price ID not configured for this plan');
+    }
+
+    const customerId = await this.createOrGetCustomer(userId, user.email, user.name);
+
+    const subscription = await stripe.subscriptions.create({
+      customer: customerId,
+      items: [{ price: plan.stripePriceId }],
+      payment_behavior: 'default_incomplete',
+      expand: ['latest_invoice.payment_intent'],
+      metadata: { userId, planId: plan.id }
+    });
+
+    // Store subscription in database with safe date handling
+    const now = new Date();
+    const nextMonth = new Date();
+    nextMonth.setMonth(nextMonth.getMonth() + 1);
+    
+    const subscriptionData = {
+      userId,
+      planId: plan.id,
+      stripeSubscriptionId: subscription.id,
+      status: 'INCOMPLETE' as const,
+      currentPeriodStart: now,
+      currentPeriodEnd: nextMonth
+    };
+
+    await storage.createSubscription(subscriptionData);
+
+    // Update user with subscription ID
+    await storage.updateUser(userId, { stripeSubscriptionId: subscription.id });
+
+    const invoice = subscription.latest_invoice as Stripe.Invoice;
+    const paymentIntent = (invoice as any)?.payment_intent as Stripe.PaymentIntent;
+
+    return {
+      subscriptionId: subscription.id,
+      clientSecret: paymentIntent?.client_secret || null,
+      invoice: invoice
+    };
+  }
+
   static async createSubscription(userId: string, planName: string) {
     try {
       const user = await storage.getUserById(userId);
       const plan = await storage.getSubscriptionPlanByName(planName);
+      const existingSubscription = await storage.getUserSubscription(userId);
       
       if (!user || !plan) {
         throw new Error('User or plan not found');
@@ -39,44 +91,16 @@ export class StripeService {
         throw new Error('Stripe price ID not configured for this plan');
       }
 
-      const customerId = await this.createOrGetCustomer(userId, user.email, user.name);
+      // If user already has a subscription, check if it's the same plan
+      if (existingSubscription) {
+        const existingPlan = await storage.getSubscriptionPlanById(existingSubscription.planId);
+        if (existingPlan?.name === planName) {
+          throw new Error('You are already subscribed to this plan');
+        }
+        return await this.updateSubscription(userId, planName);
+      }
 
-      const subscription = await stripe.subscriptions.create({
-        customer: customerId,
-        items: [{ price: plan.stripePriceId }],
-        payment_behavior: 'default_incomplete',
-        expand: ['latest_invoice.payment_intent'],
-        metadata: { userId, planId: plan.id }
-      });
-
-      // Store subscription in database with safe date handling
-      const now = new Date();
-      const nextMonth = new Date();
-      nextMonth.setMonth(nextMonth.getMonth() + 1);
-      
-      const subscriptionData = {
-        userId,
-        planId: plan.id,
-        stripeSubscriptionId: subscription.id,
-        status: 'INCOMPLETE' as const,
-        currentPeriodStart: now,
-        currentPeriodEnd: nextMonth
-      };
-
-      await storage.createSubscription(subscriptionData);
-
-      // Update user with subscription ID
-      await storage.updateUser(userId, { stripeSubscriptionId: subscription.id });
-
-      const invoice = subscription.latest_invoice as Stripe.Invoice;
-      
-      const paymentIntent = (invoice as any)?.payment_intent as Stripe.PaymentIntent;
-
-      return {
-        subscriptionId: subscription.id,
-        clientSecret: paymentIntent?.client_secret || null,
-        invoice: invoice
-      };
+      return await this.createNewSubscription(userId, planName);
     } catch (error) {
       throw error;
     }
@@ -93,6 +117,16 @@ export class StripeService {
 
     const stripeSubscription = await stripe.subscriptions.retrieve(currentSubscription.stripeSubscriptionId!);
     
+    // If current subscription is incomplete, cancel it and create a new one
+    if (stripeSubscription.status === 'incomplete') {
+      await stripe.subscriptions.cancel(currentSubscription.stripeSubscriptionId!);
+      await storage.cancelSubscription(currentSubscription.id);
+      
+      // Create new subscription (but avoid the recursion)
+      return this.createNewSubscription(userId, newPlanName);
+    }
+    
+    // For active subscriptions, update normally
     await stripe.subscriptions.update(currentSubscription.stripeSubscriptionId!, {
       items: [{
         id: stripeSubscription.items.data[0].id,
@@ -106,14 +140,14 @@ export class StripeService {
       planId: newPlan.id
     });
 
-    // Send subscription change email
-    await sendEmail('subscriptionChange', {
-      name: user.name,
-      oldPlan: currentSubscription.plan.name,
-      newPlan: newPlan.name,
-      changeDate: new Date().toLocaleDateString(),
-      nextBilling: new Date(currentSubscription.currentPeriodEnd!).toLocaleDateString()
-    }, user.email, 'Your LifeGuard subscription has been updated');
+    // Note: Email sending temporarily disabled due to SMTP configuration
+    // await sendEmail('subscriptionChange', {
+    //   name: user.name,
+    //   oldPlan: currentSubscription.plan.name,
+    //   newPlan: newPlan.name,
+    //   changeDate: new Date().toLocaleDateString(),
+    //   nextBilling: new Date(currentSubscription.currentPeriodEnd!).toLocaleDateString()
+    // }, user.email, 'Your LifeGuard subscription has been updated');
 
     return { message: 'Subscription updated successfully' };
   }
