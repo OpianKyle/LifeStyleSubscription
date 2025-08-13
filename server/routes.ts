@@ -170,7 +170,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.get('/api/auth/user', authenticateToken, async (req: any, res: Response) => {
-    res.json({ user: req.user });
+    res.json(req.user);
   });
 
   app.post('/api/auth/logout', (_req: Request, res: Response) => {
