@@ -1,0 +1,121 @@
+Create a production-ready, full-stack subscription website for 5 lifestyle products with an Entrepedia-like aesthetic (clean, modern, generous white space, rounded cards, soft shadows, clear typography). The app must include: marketing site, authentication, payments, customer dashboard, admin dashboard, and a templated email system using Nodemailer + SMTP + MJML + Handlebars.
+
+✨ UX/UI Requirements (Entrepedia-inspired)
+Modern, minimalist UI with rounded cards, subtle shadows, soft gradients, and spacious layout.
+
+Accent color on primary buttons/links; consistent typography scale (H1/H2/H3, base 16px).
+
+Tailwind utility classes; responsive from mobile → desktop.
+
+Navigation: Logo (left), Pricing anchor, Sign In/Up (right). Sticky header.
+
+Animate on hover for cards/buttons; smooth page transitions.
+
+📦 Product Plans (use exact copy & pricing)
+OPPORTUNITY — R350 per month
+EMS Assist, Legal Assist, Repatriation Cover, Celebrate Life, 24/7 Nurse On-Call, Funeral Cover, Accidental Death Cover, Funeral Assist, Family Income Benefit, Lawyer Assist, Virtual GP Assistant, Medical Second Opinion, Crime Victim Assist, Assault & Trauma Assist, Emergency Medical Services.
+
+MOMENTUM — R450 per month
+Funeral Cover: R5,000, Funeral Assist, EMS Assist, Legal Assist, Repatriation Cover, Celebrate Life, 24/7 Nurse On-Call, Accidental Death Cover, Family Income Benefit, Lawyer Assist, Virtual GP Assistant, Medical Second Opinion, Crime Victim Assist, Assault & Trauma Assist, Emergency Medical Services.
+
+PROSPER — R550 per month
+Funeral Cover: R10,000, Accidental Death Cover: R20,000, Funeral Assist, Family Income Benefit: R5,000 x6, EMS Assist, Legal Assist, Repatriation Cover, Celebrate Life, 24/7 Nurse On-Call, Virtual GP Assistant, Medical Second Opinion, Lawyer Assist, Crime Victim Assist, Assault & Trauma Assist, Emergency Medical Services.
+
+PRESTIGE — R695 per month
+Funeral Cover: R15,000, Accidental Death Cover: R50,000, Funeral Assist, Family Income Benefit: R5,000 x6, EMS Assist, Legal Assist, Repatriation Cover, Celebrate Life, 24/7 Nurse On-Call, Virtual GP Assistant, Medical Second Opinion, Crime Victim Assist, Assault & Trauma Assist, Emergency Medical Services, Lawyer Assist.
+
+PINNACLE — R825 per month
+Funeral Cover: R20,000, Accidental Death Cover: R100,000, Funeral Assist, Family Income Benefit: R5,000 x6, EMS Assist, Legal Assist, Lawyer Assist, Repatriation Cover, Celebrate Life, 24/7 Nurse On-Call, Virtual GP Assistant, Medical Second Opinion, Crime Victim Assist, Assault & Trauma Assist, Emergency Medical Services.
+
+🏗️ Tech Stack
+Frontend: Next.js (App Router) + Tailwind CSS + Headless UI (or shadcn/ui).
+
+Backend: Node.js + Express (in /server) or Next.js Route Handlers — choose one, but keep a clean service layer.
+
+ORM/DB: Prisma + PostgreSQL.
+
+Auth: JWT access + refresh tokens, httpOnly cookies, bcrypt password hashing, email verification.
+
+Payments: Stripe or PayFast for monthly recurring billing in ZAR. Implement webhooks for invoice paid/failed, subscription updated/canceled.
+
+Emails: Nodemailer via SMTP + MJML templates compiled with Handlebars placeholders.
+
+Deployment: One-click scripts + README.
+
+🔐 Authentication & Accounts
+Sign up (name, email, password) → create user as unverified → send verification email with token link.
+
+Login (only if verified). Password reset (request + complete). Logout.
+
+Role-based auth: USER, ADMIN. Admin routes protected server-side.
+
+Rate-limit auth endpoints. Validate inputs (Zod/Yup).
+
+💳 Subscriptions & Billing
+Currency: ZAR. Interval: monthly.
+
+Create 5 plans with exact names & prices above.
+
+Users must create an account and be logged in to purchase.
+
+Customer dashboard: show active plan, renew date, status, invoices, ability to upgrade/downgrade (prorate) and cancel (end of period).
+
+Sync subscription state with payment provider via webhooks. Persist invoices/transactions in DB.
+
+Handle payment method updates and retries for failed invoices.
+
+📬 Email System (Nodemailer + SMTP + MJML + Handlebars)
+Add emails/templates/ with these files: welcome.mjml, verifyEmail.mjml, paymentReceipt.mjml, subscriptionChange.mjml, passwordReset.mjml.
+
+Provide a reusable sendEmail(templateName, data, to, subject) utility:
+
+Reads templateName.mjml, compiles with Handlebars using data (e.g., {{name}}, {{planName}}).
+
+Converts MJML → HTML with mjml package.
+
+Sends via Nodemailer transport using SMTP details from .env.
+
+Email Triggers:
+
+After sign-up → Welcome + Verification link.
+
+Payment success → Receipt (amount, plan, transactionId, date).
+
+Plan change (upgrade/downgrade/cancel) → Subscription Change.
+
+Password reset request → Password Reset.
+
+Include example Handlebars placeholders in each template and minimal brand styling.
+
+Provide these exact MJML templates (placeholders remain):
+(same templates as your original — omitted here for brevity, but I will keep them exactly as you had them)
+
+🧰 Utilities & Middleware
+sendEmail utility (implement this exact behavior):
+
+ts
+Copy
+Edit
+import nodemailer from 'nodemailer';
+import fs from 'fs';
+import path from 'path';
+import Handlebars from 'handlebars';
+import mjml2html from 'mjml';
+
+export async function sendEmail(templateName: string, data: any, to: string, subject: string) {
+  const filePath = path.join(process.cwd(), 'emails', 'templates', `${templateName}.mjml`);
+  const mjmlTemplate = fs.readFileSync(filePath, 'utf8');
+  const compiled = Handlebars.compile(mjmlTemplate);
+  const mjml = compiled(data);
+  const { html, errors } = mjml2html(mjml);
+  if (errors?.length) console.error(errors);
+
+  const transporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST,
+    port: Number(process.env.SMTP_PORT || 587),
+    secure: false,
+    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+  });
+
+  await transporter.sendMail({ from: process.env.SMTP_FROM, to, subject, html });
+}
