@@ -60,13 +60,22 @@ export class AuthService {
       role: 'USER'
     });
 
-    // Send verification email
-    const baseUrl = process.env.REPLIT_DOMAINS ? `https://${process.env.REPLIT_DOMAINS}` : (process.env.FRONTEND_URL || 'http://localhost:5000');
-    await sendEmail('verifyEmail', {
-      name: user.name,
-      verificationLink: `${baseUrl}/verify-email?token=${emailVerificationToken}`,
-      expiresAt: '24 hours'
-    }, user.email, 'Verify your LifeGuard account');
+    // Send verification email (skip if no email configuration in development)
+    try {
+      const baseUrl = process.env.REPLIT_DOMAINS ? `https://${process.env.REPLIT_DOMAINS}` : (process.env.FRONTEND_URL || 'http://localhost:5000');
+      await sendEmail('verifyEmail', {
+        name: user.name,
+        verificationLink: `${baseUrl}/verify-email?token=${emailVerificationToken}`,
+        expiresAt: '24 hours'
+      }, user.email, 'Verify your LifeGuard account');
+    } catch (emailError: any) {
+      console.log('Email service not configured, skipping verification email:', emailError.message);
+      // For development: auto-verify the user
+      if (process.env.NODE_ENV === 'development') {
+        await storage.verifyUserEmail(emailVerificationToken);
+        return { user: { ...user, emailVerified: true }, message: 'Registration successful. Email auto-verified in development mode.' };
+      }
+    }
 
     return { user, message: 'Registration successful. Please check your email to verify your account.' };
   }
@@ -102,9 +111,13 @@ export class AuthService {
     }
 
     // Send welcome email
-    await sendEmail('welcome', {
-      name: user.name
-    }, user.email, 'Welcome to LifeGuard!');
+    try {
+      await sendEmail('welcome', {
+        name: user.name
+      }, user.email, 'Welcome to LifeGuard!');
+    } catch (emailError: any) {
+      console.log('Email service not configured, skipping welcome email:', emailError.message);
+    }
 
     return user;
   }

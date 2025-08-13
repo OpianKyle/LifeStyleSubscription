@@ -47,8 +47,8 @@ Preferred communication style: Simple, everyday language.
 - **Subscription Management**: Recurring billing, plan changes, and cancellation handling
 
 ### Database Infrastructure
-- **Neon Database**: Serverless PostgreSQL with connection pooling
-- **WebSocket Support**: Real-time database connections using WebSocket constructor
+- **PostgreSQL Database**: Standard PostgreSQL with connection pooling via pg driver
+- **Migration Status**: Successfully migrated from Neon to Replit PostgreSQL (August 13, 2025)
 
 ### Email Services
 - **SMTP Configuration**: Nodemailer with Gmail/custom SMTP support
