@@ -156,6 +156,15 @@ export class DatabaseStorage implements IStorage {
     return plan;
   }
 
+  async updateSubscriptionPlan(id: string, planData: Partial<SubscriptionPlan>): Promise<SubscriptionPlan | undefined> {
+    const [updatedPlan] = await db
+      .update(subscriptionPlans)
+      .set(planData)
+      .where(eq(subscriptionPlans.id, id))
+      .returning();
+    return updatedPlan;
+  }
+
   // Subscription operations
   async createSubscription(subscription: InsertSubscription): Promise<Subscription> {
     const [newSubscription] = await db

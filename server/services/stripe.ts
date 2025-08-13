@@ -64,6 +64,7 @@ export class StripeService {
       return {
         subscriptionId: subscriptionData.stripeSubscriptionId,
         clientSecret: null,
+        requiresPayment: false,
         message: 'Development subscription created successfully'
       };
     }
@@ -104,6 +105,7 @@ export class StripeService {
     return {
       subscriptionId: subscription.id,
       clientSecret: paymentIntent?.client_secret || null,
+      requiresPayment: true,
       invoice: invoice
     };
   }

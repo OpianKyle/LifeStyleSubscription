@@ -183,6 +183,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ message: 'Logged out successfully' });
   });
 
+  // Configuration routes
+  app.get('/api/config/stripe', (_req: Request, res: Response) => {
+    res.json({
+      publishableKey: process.env.STRIPE_PUBLISHABLE_KEY
+    });
+  });
+
   // Subscription plan routes
   app.get('/api/plans', async (_req: Request, res: Response) => {
     try {

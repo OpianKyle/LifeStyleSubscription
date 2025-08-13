@@ -7,7 +7,9 @@ import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/layout/navbar";
 import Footer from "@/components/layout/footer";
 import PlanCard from "@/components/pricing/plan-card";
+import PaymentForm from "@/components/payment/payment-form";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Loader2 } from "lucide-react";
 
 export default function Pricing() {
@@ -16,6 +18,8 @@ export default function Pricing() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentPlan, setPaymentPlan] = useState<any>(null);
 
   const { data: plansData, isLoading } = useQuery({
     queryKey: ["/api/plans"],
@@ -59,12 +63,41 @@ export default function Pricing() {
       return;
     }
 
-    setSelectedPlan(planName);
-    try {
-      await createSubscriptionMutation.mutateAsync(planName);
-    } catch (error) {
-      setSelectedPlan(null);
+    // Find the selected plan details
+    const plan = plans.find((p: any) => p.name === planName);
+    if (!plan) return;
+
+    // Check if this is a development plan (skip payment) or production (require payment)
+    const isDevelopmentPlan = plan.stripePriceId && plan.stripePriceId.startsWith('price_dev_');
+    
+    if (isDevelopmentPlan) {
+      // Development mode: Direct subscription creation
+      setSelectedPlan(planName);
+      try {
+        await createSubscriptionMutation.mutateAsync(planName);
+      } catch (error) {
+        setSelectedPlan(null);
+      }
+    } else {
+      // Production mode: Show payment form
+      setPaymentPlan(plan);
+      setShowPaymentModal(true);
     }
+  };
+
+  const handlePaymentSuccess = () => {
+    setShowPaymentModal(false);
+    setPaymentPlan(null);
+    queryClient.invalidateQueries({ queryKey: ["/api/subscriptions/current"] });
+    toast({
+      title: "Subscription Activated",
+      description: "Your subscription has been activated successfully!",
+    });
+  };
+
+  const handlePaymentCancel = () => {
+    setShowPaymentModal(false);
+    setPaymentPlan(null);
   };
 
   if (isLoading) {
@@ -117,6 +150,23 @@ export default function Pricing() {
           </div>
         </div>
       </section>
+
+      {/* Payment Modal */}
+      <Dialog open={showPaymentModal} onOpenChange={setShowPaymentModal}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Complete Your Subscription</DialogTitle>
+          </DialogHeader>
+          {paymentPlan && (
+            <PaymentForm
+              planName={paymentPlan.name}
+              planPrice={paymentPlan.price}
+              onSuccess={handlePaymentSuccess}
+              onCancel={handlePaymentCancel}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Features Comparison */}
       <section className="py-20 pricing-gradient">
