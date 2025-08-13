@@ -29,7 +29,7 @@ export async function sendEmail(templateName: string, data: any, to: string, sub
   }
 
   const port = Number(process.env.SMTP_PORT || 587);
-  const transporter = nodemailer.createTransporter({
+  const transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST || 'smtp.gmail.com',
     port: port,
     secure: port === 465, // true for 465 (SSL), false for other ports (TLS)
