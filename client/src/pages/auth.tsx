@@ -48,7 +48,7 @@ export default function Auth() {
     if (isAuthenticated) {
       const urlParams = new URLSearchParams(window.location.search);
       const redirect = urlParams.get('redirect');
-      setLocation(redirect || '/dashboard');
+      setLocation(redirect || '/choose-plan');
     }
   }, [isAuthenticated, setLocation]);
 
@@ -85,7 +85,7 @@ export default function Auth() {
             title: "Welcome back!",
             description: "You have been signed in successfully.",
           });
-          setLocation('/dashboard');
+          // Don't redirect here, let the useEffect handle it after auth state updates
           break;
 
         case 'register':
