@@ -219,6 +219,12 @@ export class StripeService {
       throw new Error('User or subscription not found');
     }
 
+    // Handle development subscriptions (which don't exist in Stripe)
+    if (subscription.stripeSubscriptionId!.startsWith('sub_dev_')) {
+      await storage.cancelSubscription(subscription.id);
+      return { message: 'Development subscription canceled successfully' };
+    }
+
     if (!stripe) {
       throw new Error('Stripe not initialized. Please configure STRIPE_SECRET_KEY.');
     }
