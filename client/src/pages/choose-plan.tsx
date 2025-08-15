@@ -71,18 +71,9 @@ export default function ChoosePlan() {
     const plan = ((plansData as any)?.plans || []).find((p: any) => p.name === planName);
     if (!plan) return;
 
-    // Check if this is a development plan (skip payment) or production (require payment)
-    const isDevelopmentPlan = plan.price === 0 || process.env.NODE_ENV === 'development';
-    
-    if (isDevelopmentPlan) {
-      // Development mode: create subscription directly
-      setSelectedPlan(planName);
-      createSubscriptionMutation.mutate(planName);
-    } else {
-      // Production mode: show payment form
-      setPaymentPlan(plan);
-      setShowPaymentModal(true);
-    }
+    // Always show payment form for better user experience
+    setPaymentPlan(plan);
+    setShowPaymentModal(true);
   };
 
   const handlePaymentSuccess = () => {
