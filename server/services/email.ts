@@ -37,6 +37,11 @@ export async function sendEmail(templateName: string, data: any, to: string, sub
       user: emailUser, 
       pass: emailPass 
     },
+    tls: {
+      rejectUnauthorized: false // Accept self-signed certificates
+    },
+    debug: true, // Enable debug logging
+    logger: true // Enable logging
   });
 
   const fromEmail = process.env.SMTP_FROM || process.env.EMAIL_FROM || 'noreply@lifeguard.co.za';

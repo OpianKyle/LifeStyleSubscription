@@ -323,6 +323,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           user: emailUser, 
           pass: emailPass 
         },
+        tls: {
+          rejectUnauthorized: false
+        }
       });
 
       await transporter.verify(); // Test SMTP connection
