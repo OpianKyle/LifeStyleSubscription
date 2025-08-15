@@ -87,6 +87,6 @@ export async function createStripeProducts() {
 }
 
 // Run if called directly
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   createStripeProducts().catch(console.error);
 }
