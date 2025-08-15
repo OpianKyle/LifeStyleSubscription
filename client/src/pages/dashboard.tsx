@@ -1,16 +1,28 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { useAuthState } from "@/hooks/useAuthState";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
-import Navbar from "@/components/layout/navbar";
-import Footer from "@/components/layout/footer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { 
+  SidebarProvider, 
+  Sidebar, 
+  SidebarContent, 
+  SidebarGroup, 
+  SidebarGroupContent, 
+  SidebarGroupLabel, 
+  SidebarHeader, 
+  SidebarMenu, 
+  SidebarMenuButton, 
+  SidebarMenuItem, 
+  SidebarTrigger,
+  SidebarInset
+} from "@/components/ui/sidebar";
 import { 
   Download, 
   CreditCard, 
@@ -19,7 +31,13 @@ import {
   DollarSign,
   User,
   AlertCircle,
-  CheckCircle
+  CheckCircle,
+  Home,
+  Settings,
+  FileText,
+  Shield,
+  LogOut,
+  Menu
 } from "lucide-react";
 
 export default function Dashboard() {
@@ -27,6 +45,7 @@ export default function Dashboard() {
   const { user, isAuthenticated, isLoading } = useAuthState();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [activeSection, setActiveSection] = useState('overview');
 
   // Redirect to home if not authenticated
   useEffect(() => {
@@ -119,11 +138,8 @@ export default function Dashboard() {
 
   if (isLoading || subscriptionLoading) {
     return (
-      <div className="min-h-screen bg-slate-50">
-        <Navbar />
-        <div className="flex items-center justify-center py-20">
-          <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" aria-label="Loading" />
-        </div>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" aria-label="Loading" />
       </div>
     );
   }
@@ -135,251 +151,344 @@ export default function Dashboard() {
   const subscription = (subscriptionData as any)?.subscription;
   const invoices = (invoicesData as any)?.invoices || [];
 
+  const handleLogout = () => {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    queryClient.clear();
+    setLocation('/');
+    toast({
+      title: "Logged Out",
+      description: "You have been successfully logged out.",
+    });
+  };
+
+  const sidebarItems = [
+    {
+      title: "Overview",
+      icon: Home,
+      id: "overview",
+      onClick: () => setActiveSection('overview')
+    },
+    {
+      title: "Subscription",
+      icon: Shield,
+      id: "subscription", 
+      onClick: () => setActiveSection('subscription')
+    },
+    {
+      title: "Invoices",
+      icon: FileText,
+      id: "invoices",
+      onClick: () => setActiveSection('invoices')
+    },
+    {
+      title: "Settings",
+      icon: Settings,
+      id: "settings",
+      onClick: () => setActiveSection('settings')
+    }
+  ];
+
   return (
-    <div className="min-h-screen bg-slate-50">
-      <Navbar />
-      
-      {/* Header */}
-      <section className="pricing-gradient pt-20 pb-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex items-center space-x-4 mb-4 lg:mb-0">
-              <div className="w-16 h-16 bg-gradient-to-br from-brand-500 to-brand-600 rounded-xl flex items-center justify-center">
-                <span className="text-white font-semibold text-lg">
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full bg-slate-50">
+        <Sidebar className="border-r border-slate-200">
+          <SidebarHeader className="border-b border-slate-200 p-6">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-brand-500 to-brand-600 rounded-lg flex items-center justify-center">
+                <span className="text-white font-semibold text-sm">
                   {user.name?.charAt(0)?.toUpperCase() || 'U'}
                 </span>
               </div>
-              <div>
-                <h1 className="text-2xl lg:text-3xl font-bold text-slate-900" data-testid="text-user-name">
-                  Welcome, {user.name}
-                </h1>
-                <p className="text-slate-600" data-testid="text-user-email">{user.email}</p>
+              <div className="min-w-0 flex-1">
+                <h2 className="font-semibold text-slate-900 truncate">{user.name}</h2>
+                <p className="text-sm text-slate-600 truncate">{user.email}</p>
               </div>
             </div>
-            <div className="flex items-center space-x-3">
-              {subscription?.status === 'ACTIVE' ? (
-                <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-100">
-                  <CheckCircle className="w-4 h-4 mr-1" />
-                  Active
-                </Badge>
-              ) : (
-                <Badge variant="outline" className="border-amber-200 text-amber-800">
-                  <AlertCircle className="w-4 h-4 mr-1" />
-                  {subscription?.status || 'No Subscription'}
-                </Badge>
-              )}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Main Content */}
-      <section className="py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          </SidebarHeader>
+          
+          <SidebarContent>
+            <SidebarGroup>
+              <SidebarGroupLabel>Dashboard</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {sidebarItems.map((item) => (
+                    <SidebarMenuItem key={item.id}>
+                      <SidebarMenuButton 
+                        onClick={item.onClick}
+                        isActive={activeSection === item.id}
+                        className="w-full"
+                      >
+                        <item.icon className="w-4 h-4" />
+                        <span>{item.title}</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
             
-            {/* Current Plan */}
-            <div className="lg:col-span-2">
-              <Card className="shadow-sm border border-slate-200/60">
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    <User className="w-5 h-5 text-brand-600" />
-                    <span>Current Plan</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {subscription ? (
-                    <div>
-                      <div className="flex items-center justify-between mb-6">
-                        <div>
-                          <div className="text-2xl font-bold text-brand-600" data-testid="text-current-plan">
-                            {subscription.plan.name}
-                          </div>
-                          <div className="text-slate-600" data-testid="text-current-price">
-                            R{subscription.plan.price}/month
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-sm text-slate-500">Next billing</div>
-                          <div className="font-medium text-slate-900" data-testid="text-next-billing">
-                            {subscription.currentPeriodEnd 
-                              ? new Date(subscription.currentPeriodEnd).toLocaleDateString() 
-                              : 'Not set'}
-                          </div>
-                        </div>
+            <SidebarGroup>
+              <SidebarGroupLabel>Quick Actions</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton onClick={() => setLocation('/pricing')}>
+                      <CreditCard className="w-4 h-4" />
+                      <span>Change Plan</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton>
+                      <MessageCircle className="w-4 h-4" />
+                      <span>Support</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton onClick={handleLogout} className="text-red-600 hover:text-red-700">
+                      <LogOut className="w-4 h-4" />
+                      <span>Logout</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </SidebarContent>
+        </Sidebar>
+
+        <SidebarInset className="flex-1">
+          {/* Header */}
+          <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-2 border-b border-slate-200 bg-white px-4">
+            <SidebarTrigger />
+            <Separator orientation="vertical" className="h-4" />
+            <div className="flex items-center justify-between flex-1">
+              <div className="flex items-center space-x-3">
+                <h1 className="text-lg font-semibold text-slate-900">
+                  {activeSection.charAt(0).toUpperCase() + activeSection.slice(1)}
+                </h1>
+                {subscription?.status === 'ACTIVE' ? (
+                  <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-100">
+                    <CheckCircle className="w-4 h-4 mr-1" />
+                    Active
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className="border-amber-200 text-amber-800">
+                    <AlertCircle className="w-4 h-4 mr-1" />
+                    {subscription?.status || 'No Subscription'}
+                  </Badge>
+                )}
+              </div>
+            </div>
+          </header>
+
+          {/* Main Content */}
+          <main className="flex-1 overflow-auto p-6">
+            {activeSection === 'overview' && (
+              <div className="space-y-6">
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Subscription Status</CardTitle>
+                      <Shield className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">{subscription?.status || 'None'}</div>
+                      <p className="text-xs text-muted-foreground">Current protection level</p>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Monthly Cost</CardTitle>
+                      <DollarSign className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">R{subscription?.plan?.price || '0'}</div>
+                      <p className="text-xs text-muted-foreground">Per month</p>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Next Billing</CardTitle>
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">
+                        {subscription?.currentPeriodEnd 
+                          ? new Date(subscription.currentPeriodEnd).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })
+                          : '--'}
                       </div>
-                      
-                      <div className="mb-6">
-                        <h4 className="font-semibold text-slate-900 mb-3">Plan Features</h4>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <p className="text-xs text-muted-foreground">Upcoming payment</p>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Plan</CardTitle>
+                      <User className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">{subscription?.plan?.name || 'None'}</div>
+                      <p className="text-xs text-muted-foreground">Protection plan</p>
+                    </CardContent>
+                  </Card>
+                </div>
+                
+                {!subscription && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Get Started</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-muted-foreground mb-4">Choose a protection plan to secure your lifestyle.</p>
+                      <Button onClick={() => setLocation('/pricing')} className="w-full sm:w-auto">
+                        Browse Plans
+                      </Button>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+            )}
+
+            {activeSection === 'subscription' && (
+              <div className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Current Subscription</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {subscription ? (
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h3 className="text-xl font-semibold">{subscription.plan.name}</h3>
+                            <p className="text-muted-foreground">R{subscription.plan.price}/month</p>
+                          </div>
+                          <Badge variant={subscription.status === 'ACTIVE' ? 'default' : 'secondary'}>
+                            {subscription.status}
+                          </Badge>
+                        </div>
+                        
+                        <div className="grid gap-2">
+                          <h4 className="font-medium">Features</h4>
                           {subscription.plan.features?.map((feature: string, index: number) => (
-                            <div key={index} className="flex items-center space-x-2 text-sm text-slate-600">
-                              <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                            <div key={index} className="flex items-center space-x-2 text-sm">
+                              <CheckCircle className="h-4 w-4 text-green-600" />
                               <span>{feature}</span>
                             </div>
                           ))}
                         </div>
-                      </div>
-                      
-                      <div className="flex flex-wrap gap-3">
-                        <Button 
-                          variant="outline" 
-                          onClick={() => setLocation('/pricing')}
-                          data-testid="button-change-plan"
-                        >
-                          Change Plan
-                        </Button>
-                        {subscription.status === 'ACTIVE' && !subscription.cancelAtPeriodEnd && (
-                          <Button 
-                            variant="outline" 
-                            className="text-red-600 border-red-200 hover:bg-red-50"
-                            onClick={() => cancelSubscriptionMutation.mutate()}
-                            disabled={cancelSubscriptionMutation.isPending}
-                            data-testid="button-cancel-subscription"
-                          >
-                            {cancelSubscriptionMutation.isPending ? 'Canceling...' : 'Cancel Subscription'}
+                        
+                        <div className="flex space-x-2">
+                          <Button variant="outline" onClick={() => setLocation('/pricing')}>
+                            Change Plan
                           </Button>
-                        )}
-                      </div>
-                      
-                      {subscription.cancelAtPeriodEnd && (
-                        <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
-                          <div className="flex items-center space-x-2 text-amber-800">
-                            <AlertCircle className="w-5 h-5" />
-                            <span className="font-medium">Subscription Canceled</span>
-                          </div>
-                          <p className="text-sm text-amber-700 mt-1">
-                            Your subscription will end on {new Date(subscription.currentPeriodEnd!).toLocaleDateString()}
-                          </p>
+                          {subscription.status === 'ACTIVE' && !subscription.cancelAtPeriodEnd && (
+                            <Button 
+                              variant="destructive" 
+                              onClick={() => cancelSubscriptionMutation.mutate()}
+                              disabled={cancelSubscriptionMutation.isPending}
+                            >
+                              {cancelSubscriptionMutation.isPending ? 'Canceling...' : 'Cancel'}
+                            </Button>
+                          )}
                         </div>
-                      )}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8">
+                        <Shield className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                        <h3 className="text-lg font-semibold mb-2">No Active Subscription</h3>
+                        <p className="text-muted-foreground mb-4">Start protecting your lifestyle today</p>
+                        <Button onClick={() => setLocation('/pricing')}>Choose a Plan</Button>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {activeSection === 'invoices' && (
+              <div className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Invoice History</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {invoicesLoading ? (
+                      <div className="flex items-center justify-center py-8">
+                        <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
+                      </div>
+                    ) : invoices.length > 0 ? (
+                      <div className="space-y-4">
+                        {invoices.map((invoice: any) => (
+                          <div key={invoice.id} className="flex items-center justify-between border-b pb-2">
+                            <div>
+                              <p className="font-medium">R{parseFloat(invoice.amount).toFixed(2)}</p>
+                              <p className="text-sm text-muted-foreground">
+                                {new Date(invoice.createdAt).toLocaleDateString()}
+                              </p>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <Badge variant={invoice.status === 'paid' ? 'default' : 'secondary'}>
+                                {invoice.status}
+                              </Badge>
+                              <Button variant="ghost" size="sm">
+                                <Download className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8">
+                        <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                        <h3 className="text-lg font-semibold mb-2">No Invoices</h3>
+                        <p className="text-muted-foreground">Your billing history will appear here</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {activeSection === 'settings' && (
+              <div className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Account Settings</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <label className="text-sm font-medium">Name</label>
+                      <p className="text-muted-foreground">{user.name}</p>
                     </div>
-                  ) : (
-                    <div className="text-center py-12">
-                      <AlertCircle className="w-12 h-12 text-slate-400 mx-auto mb-4" />
-                      <h3 className="text-lg font-semibold text-slate-900 mb-2">No Active Subscription</h3>
-                      <p className="text-slate-600 mb-6">Choose a plan to get started with LifeGuard protection.</p>
-                      <Button 
-                        className="btn-primary"
-                        onClick={() => setLocation('/pricing')}
-                        data-testid="button-choose-plan"
-                      >
-                        Choose a Plan
+                    <div>
+                      <label className="text-sm font-medium">Email</label>
+                      <p className="text-muted-foreground">{user.email}</p>
+                    </div>
+                    <Separator />
+                    <div className="space-y-2">
+                      <Button variant="outline" className="w-full justify-start">
+                        <CreditCard className="h-4 w-4 mr-2" />
+                        Update Payment Method
+                      </Button>
+                      <Button variant="outline" className="w-full justify-start">
+                        <MessageCircle className="h-4 w-4 mr-2" />
+                        Contact Support
+                      </Button>
+                      <Button variant="outline" className="w-full justify-start text-red-600 hover:text-red-700" onClick={handleLogout}>
+                        <LogOut className="h-4 w-4 mr-2" />
+                        Sign Out
                       </Button>
                     </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-            
-            {/* Quick Actions */}
-            <div>
-              <Card className="shadow-sm border border-slate-200/60">
-                <CardHeader>
-                  <CardTitle>Quick Actions</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <Button 
-                    variant="ghost" 
-                    className="w-full justify-start"
-                    data-testid="button-download-invoices"
-                  >
-                    <Download className="w-5 h-5 mr-3 text-slate-500" />
-                    Download Invoices
-                  </Button>
-                  <Button 
-                    variant="ghost" 
-                    className="w-full justify-start"
-                    data-testid="button-update-payment"
-                  >
-                    <CreditCard className="w-5 h-5 mr-3 text-slate-500" />
-                    Update Payment Method
-                  </Button>
-                  <Button 
-                    variant="ghost" 
-                    className="w-full justify-start"
-                    data-testid="button-contact-support"
-                  >
-                    <MessageCircle className="w-5 h-5 mr-3 text-slate-500" />
-                    Contact Support
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-          
-          {/* Recent Invoices */}
-          <Card className="mt-8 shadow-sm border border-slate-200/60">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <DollarSign className="w-5 h-5 text-brand-600" />
-                <span>Recent Invoices</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {invoicesLoading ? (
-                <div className="flex items-center justify-center py-8">
-                  <div className="animate-spin w-6 h-6 border-2 border-primary border-t-transparent rounded-full" />
-                </div>
-              ) : invoices.length > 0 ? (
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b border-slate-200">
-                        <th className="text-left py-3 text-sm font-medium text-slate-500">Date</th>
-                        <th className="text-left py-3 text-sm font-medium text-slate-500">Amount</th>
-                        <th className="text-left py-3 text-sm font-medium text-slate-500">Status</th>
-                        <th className="text-left py-3 text-sm font-medium text-slate-500">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {invoices.map((invoice: any) => (
-                        <tr key={invoice.id} className="border-b border-slate-100">
-                          <td className="py-3 text-sm text-slate-900" data-testid={`text-invoice-date-${invoice.id}`}>
-                            {new Date(invoice.createdAt).toLocaleDateString()}
-                          </td>
-                          <td className="py-3 text-sm text-slate-900" data-testid={`text-invoice-amount-${invoice.id}`}>
-                            R{parseFloat(invoice.amount).toFixed(2)}
-                          </td>
-                          <td className="py-3">
-                            <Badge 
-                              className={
-                                invoice.status === 'paid' 
-                                  ? "bg-emerald-100 text-emerald-800 hover:bg-emerald-100"
-                                  : "bg-amber-100 text-amber-800 hover:bg-amber-100"
-                              }
-                            >
-                              {invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)}
-                            </Badge>
-                          </td>
-                          <td className="py-3">
-                            <Button 
-                              variant="ghost" 
-                              size="sm"
-                              className="text-brand-600 hover:text-brand-700"
-                              data-testid={`button-download-invoice-${invoice.id}`}
-                            >
-                              Download
-                            </Button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <Calendar className="w-12 h-12 text-slate-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-slate-900 mb-2">No Invoices Yet</h3>
-                  <p className="text-slate-600">Your invoice history will appear here once you have an active subscription.</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      </section>
-
-      <Footer />
-    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+          </main>
+        </SidebarInset>
+      </div>
+    </SidebarProvider>
   );
 }
