@@ -1,15 +1,12 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import Navbar from "@/components/layout/navbar";
 import Footer from "@/components/layout/footer";
 import PlanCard from "@/components/pricing/plan-card";
-import PaymentForm from "@/components/payment/payment-form";
 import { useAuthState } from "@/hooks/useAuthState";
-import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowRight, Shield, Heart, Phone, Scale, Users, Check, Loader2 } from "lucide-react";
 
@@ -17,45 +14,16 @@ export default function Home() {
   const [, setLocation] = useLocation();
   const { isAuthenticated } = useAuthState();
   const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [paymentPlan, setPaymentPlan] = useState<any>(null);
 
   const { data: plansData, isLoading } = useQuery({
     queryKey: ["/api/plans"],
   });
 
-  const { data: currentSubscription } = useQuery({
-    queryKey: ["/api/subscriptions/current"],
-    enabled: isAuthenticated,
-  });
 
-  const createSubscriptionMutation = useMutation({
-    mutationFn: async (planName: string) => {
-      const response = await apiRequest("POST", "/api/subscriptions/create", { planName });
-      return response.json();
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/subscriptions/current"] });
-      toast({
-        title: "Plan Updated Successfully",
-        description: "Your subscription plan has been updated.",
-      });
-      setSelectedPlan(null);
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Subscription Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
 
   const handleSelectPlan = async (planName: string) => {
     if (!isAuthenticated) {
-      setLocation('/auth');
+      setLocation('/auth?redirect=/choose-plan');
       toast({
         title: "Authentication Required",
         description: "Please sign in to select a plan.",
@@ -64,35 +32,11 @@ export default function Home() {
       return;
     }
 
-    // Find the selected plan details
-    const plan = plans.find((p: any) => p.name === planName);
-    if (!plan) return;
-
-    // Check if this is a development plan (skip payment) or production (require payment)
-    const isDevelopmentPlan = plan.price === 0 || process.env.NODE_ENV === 'development';
-    
-    if (isDevelopmentPlan) {
-      // Development mode: create subscription directly
-      setSelectedPlan(planName);
-      createSubscriptionMutation.mutate(planName);
-    } else {
-      // Production mode: show payment form
-      setPaymentPlan(plan);
-      setShowPaymentModal(true);
-    }
+    // Redirect to choose plan page for authenticated users
+    setLocation('/choose-plan');
   };
 
-  const handlePaymentSuccess = () => {
-    setShowPaymentModal(false);
-    setPaymentPlan(null);
-    queryClient.invalidateQueries({ queryKey: ["/api/subscriptions/current"] });
-    toast({
-      title: "Subscription Activated",
-      description: "Your subscription has been activated successfully.",
-    });
-  };
-
-  const plans = plansData?.plans || [];
+  const plans = (plansData as any)?.plans || [];
 
   const features = [
     {
@@ -219,9 +163,6 @@ export default function Home() {
                   plan={plan}
                   featured={plan.name === 'PROSPER'}
                   onSelect={handleSelectPlan}
-                  disabled={createSubscriptionMutation.isPending && selectedPlan === plan.name}
-                  isCurrentPlan={(currentSubscription as any)?.subscription?.plan?.name === plan.name}
-                  loading={createSubscriptionMutation.isPending && selectedPlan === plan.name}
                 />
               ))}
             </div>
@@ -257,22 +198,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Payment Modal */}
-      <Dialog open={showPaymentModal} onOpenChange={setShowPaymentModal}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Complete Your Subscription</DialogTitle>
-          </DialogHeader>
-          {paymentPlan && (
-            <PaymentForm
-              planName={paymentPlan.name}
-              planPrice={paymentPlan.price}
-              onSuccess={handlePaymentSuccess}
-              onCancel={() => setShowPaymentModal(false)}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
+
 
       <Footer />
     </div>

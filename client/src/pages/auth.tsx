@@ -46,7 +46,9 @@ export default function Auth() {
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      setLocation('/dashboard');
+      const urlParams = new URLSearchParams(window.location.search);
+      const redirect = urlParams.get('redirect');
+      setLocation(redirect || '/dashboard');
     }
   }, [isAuthenticated, setLocation]);
 
