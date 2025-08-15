@@ -2,11 +2,8 @@ import Stripe from 'stripe';
 import { storage } from '../storage';
 import { sendEmail } from './email';
 
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
-}
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+// Initialize Stripe only if we have the secret key
+const stripe = process.env.STRIPE_SECRET_KEY ? new Stripe(process.env.STRIPE_SECRET_KEY) : null;
 
 export class StripeService {
   static async createOrGetCustomer(userId: string, email: string, name: string) {
@@ -14,6 +11,10 @@ export class StripeService {
     
     if (user?.stripeCustomerId) {
       return user.stripeCustomerId;
+    }
+
+    if (!stripe) {
+      throw new Error('Stripe not initialized. Please configure STRIPE_SECRET_KEY.');
     }
 
     const customer = await stripe.customers.create({
@@ -70,6 +71,10 @@ export class StripeService {
     }
 
     // Production mode: Use actual Stripe
+    if (!stripe) {
+      throw new Error('Stripe not initialized. Please configure STRIPE_SECRET_KEY.');
+    }
+
     const customerId = await this.createOrGetCustomer(userId, user.email, user.name);
 
     const subscription = await stripe.subscriptions.create({
@@ -155,6 +160,10 @@ export class StripeService {
       return this.createNewSubscription(userId, newPlanName);
     }
 
+    if (!stripe) {
+      throw new Error('Stripe not initialized. Please configure STRIPE_SECRET_KEY.');
+    }
+
     let stripeSubscription;
     try {
       stripeSubscription = await stripe.subscriptions.retrieve(currentSubscription.stripeSubscriptionId!);
@@ -210,6 +219,10 @@ export class StripeService {
       throw new Error('User or subscription not found');
     }
 
+    if (!stripe) {
+      throw new Error('Stripe not initialized. Please configure STRIPE_SECRET_KEY.');
+    }
+
     await stripe.subscriptions.update(subscription.stripeSubscriptionId!, {
       cancel_at_period_end: true
     });
@@ -246,6 +259,10 @@ export class StripeService {
   }
 
   private static async handlePaymentSucceeded(invoice: Stripe.Invoice) {
+    if (!stripe) {
+      throw new Error('Stripe not initialized. Please configure STRIPE_SECRET_KEY.');
+    }
+
     const subscription = await stripe.subscriptions.retrieve((invoice as any).subscription as string);
     const userId = subscription.metadata.userId;
     const user = await storage.getUserById(userId);
