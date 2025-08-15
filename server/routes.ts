@@ -6,6 +6,7 @@ import { AuthService } from "./services/auth";
 import { StripeService } from "./services/stripe";
 import { z } from "zod";
 import Stripe from 'stripe';
+import nodemailer from 'nodemailer';
 
 // Authentication middleware
 const authenticateToken = async (req: any, res: Response, next: NextFunction) => {
@@ -281,6 +282,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ stats });
     } catch (error: any) {
       res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Test endpoints for credential verification
+  app.post('/api/test/stripe', async (_req: Request, res: Response) => {
+    try {
+      if (!process.env.STRIPE_SECRET_KEY) {
+        return res.status(400).json({ success: false, message: 'STRIPE_SECRET_KEY not configured' });
+      }
+
+      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+      await stripe.customers.list({ limit: 1 }); // Simple test call
+      
+      res.json({ success: true, message: 'Stripe credentials are working' });
+    } catch (error: any) {
+      res.status(400).json({ success: false, message: `Stripe error: ${error.message}` });
+    }
+  });
+
+  app.post('/api/test/smtp', async (_req: Request, res: Response) => {
+    try {
+      const emailUser = process.env.SMTP_USER;
+      const emailPass = process.env.SMTP_PASS;
+      
+      if (!emailUser || !emailPass) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'SMTP credentials not configured (missing SMTP_USER or SMTP_PASS)' 
+        });
+      }
+
+      const port = Number(process.env.SMTP_PORT || 587);
+      
+      const transporter = nodemailer.createTransporter({
+        host: process.env.SMTP_HOST || 'smtp.gmail.com',
+        port: port,
+        secure: port === 465,
+        auth: { 
+          user: emailUser, 
+          pass: emailPass 
+        },
+      });
+
+      await transporter.verify(); // Test SMTP connection
+      
+      res.json({ success: true, message: 'SMTP credentials are working' });
+    } catch (error: any) {
+      res.status(400).json({ success: false, message: `SMTP error: ${error.message}` });
     }
   });
 
