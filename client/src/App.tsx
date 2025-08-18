@@ -27,6 +27,7 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/auth" component={Auth} />
       <Route path="/choose-plan" component={ChoosePlan} />
+      <Route path="/pricing" component={ChoosePlan} />
       <Route path="/verify-email" component={Auth} />
       <Route path="/reset-password" component={Auth} />
       {isAuthenticated && (

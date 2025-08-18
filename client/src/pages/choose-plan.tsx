@@ -130,45 +130,62 @@ export default function ChoosePlan() {
       
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
-          {/* Header */}
-          <div className="text-center mb-12">
-            <Button
-              variant="ghost"
-              onClick={() => setLocation('/')}
-              className="mb-6 text-slate-600 hover:text-slate-900"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Home
-            </Button>
+          {/* Header with Stained Glass Effect */}
+          <div className="relative overflow-hidden rounded-2xl p-12 mb-12">
+            {/* Stained Glass Background */}
+            <div className="absolute inset-0 bg-gradient-to-br from-cyan-200/90 via-blue-100/70 to-indigo-200/85"></div>
+            <div className="absolute inset-0 bg-gradient-to-tl from-purple-200/60 via-transparent to-cyan-200/50"></div>
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-100/60 via-transparent to-purple-100/55"></div>
+            <div className="absolute inset-0 bg-gradient-to-tr from-indigo-100/40 via-transparent to-blue-100/45"></div>
             
-            <h1 className="text-4xl font-bold text-slate-900 mb-4">
-              Choose Your Protection Plan
-            </h1>
-            <p className="text-xl text-slate-600 max-w-2xl mx-auto">
-              Select the plan that best fits your needs. You can always upgrade or change your plan later.
-            </p>
+            {/* Glass overlay */}
+            <div className="absolute inset-0 backdrop-blur-sm bg-white/15 border border-white/40"></div>
             
-            {user && (
-              <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg inline-block">
-                <div className="flex items-center text-green-800">
-                  <Check className="w-5 h-5 mr-2" />
-                  <span>Signed in as {user.name} ({user.email})</span>
+            {/* Content */}
+            <div className="relative z-10 text-center">
+              <Button
+                variant="ghost"
+                onClick={() => setLocation('/')}
+                className="mb-6 text-slate-700 hover:text-slate-900 bg-white/30 backdrop-blur-sm border border-white/30"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Home
+              </Button>
+              
+              <h1 className="text-4xl font-bold text-slate-800 mb-4">
+                Choose Your Protection Plan
+              </h1>
+              <p className="text-xl text-slate-600 max-w-2xl mx-auto mb-6">
+                Select the plan that best fits your needs. You can always upgrade or change your plan later.
+              </p>
+              
+              {user && (
+                <div className="mt-6 p-4 bg-white/40 backdrop-blur-sm border border-white/30 rounded-lg inline-block">
+                  <div className="flex items-center text-slate-800">
+                    <Check className="w-5 h-5 mr-2 text-emerald-600" />
+                    <span>Signed in as <strong>{user.name}</strong> ({user.email})</span>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
 
           {/* Current Subscription Status */}
           {(currentSubscription as any)?.subscription && (
-            <Card className="mb-8 border-blue-200 bg-blue-50">
+            <Card className="mb-8 border-2 border-emerald-200 bg-gradient-to-br from-emerald-50 to-green-50">
               <CardHeader>
-                <CardTitle className="text-blue-900">Current Subscription</CardTitle>
+                <CardTitle className="text-emerald-900 flex items-center">
+                  <Shield className="w-5 h-5 mr-2" />
+                  Current Subscription
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-blue-800">
-                  You currently have the <strong>{(currentSubscription as any).subscription.plan.name}</strong> plan.
-                  You can upgrade or change your plan below.
-                </p>
+                <div className="bg-white/50 rounded-lg p-4">
+                  <p className="text-emerald-800 text-lg">
+                    You currently have the <strong className="text-emerald-900">{(currentSubscription as any).subscription.plan.name}</strong> plan.
+                    You can upgrade or change your plan below.
+                  </p>
+                </div>
               </CardContent>
             </Card>
           )}

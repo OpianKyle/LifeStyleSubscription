@@ -486,36 +486,74 @@ export default function Dashboard() {
             )}
 
             {activeSection === 'subscription' && (
-              <div className="space-y-6">
-                <Card>
+              <div className="space-y-8">
+                {/* Subscription Welcome Section */}
+                <div className="relative overflow-hidden rounded-2xl p-8">
+                  {/* Stained Glass Background */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-emerald-200/90 via-green-100/70 to-teal-200/85"></div>
+                  <div className="absolute inset-0 bg-gradient-to-tl from-blue-200/60 via-transparent to-cyan-200/50"></div>
+                  <div className="absolute inset-0 bg-gradient-to-r from-mint-100/60 via-transparent to-emerald-100/55"></div>
+                  <div className="absolute inset-0 bg-gradient-to-tr from-green-100/40 via-transparent to-blue-100/45"></div>
+                  
+                  {/* Glass overlay */}
+                  <div className="absolute inset-0 backdrop-blur-sm bg-white/15 border border-white/40"></div>
+                  
+                  {/* Content */}
+                  <div className="relative z-10">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h2 className="text-2xl font-bold mb-2 text-slate-800">Your Protection Plan</h2>
+                        <p className="text-slate-600 text-lg">
+                          {subscription ? 
+                            `Manage your ${subscription.plan.name} subscription` : 
+                            'No active subscription - start your protection today'
+                          }
+                        </p>
+                      </div>
+                      <div className="hidden md:block">
+                        <div className="w-20 h-20 bg-gradient-to-br from-white/50 to-emerald-100/40 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/50 shadow-lg">
+                          <Shield className="w-10 h-10 text-emerald-600" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <Card className="border-2 border-emerald-200 bg-gradient-to-br from-emerald-50 to-green-50">
                   <CardHeader>
-                    <CardTitle>Current Subscription</CardTitle>
+                    <CardTitle className="text-emerald-900">Current Subscription</CardTitle>
                   </CardHeader>
                   <CardContent>
                     {subscription ? (
-                      <div className="space-y-4">
+                      <div className="space-y-6">
                         <div className="flex items-center justify-between">
                           <div>
-                            <h3 className="text-xl font-semibold">{subscription.plan.name}</h3>
-                            <p className="text-muted-foreground">R{subscription.plan.price}/month</p>
+                            <h3 className="text-2xl font-bold text-emerald-900">{subscription.plan.name}</h3>
+                            <p className="text-emerald-700 text-lg">R{subscription.plan.price}/month</p>
                           </div>
-                          <Badge variant={subscription.status === 'ACTIVE' ? 'default' : 'secondary'}>
+                          <Badge className={subscription.status === 'ACTIVE' ? 'bg-emerald-500 hover:bg-emerald-500 text-white' : 'bg-slate-400 text-white'}>
+                            <CheckCircle className="w-4 h-4 mr-1" />
                             {subscription.status}
                           </Badge>
                         </div>
                         
-                        <div className="grid gap-2">
-                          <h4 className="font-medium">Features</h4>
-                          {subscription.plan.features?.map((feature: string, index: number) => (
-                            <div key={index} className="flex items-center space-x-2 text-sm">
-                              <CheckCircle className="h-4 w-4 text-green-600" />
-                              <span>{feature}</span>
-                            </div>
-                          ))}
+                        <div className="bg-white/50 rounded-lg p-4">
+                          <h4 className="font-semibold text-emerald-900 mb-3">Your Benefits</h4>
+                          <div className="grid md:grid-cols-2 gap-2">
+                            {subscription.plan.features?.map((feature: string, index: number) => (
+                              <div key={index} className="flex items-start space-x-3">
+                                <CheckCircle className="h-4 w-4 text-emerald-600 mt-0.5 flex-shrink-0" />
+                                <span className="text-sm text-emerald-800">{feature}</span>
+                              </div>
+                            ))}
+                          </div>
                         </div>
                         
-                        <div className="flex space-x-2">
-                          <Button variant="outline" onClick={() => setLocation('/pricing')}>
+                        <div className="flex space-x-3">
+                          <Button 
+                            onClick={() => setLocation('/pricing')}
+                            className="flex-1 bg-emerald-600 hover:bg-emerald-700"
+                          >
                             Change Plan
                           </Button>
                           {subscription.status === 'ACTIVE' && !subscription.cancelAtPeriodEnd && (
@@ -530,11 +568,19 @@ export default function Dashboard() {
                         </div>
                       </div>
                     ) : (
-                      <div className="text-center py-8">
-                        <Shield className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                        <h3 className="text-lg font-semibold mb-2">No Active Subscription</h3>
-                        <p className="text-muted-foreground mb-4">Start protecting your lifestyle today</p>
-                        <Button onClick={() => setLocation('/pricing')}>Choose a Plan</Button>
+                      <div className="text-center py-12">
+                        <div className="w-20 h-20 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                          <Shield className="w-10 h-10 text-white" />
+                        </div>
+                        <h3 className="text-2xl font-bold text-slate-900 mb-4">No Active Subscription</h3>
+                        <p className="text-slate-600 mb-8 max-w-md mx-auto">Start protecting your lifestyle today with one of our comprehensive plans</p>
+                        <Button 
+                          onClick={() => setLocation('/pricing')}
+                          size="lg"
+                          className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700"
+                        >
+                          Choose a Plan
+                        </Button>
                       </div>
                     )}
                   </CardContent>
@@ -543,42 +589,94 @@ export default function Dashboard() {
             )}
 
             {activeSection === 'invoices' && (
-              <div className="space-y-6">
-                <Card>
+              <div className="space-y-8">
+                {/* Invoices Welcome Section */}
+                <div className="relative overflow-hidden rounded-2xl p-8">
+                  {/* Stained Glass Background */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-purple-200/90 via-indigo-100/70 to-blue-200/85"></div>
+                  <div className="absolute inset-0 bg-gradient-to-tl from-violet-200/60 via-transparent to-purple-200/50"></div>
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-100/60 via-transparent to-indigo-100/55"></div>
+                  <div className="absolute inset-0 bg-gradient-to-tr from-purple-100/40 via-transparent to-violet-100/45"></div>
+                  
+                  {/* Glass overlay */}
+                  <div className="absolute inset-0 backdrop-blur-sm bg-white/15 border border-white/40"></div>
+                  
+                  {/* Content */}
+                  <div className="relative z-10">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h2 className="text-2xl font-bold mb-2 text-slate-800">Billing & Invoices</h2>
+                        <p className="text-slate-600 text-lg">
+                          {invoices.length > 0 ? 
+                            `You have ${invoices.length} invoice${invoices.length > 1 ? 's' : ''} on record` : 
+                            'No invoices available yet'
+                          }
+                        </p>
+                      </div>
+                      <div className="hidden md:block">
+                        <div className="w-20 h-20 bg-gradient-to-br from-white/50 to-purple-100/40 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/50 shadow-lg">
+                          <FileText className="w-10 h-10 text-purple-600" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <Card className="border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-indigo-50">
                   <CardHeader>
-                    <CardTitle>Invoice History</CardTitle>
+                    <CardTitle className="text-purple-900">Invoice History</CardTitle>
                   </CardHeader>
                   <CardContent>
                     {invoicesLoading ? (
                       <div className="flex items-center justify-center py-8">
-                        <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
+                        <div className="animate-spin h-8 w-8 border-4 border-purple-500 border-t-transparent rounded-full" />
                       </div>
                     ) : invoices.length > 0 ? (
                       <div className="space-y-4">
                         {invoices.map((invoice: any) => (
-                          <div key={invoice.id} className="flex items-center justify-between border-b pb-2">
-                            <div>
-                              <p className="font-medium">R{parseFloat(invoice.amount).toFixed(2)}</p>
-                              <p className="text-sm text-muted-foreground">
-                                {new Date(invoice.createdAt).toLocaleDateString()}
-                              </p>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <Badge variant={invoice.status === 'paid' ? 'default' : 'secondary'}>
-                                {invoice.status}
-                              </Badge>
-                              <Button variant="ghost" size="sm">
-                                <Download className="h-4 w-4" />
-                              </Button>
+                          <div key={invoice.id} className="bg-white/50 rounded-lg p-4 border border-white/30">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="font-semibold text-purple-900 text-lg">R{parseFloat(invoice.amount).toFixed(2)}</p>
+                                <p className="text-sm text-purple-700">
+                                  {new Date(invoice.createdAt).toLocaleDateString('en-ZA', { 
+                                    year: 'numeric', 
+                                    month: 'long', 
+                                    day: 'numeric' 
+                                  })}
+                                </p>
+                              </div>
+                              <div className="flex items-center space-x-3">
+                                <Badge className={invoice.status === 'paid' ? 'bg-emerald-500 hover:bg-emerald-500 text-white' : 'bg-slate-400 text-white'}>
+                                  {invoice.status}
+                                </Badge>
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                                >
+                                  <Download className="h-4 w-4 mr-1" />
+                                  Download
+                                </Button>
+                              </div>
                             </div>
                           </div>
                         ))}
                       </div>
                     ) : (
-                      <div className="text-center py-8">
-                        <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                        <h3 className="text-lg font-semibold mb-2">No Invoices</h3>
-                        <p className="text-muted-foreground">Your billing history will appear here</p>
+                      <div className="text-center py-12">
+                        <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                          <FileText className="w-10 h-10 text-white" />
+                        </div>
+                        <h3 className="text-2xl font-bold text-slate-900 mb-4">No Invoices Yet</h3>
+                        <p className="text-slate-600 mb-8 max-w-md mx-auto">Your billing history will appear here once you start your subscription</p>
+                        <Button 
+                          onClick={() => setLocation('/pricing')}
+                          size="lg"
+                          className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700"
+                        >
+                          Start Subscription
+                        </Button>
                       </div>
                     )}
                   </CardContent>
@@ -587,34 +685,120 @@ export default function Dashboard() {
             )}
 
             {activeSection === 'settings' && (
-              <div className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Account Settings</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div>
-                      <label className="text-sm font-medium">Name</label>
-                      <p className="text-muted-foreground">{user.name}</p>
+              <div className="space-y-8">
+                {/* Settings Welcome Section */}
+                <div className="relative overflow-hidden rounded-2xl p-8">
+                  {/* Stained Glass Background */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-amber-200/90 via-orange-100/70 to-red-200/85"></div>
+                  <div className="absolute inset-0 bg-gradient-to-tl from-yellow-200/60 via-transparent to-amber-200/50"></div>
+                  <div className="absolute inset-0 bg-gradient-to-r from-orange-100/60 via-transparent to-red-100/55"></div>
+                  <div className="absolute inset-0 bg-gradient-to-tr from-amber-100/40 via-transparent to-orange-100/45"></div>
+                  
+                  {/* Glass overlay */}
+                  <div className="absolute inset-0 backdrop-blur-sm bg-white/15 border border-white/40"></div>
+                  
+                  {/* Content */}
+                  <div className="relative z-10">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h2 className="text-2xl font-bold mb-2 text-slate-800">Account Settings</h2>
+                        <p className="text-slate-600 text-lg">
+                          Manage your profile, payment methods, and preferences
+                        </p>
+                      </div>
+                      <div className="hidden md:block">
+                        <div className="w-20 h-20 bg-gradient-to-br from-white/50 to-amber-100/40 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/50 shadow-lg">
+                          <Settings className="w-10 h-10 text-amber-600" />
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <label className="text-sm font-medium">Email</label>
-                      <p className="text-muted-foreground">{user.email}</p>
-                    </div>
-                    <Separator />
-                    <div className="space-y-2">
-                      <Button variant="outline" className="w-full justify-start">
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-6">
+                  {/* Profile Information */}
+                  <Card className="border-2 border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50">
+                    <CardHeader>
+                      <CardTitle className="text-amber-900">Profile Information</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="bg-white/50 rounded-lg p-4">
+                        <label className="text-sm font-semibold text-amber-900">Name</label>
+                        <p className="text-amber-800 text-lg">{user.name}</p>
+                      </div>
+                      <div className="bg-white/50 rounded-lg p-4">
+                        <label className="text-sm font-semibold text-amber-900">Email</label>
+                        <p className="text-amber-800 text-lg">{user.email}</p>
+                      </div>
+                      <div className="bg-white/50 rounded-lg p-4">
+                        <label className="text-sm font-semibold text-amber-900">Role</label>
+                        <p className="text-amber-800 text-lg">{user.role}</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Quick Actions */}
+                  <Card className="border-2 border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50">
+                    <CardHeader>
+                      <CardTitle className="text-amber-900">Quick Actions</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <Button 
+                        variant="outline" 
+                        className="w-full justify-start border-amber-300 text-amber-700 hover:bg-amber-50"
+                      >
                         <CreditCard className="h-4 w-4 mr-2" />
                         Update Payment Method
                       </Button>
-                      <Button variant="outline" className="w-full justify-start">
+                      <Button 
+                        variant="outline" 
+                        className="w-full justify-start border-amber-300 text-amber-700 hover:bg-amber-50"
+                      >
                         <MessageCircle className="h-4 w-4 mr-2" />
                         Contact Support
                       </Button>
-                      <Button variant="outline" className="w-full justify-start text-red-600 hover:text-red-700" onClick={handleLogout}>
+                      <Button 
+                        variant="outline" 
+                        className="w-full justify-start border-amber-300 text-amber-700 hover:bg-amber-50"
+                      >
+                        <User className="h-4 w-4 mr-2" />
+                        Edit Profile
+                      </Button>
+                      <Separator />
+                      <Button 
+                        variant="outline" 
+                        className="w-full justify-start border-red-300 text-red-600 hover:bg-red-50 hover:text-red-700" 
+                        onClick={handleLogout}
+                      >
                         <LogOut className="h-4 w-4 mr-2" />
                         Sign Out
                       </Button>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Additional Settings */}
+                <Card className="border-2 border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50">
+                  <CardHeader>
+                    <CardTitle className="text-amber-900">Preferences</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid md:grid-cols-3 gap-4">
+                      <div className="bg-white/50 rounded-lg p-4 text-center">
+                        <AlertCircle className="w-8 h-8 text-amber-600 mx-auto mb-2" />
+                        <h4 className="font-semibold text-amber-900 mb-1">Notifications</h4>
+                        <p className="text-sm text-amber-700">Email alerts enabled</p>
+                      </div>
+                      <div className="bg-white/50 rounded-lg p-4 text-center">
+                        <Shield className="w-8 h-8 text-amber-600 mx-auto mb-2" />
+                        <h4 className="font-semibold text-amber-900 mb-1">Security</h4>
+                        <p className="text-sm text-amber-700">Account protected</p>
+                      </div>
+                      <div className="bg-white/50 rounded-lg p-4 text-center">
+                        <Calendar className="w-8 h-8 text-amber-600 mx-auto mb-2" />
+                        <h4 className="font-semibold text-amber-900 mb-1">Billing</h4>
+                        <p className="text-sm text-amber-700">Monthly cycle</p>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
