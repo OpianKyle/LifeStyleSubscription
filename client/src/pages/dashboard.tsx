@@ -284,66 +284,188 @@ export default function Dashboard() {
           {/* Main Content */}
           <main className="flex-1 overflow-auto p-6">
             {activeSection === 'overview' && (
-              <div className="space-y-6">
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Subscription Status</CardTitle>
-                      <Shield className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">{subscription?.status || 'None'}</div>
-                      <p className="text-xs text-muted-foreground">Current protection level</p>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Monthly Cost</CardTitle>
-                      <DollarSign className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">R{subscription?.plan?.price || '0'}</div>
-                      <p className="text-xs text-muted-foreground">Per month</p>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Next Billing</CardTitle>
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">
-                        {subscription?.currentPeriodEnd 
-                          ? new Date(subscription.currentPeriodEnd).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })
-                          : '--'}
+              <div className="space-y-8">
+                {/* Welcome Section */}
+                <div className="bg-gradient-to-r from-brand-500 to-brand-600 rounded-2xl p-8 text-white">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h2 className="text-2xl font-bold mb-2">Welcome back, {user.name}!</h2>
+                      <p className="text-brand-100 text-lg">
+                        {subscription ? 
+                          `Your ${subscription.plan.name} plan is keeping you protected` : 
+                          'Ready to start your protection journey?'
+                        }
+                      </p>
+                    </div>
+                    <div className="hidden md:block">
+                      <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center">
+                        <Shield className="w-10 h-10 text-white" />
                       </div>
-                      <p className="text-xs text-muted-foreground">Upcoming payment</p>
+                    </div>
+                  </div>
+                  
+                  {subscription && (
+                    <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                      <div className="bg-white/10 rounded-lg p-3">
+                        <div className="text-2xl font-bold">R{subscription.plan.price}</div>
+                        <div className="text-sm text-brand-100">Monthly Cost</div>
+                      </div>
+                      <div className="bg-white/10 rounded-lg p-3">
+                        <div className="text-2xl font-bold">{subscription.plan.features?.length || 0}</div>
+                        <div className="text-sm text-brand-100">Benefits</div>
+                      </div>
+                      <div className="bg-white/10 rounded-lg p-3">
+                        <div className="text-2xl font-bold">
+                          {subscription?.currentPeriodEnd 
+                            ? new Date(subscription.currentPeriodEnd).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })
+                            : '--'}
+                        </div>
+                        <div className="text-sm text-brand-100">Next Billing</div>
+                      </div>
+                      <div className="bg-white/10 rounded-lg p-3">
+                        <div className="text-2xl font-bold text-emerald-200">
+                          {subscription.status === 'ACTIVE' ? 'ACTIVE' : subscription.status}
+                        </div>
+                        <div className="text-sm text-brand-100">Status</div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Quick Actions */}
+                <div className="grid md:grid-cols-3 gap-6">
+                  <Card className="group hover:shadow-lg transition-all duration-300 border-2 hover:border-brand-200 cursor-pointer" 
+                        onClick={() => setLocation('/pricing')} data-testid="card-change-plan">
+                    <CardContent className="p-6 text-center">
+                      <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                        <CreditCard className="w-6 h-6 text-white" />
+                      </div>
+                      <h3 className="font-semibold text-lg mb-2">
+                        {subscription ? 'Change Plan' : 'Choose Plan'}
+                      </h3>
+                      <p className="text-slate-600 text-sm">
+                        {subscription ? 'Upgrade or modify your current plan' : 'Select the perfect protection plan for you'}
+                      </p>
                     </CardContent>
                   </Card>
-                  
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Plan</CardTitle>
-                      <User className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">{subscription?.plan?.name || 'None'}</div>
-                      <p className="text-xs text-muted-foreground">Protection plan</p>
+
+                  <Card className="group hover:shadow-lg transition-all duration-300 border-2 hover:border-emerald-200 cursor-pointer">
+                    <CardContent className="p-6 text-center">
+                      <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                        <MessageCircle className="w-6 h-6 text-white" />
+                      </div>
+                      <h3 className="font-semibold text-lg mb-2">Get Support</h3>
+                      <p className="text-slate-600 text-sm">
+                        Need help? Our support team is here for you 24/7
+                      </p>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="group hover:shadow-lg transition-all duration-300 border-2 hover:border-purple-200 cursor-pointer"
+                        onClick={() => setActiveSection('invoices')}>
+                    <CardContent className="p-6 text-center">
+                      <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                        <Download className="w-6 h-6 text-white" />
+                      </div>
+                      <h3 className="font-semibold text-lg mb-2">Download Invoice</h3>
+                      <p className="text-slate-600 text-sm">
+                        Access and download your billing history
+                      </p>
                     </CardContent>
                   </Card>
                 </div>
-                
-                {!subscription && (
-                  <Card>
+
+                {/* Current Plan Details */}
+                {subscription ? (
+                  <Card className="border-2 border-emerald-200 bg-gradient-to-br from-emerald-50 to-green-50">
                     <CardHeader>
-                      <CardTitle>Get Started</CardTitle>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center">
+                            <Shield className="w-6 h-6 text-white" />
+                          </div>
+                          <div>
+                            <CardTitle className="text-xl text-emerald-900">Your {subscription.plan.name} Plan</CardTitle>
+                            <p className="text-emerald-700">Active and protecting you</p>
+                          </div>
+                        </div>
+                        <Badge className="bg-emerald-500 hover:bg-emerald-500 text-white">
+                          <CheckCircle className="w-4 h-4 mr-1" />
+                          {subscription.status}
+                        </Badge>
+                      </div>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-muted-foreground mb-4">Choose a protection plan to secure your lifestyle.</p>
-                      <Button onClick={() => setLocation('/pricing')} className="w-full sm:w-auto">
-                        Browse Plans
+                      <div className="grid md:grid-cols-2 gap-6">
+                        <div>
+                          <h4 className="font-semibold text-emerald-900 mb-3">Your Benefits</h4>
+                          <div className="space-y-2 max-h-48 overflow-y-auto">
+                            {subscription.plan.features?.map((feature: string, index: number) => (
+                              <div key={index} className="flex items-start space-x-3">
+                                <CheckCircle className="w-4 h-4 text-emerald-600 mt-0.5 flex-shrink-0" />
+                                <span className="text-sm text-emerald-800">{feature}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-4">
+                          <div className="bg-white/50 rounded-lg p-4">
+                            <div className="text-sm text-emerald-700 mb-1">Monthly Investment</div>
+                            <div className="text-2xl font-bold text-emerald-900">R{subscription.plan.price}</div>
+                          </div>
+                          
+                          <div className="bg-white/50 rounded-lg p-4">
+                            <div className="text-sm text-emerald-700 mb-1">Next Billing Date</div>
+                            <div className="text-lg font-semibold text-emerald-900">
+                              {subscription?.currentPeriodEnd 
+                                ? new Date(subscription.currentPeriodEnd).toLocaleDateString('en-ZA', { 
+                                    weekday: 'long',
+                                    year: 'numeric', 
+                                    month: 'long', 
+                                    day: 'numeric' 
+                                  })
+                                : 'Not set'}
+                            </div>
+                          </div>
+
+                          <div className="flex space-x-3">
+                            <Button 
+                              onClick={() => setLocation('/pricing')} 
+                              className="flex-1 bg-emerald-600 hover:bg-emerald-700"
+                              data-testid="button-upgrade-plan"
+                            >
+                              Upgrade Plan
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              onClick={() => setActiveSection('subscription')}
+                              className="border-emerald-300 text-emerald-700 hover:bg-emerald-50"
+                            >
+                              Manage
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <Card className="border-2 border-dashed border-brand-300 bg-gradient-to-br from-brand-50 to-indigo-50">
+                    <CardContent className="p-12 text-center">
+                      <div className="w-20 h-20 bg-gradient-to-br from-brand-500 to-brand-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <Shield className="w-10 h-10 text-white" />
+                      </div>
+                      <h3 className="text-2xl font-bold text-slate-900 mb-4">Start Your Protection Journey</h3>
+                      <p className="text-slate-600 mb-8 max-w-md mx-auto">
+                        Choose from our comprehensive protection plans designed specifically for South African families.
+                      </p>
+                      <Button 
+                        onClick={() => setLocation('/pricing')} 
+                        size="lg"
+                        className="bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700"
+                        data-testid="button-browse-plans"
+                      >
+                        Browse Protection Plans
                       </Button>
                     </CardContent>
                   </Card>

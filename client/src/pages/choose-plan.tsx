@@ -46,13 +46,17 @@ export default function ChoosePlan() {
   const createSubscriptionMutation = useMutation({
     mutationFn: async (planName: string) => {
       const response = await apiRequest("POST", "/api/subscriptions/create", { planName });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to create subscription');
+      }
       return response.json();
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/subscriptions/current"] });
       toast({
-        title: "Plan Selected Successfully",
-        description: "Your subscription has been activated. Welcome to your new plan!",
+        title: "Plan Updated Successfully",
+        description: data.message || "Your subscription has been activated. Welcome to your new plan!",
       });
       setSelectedPlan(null);
       setLocation('/dashboard');
@@ -60,9 +64,10 @@ export default function ChoosePlan() {
     onError: (error: any) => {
       toast({
         title: "Subscription Error",
-        description: error.message,
+        description: error.message || "Failed to update subscription. Please try again.",
         variant: "destructive",
       });
+      setSelectedPlan(null);
     },
   });
 
@@ -71,9 +76,27 @@ export default function ChoosePlan() {
     const plan = ((plansData as any)?.plans || []).find((p: any) => p.name === planName);
     if (!plan) return;
 
-    // Always show payment form for better user experience
-    setPaymentPlan(plan);
-    setShowPaymentModal(true);
+    // Check if user already has this plan
+    const currentPlan = (currentSubscription as any)?.subscription?.plan.name;
+    if (currentPlan === planName) {
+      toast({
+        title: "Already Subscribed",
+        description: `You are already subscribed to the ${planName} plan.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Set selected plan and trigger the mutation directly for development mode
+    setSelectedPlan(planName);
+    
+    // Since we're in development mode, directly create/update subscription
+    try {
+      await createSubscriptionMutation.mutateAsync(planName);
+    } catch (error) {
+      // Error is already handled in the mutation's onError
+      console.error('Subscription creation failed:', error);
+    }
   };
 
   const handlePaymentSuccess = () => {
