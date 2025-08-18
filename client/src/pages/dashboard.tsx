@@ -37,8 +37,10 @@ import {
   FileText,
   Shield,
   LogOut,
-  Menu
+  Menu,
+  Check
 } from "lucide-react";
+import PlanCard from "@/components/pricing/plan-card";
 
 export default function Dashboard() {
   const [, setLocation] = useLocation();
@@ -46,6 +48,7 @@ export default function Dashboard() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [activeSection, setActiveSection] = useState('overview');
+  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
 
   // Redirect to home if not authenticated
   useEffect(() => {
@@ -69,6 +72,11 @@ export default function Dashboard() {
 
   const { data: invoicesData, isLoading: invoicesLoading } = useQuery({
     queryKey: ["/api/invoices"],
+    enabled: isAuthenticated,
+  });
+
+  const { data: plansData, isLoading: plansLoading } = useQuery({
+    queryKey: ["/api/plans"],
     enabled: isAuthenticated,
   });
 
@@ -162,6 +170,25 @@ export default function Dashboard() {
     });
   };
 
+  const handleSelectPlan = async (planName: string) => {
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in to select a plan.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setSelectedPlan(planName);
+    
+    try {
+      await updateSubscriptionMutation.mutateAsync(planName);
+    } catch (error) {
+      console.error('Subscription update failed:', error);
+    }
+  };
+
   const sidebarItems = [
     {
       title: "Overview",
@@ -180,6 +207,12 @@ export default function Dashboard() {
       icon: FileText,
       id: "invoices",
       onClick: () => setActiveSection('invoices')
+    },
+    {
+      title: "Plans & Pricing",
+      icon: CreditCard,
+      id: "pricing",
+      onClick: () => setActiveSection('pricing')
     },
     {
       title: "Settings",
@@ -799,6 +832,114 @@ export default function Dashboard() {
                         <h4 className="font-semibold text-amber-900 mb-1">Billing</h4>
                         <p className="text-sm text-amber-700">Monthly cycle</p>
                       </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {activeSection === 'pricing' && (
+              <div className="space-y-8">
+                {/* Pricing Welcome Section */}
+                <div className="relative overflow-hidden rounded-2xl p-8">
+                  {/* Stained Glass Background */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-cyan-200/90 via-blue-100/70 to-indigo-200/85"></div>
+                  <div className="absolute inset-0 bg-gradient-to-tl from-purple-200/60 via-transparent to-cyan-200/50"></div>
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-100/60 via-transparent to-purple-100/55"></div>
+                  <div className="absolute inset-0 bg-gradient-to-tr from-indigo-100/40 via-transparent to-blue-100/45"></div>
+                  
+                  {/* Glass overlay */}
+                  <div className="absolute inset-0 backdrop-blur-sm bg-white/15 border border-white/40"></div>
+                  
+                  {/* Content */}
+                  <div className="relative z-10 text-center">
+                    <h2 className="text-2xl font-bold mb-2 text-slate-800">Choose Your Protection Plan</h2>
+                    <p className="text-slate-600 text-lg mb-6">
+                      Select the plan that best fits your needs. You can always upgrade or change your plan later.
+                    </p>
+                    
+                    {user && (
+                      <div className="mt-6 p-4 bg-white/40 backdrop-blur-sm border border-white/30 rounded-lg inline-block">
+                        <div className="flex items-center text-slate-800">
+                          <Check className="w-5 h-5 mr-2 text-emerald-600" />
+                          <span>Signed in as <strong>{user.name}</strong> ({user.email})</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Current Subscription Status */}
+                {subscription && (
+                  <Card className="border-2 border-emerald-200 bg-gradient-to-br from-emerald-50 to-green-50">
+                    <CardHeader>
+                      <CardTitle className="text-emerald-900 flex items-center">
+                        <Shield className="w-5 h-5 mr-2" />
+                        Current Subscription
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="bg-white/50 rounded-lg p-4">
+                        <p className="text-emerald-800 text-lg">
+                          You currently have the <strong className="text-emerald-900">{subscription.plan.name}</strong> plan.
+                          You can upgrade or change your plan below.
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Plans Grid */}
+                {plansLoading ? (
+                  <div className="flex justify-center py-12">
+                    <div className="animate-spin w-8 h-8 border-4 border-cyan-500 border-t-transparent rounded-full" />
+                  </div>
+                ) : (
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {((plansData as any)?.plans || []).map((plan: any) => (
+                      <PlanCard
+                        key={plan.id}
+                        plan={plan}
+                        onSelect={handleSelectPlan}
+                        loading={updateSubscriptionMutation.isPending && selectedPlan === plan.name}
+                        isCurrentPlan={subscription?.plan.name === plan.name}
+                      />
+                    ))}
+                  </div>
+                )}
+
+                {/* Help Section */}
+                <Card className="border-2 border-cyan-200 bg-gradient-to-br from-cyan-50 to-blue-50">
+                  <CardHeader>
+                    <CardTitle className="text-cyan-900">Need Help Choosing?</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="bg-white/50 rounded-lg p-4">
+                      <p className="text-cyan-800 mb-4">
+                        Not sure which plan is right for you? Here's a quick guide:
+                      </p>
+                      <ul className="space-y-3 text-cyan-700">
+                        <li className="flex items-start">
+                          <Badge className="bg-cyan-100 text-cyan-800 mr-3 mt-0.5">OPPORTUNITY</Badge>
+                          <span>Perfect for individuals needing basic protection</span>
+                        </li>
+                        <li className="flex items-start">
+                          <Badge className="bg-cyan-100 text-cyan-800 mr-3 mt-0.5">MOMENTUM</Badge>
+                          <span>Great for growing families with increased coverage</span>
+                        </li>
+                        <li className="flex items-start">
+                          <Badge className="bg-cyan-100 text-cyan-800 mr-3 mt-0.5">PROSPER</Badge>
+                          <span>Comprehensive protection for established families</span>
+                        </li>
+                        <li className="flex items-start">
+                          <Badge className="bg-cyan-100 text-cyan-800 mr-3 mt-0.5">PRESTIGE</Badge>
+                          <span>Premium coverage with superior benefits</span>
+                        </li>
+                        <li className="flex items-start">
+                          <Badge className="bg-cyan-100 text-cyan-800 mr-3 mt-0.5">PINNACLE</Badge>
+                          <span>Ultimate protection with maximum coverage</span>
+                        </li>
+                      </ul>
                     </div>
                   </CardContent>
                 </Card>
