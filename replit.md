@@ -60,6 +60,12 @@ Design preferences: Light stained glass effect with vibrant, prominent colors ap
   - Invoices: Purple/indigo themed welcome banners and cards
   - Settings: Amber/orange warm color schemes with multi-layered gradients
   - Pricing: Cyan/blue/indigo blend with enhanced visual hierarchy
+- **Landing Page Redesign**: Complete redesign to match opianrewards.com style (August 18, 2025)
+  - Hero section with dark gradient background and Protection Card visual
+  - Multi-section layout with value propositions, step-by-step process, and benefits
+  - Opian-style messaging focused on "making money go further" and comprehensive protection
+  - Professional card-based design with clean typography and strong call-to-actions
+  - Integrated pricing section with "Unlock More, Earn More, Be More" theme
 
 ### Email Services
 - **SMTP Configuration**: Nodemailer with Gmail/custom SMTP support
