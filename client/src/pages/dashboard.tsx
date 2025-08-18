@@ -288,12 +288,13 @@ export default function Dashboard() {
                 {/* Welcome Section - Light Stained Glass Effect */}
                 <div className="relative overflow-hidden rounded-2xl p-8">
                   {/* Stained Glass Background */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-100/80 via-purple-50/60 to-pink-100/80"></div>
-                  <div className="absolute inset-0 bg-gradient-to-tl from-emerald-100/40 via-transparent to-amber-100/30"></div>
-                  <div className="absolute inset-0 bg-gradient-to-r from-cyan-50/50 via-transparent to-rose-50/40"></div>
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-200/90 via-purple-100/70 to-pink-200/85"></div>
+                  <div className="absolute inset-0 bg-gradient-to-tl from-emerald-200/60 via-transparent to-amber-200/50"></div>
+                  <div className="absolute inset-0 bg-gradient-to-r from-cyan-100/60 via-transparent to-rose-100/55"></div>
+                  <div className="absolute inset-0 bg-gradient-to-tr from-violet-100/40 via-transparent to-indigo-100/45"></div>
                   
                   {/* Glass overlay */}
-                  <div className="absolute inset-0 backdrop-blur-sm bg-white/20 border border-white/30"></div>
+                  <div className="absolute inset-0 backdrop-blur-sm bg-white/15 border border-white/40"></div>
                   
                   {/* Content */}
                   <div className="relative z-10">
@@ -308,23 +309,23 @@ export default function Dashboard() {
                         </p>
                       </div>
                       <div className="hidden md:block">
-                        <div className="w-20 h-20 bg-gradient-to-br from-white/40 to-white/20 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/30">
-                          <Shield className="w-10 h-10 text-slate-700" />
+                        <div className="w-20 h-20 bg-gradient-to-br from-white/50 to-blue-100/40 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/50 shadow-lg">
+                          <Shield className="w-10 h-10 text-brand-600" />
                         </div>
                       </div>
                     </div>
                     
                     {subscription && (
                       <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                        <div className="bg-white/30 backdrop-blur-sm rounded-lg p-3 border border-white/20">
+                        <div className="bg-gradient-to-br from-white/40 to-blue-50/60 backdrop-blur-sm rounded-lg p-3 border border-white/30 shadow-sm">
                           <div className="text-2xl font-bold text-slate-800">R{subscription.plan.price}</div>
                           <div className="text-sm text-slate-600">Monthly Cost</div>
                         </div>
-                        <div className="bg-white/30 backdrop-blur-sm rounded-lg p-3 border border-white/20">
+                        <div className="bg-gradient-to-br from-white/40 to-emerald-50/60 backdrop-blur-sm rounded-lg p-3 border border-white/30 shadow-sm">
                           <div className="text-2xl font-bold text-slate-800">{subscription.plan.features?.length || 0}</div>
                           <div className="text-sm text-slate-600">Benefits</div>
                         </div>
-                        <div className="bg-white/30 backdrop-blur-sm rounded-lg p-3 border border-white/20">
+                        <div className="bg-gradient-to-br from-white/40 to-purple-50/60 backdrop-blur-sm rounded-lg p-3 border border-white/30 shadow-sm">
                           <div className="text-2xl font-bold text-slate-800">
                             {subscription?.currentPeriodEnd 
                               ? new Date(subscription.currentPeriodEnd).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })
@@ -332,7 +333,7 @@ export default function Dashboard() {
                           </div>
                           <div className="text-sm text-slate-600">Next Billing</div>
                         </div>
-                        <div className="bg-white/30 backdrop-blur-sm rounded-lg p-3 border border-white/20">
+                        <div className="bg-gradient-to-br from-white/40 to-emerald-50/70 backdrop-blur-sm rounded-lg p-3 border border-white/30 shadow-sm">
                           <div className="text-2xl font-bold text-emerald-700">
                             {subscription.status === 'ACTIVE' ? 'ACTIVE' : subscription.status}
                           </div>
