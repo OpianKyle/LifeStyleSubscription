@@ -7,6 +7,7 @@ This is a full-stack subscription-based lifestyle protection website built for t
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
+Design preferences: Light stained glass effect with lighter colors for welcome banners and hero sections.
 
 ## System Architecture
 

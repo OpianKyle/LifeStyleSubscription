@@ -285,51 +285,62 @@ export default function Dashboard() {
           <main className="flex-1 overflow-auto p-6">
             {activeSection === 'overview' && (
               <div className="space-y-8">
-                {/* Welcome Section */}
-                <div className="bg-gradient-to-r from-brand-500 to-brand-600 rounded-2xl p-8 text-white">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h2 className="text-2xl font-bold mb-2">Welcome back, {user.name}!</h2>
-                      <p className="text-brand-100 text-lg">
-                        {subscription ? 
-                          `Your ${subscription.plan.name} plan is keeping you protected` : 
-                          'Ready to start your protection journey?'
-                        }
-                      </p>
-                    </div>
-                    <div className="hidden md:block">
-                      <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center">
-                        <Shield className="w-10 h-10 text-white" />
-                      </div>
-                    </div>
-                  </div>
+                {/* Welcome Section - Light Stained Glass Effect */}
+                <div className="relative overflow-hidden rounded-2xl p-8">
+                  {/* Stained Glass Background */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-100/80 via-purple-50/60 to-pink-100/80"></div>
+                  <div className="absolute inset-0 bg-gradient-to-tl from-emerald-100/40 via-transparent to-amber-100/30"></div>
+                  <div className="absolute inset-0 bg-gradient-to-r from-cyan-50/50 via-transparent to-rose-50/40"></div>
                   
-                  {subscription && (
-                    <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                      <div className="bg-white/10 rounded-lg p-3">
-                        <div className="text-2xl font-bold">R{subscription.plan.price}</div>
-                        <div className="text-sm text-brand-100">Monthly Cost</div>
+                  {/* Glass overlay */}
+                  <div className="absolute inset-0 backdrop-blur-sm bg-white/20 border border-white/30"></div>
+                  
+                  {/* Content */}
+                  <div className="relative z-10">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h2 className="text-2xl font-bold mb-2 text-slate-800">Welcome back, {user.name}!</h2>
+                        <p className="text-slate-600 text-lg">
+                          {subscription ? 
+                            `Your ${subscription.plan.name} plan is keeping you protected` : 
+                            'Ready to start your protection journey?'
+                          }
+                        </p>
                       </div>
-                      <div className="bg-white/10 rounded-lg p-3">
-                        <div className="text-2xl font-bold">{subscription.plan.features?.length || 0}</div>
-                        <div className="text-sm text-brand-100">Benefits</div>
-                      </div>
-                      <div className="bg-white/10 rounded-lg p-3">
-                        <div className="text-2xl font-bold">
-                          {subscription?.currentPeriodEnd 
-                            ? new Date(subscription.currentPeriodEnd).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })
-                            : '--'}
+                      <div className="hidden md:block">
+                        <div className="w-20 h-20 bg-gradient-to-br from-white/40 to-white/20 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/30">
+                          <Shield className="w-10 h-10 text-slate-700" />
                         </div>
-                        <div className="text-sm text-brand-100">Next Billing</div>
-                      </div>
-                      <div className="bg-white/10 rounded-lg p-3">
-                        <div className="text-2xl font-bold text-emerald-200">
-                          {subscription.status === 'ACTIVE' ? 'ACTIVE' : subscription.status}
-                        </div>
-                        <div className="text-sm text-brand-100">Status</div>
                       </div>
                     </div>
-                  )}
+                    
+                    {subscription && (
+                      <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                        <div className="bg-white/30 backdrop-blur-sm rounded-lg p-3 border border-white/20">
+                          <div className="text-2xl font-bold text-slate-800">R{subscription.plan.price}</div>
+                          <div className="text-sm text-slate-600">Monthly Cost</div>
+                        </div>
+                        <div className="bg-white/30 backdrop-blur-sm rounded-lg p-3 border border-white/20">
+                          <div className="text-2xl font-bold text-slate-800">{subscription.plan.features?.length || 0}</div>
+                          <div className="text-sm text-slate-600">Benefits</div>
+                        </div>
+                        <div className="bg-white/30 backdrop-blur-sm rounded-lg p-3 border border-white/20">
+                          <div className="text-2xl font-bold text-slate-800">
+                            {subscription?.currentPeriodEnd 
+                              ? new Date(subscription.currentPeriodEnd).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })
+                              : '--'}
+                          </div>
+                          <div className="text-sm text-slate-600">Next Billing</div>
+                        </div>
+                        <div className="bg-white/30 backdrop-blur-sm rounded-lg p-3 border border-white/20">
+                          <div className="text-2xl font-bold text-emerald-700">
+                            {subscription.status === 'ACTIVE' ? 'ACTIVE' : subscription.status}
+                          </div>
+                          <div className="text-sm text-slate-600">Status</div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* Quick Actions */}
