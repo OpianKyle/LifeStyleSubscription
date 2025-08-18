@@ -7,17 +7,17 @@ This is a full-stack subscription-based lifestyle protection website built for t
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
-Design preferences: Light stained glass effect with lighter colors for welcome banners and hero sections.
+Design preferences: Light stained glass effect with vibrant, prominent colors applied across all dashboard sections and pages. Each section features unique color themes with multiple gradient layers, glassmorphism effects, and enhanced visual hierarchy.
 
 ## System Architecture
 
 ### Frontend Architecture
 - **Framework**: React with Vite build system and TypeScript
-- **Routing**: Wouter for client-side navigation
+- **Routing**: Wouter for client-side navigation with dedicated /pricing route alias
 - **UI Framework**: Tailwind CSS with shadcn/ui component library using Radix UI primitives
 - **State Management**: TanStack Query (React Query) for server state management
-- **Design System**: Custom design tokens with CSS variables, neutral color palette, and consistent typography scale
-- **Layout Structure**: Responsive design with mobile-first approach, sticky navigation, and component-based architecture
+- **Design System**: Custom stained glass design with vibrant color themes per section, glassmorphism effects, and consistent typography scale
+- **Layout Structure**: Responsive design with mobile-first approach, sticky navigation, themed welcome banners, and component-based architecture
 
 ### Backend Architecture
 - **Runtime**: Node.js with Express.js framework
@@ -54,6 +54,12 @@ Design preferences: Light stained glass effect with lighter colors for welcome b
 - **Environment Setup**: All required API keys configured (Stripe, SMTP) for full functionality
 - **Database Setup**: PostgreSQL database configured and schema migrated successfully
 - **Development Mode**: Subscription system fully operational with development price IDs for testing
+- **UI Enhancement**: Comprehensive stained glass styling applied to all dashboard sections (August 18, 2025)
+  - Overview: Blue/purple/pink gradient themes with enhanced vibrancy
+  - Subscription: Emerald/green color palette with glassmorphism effects
+  - Invoices: Purple/indigo themed welcome banners and cards
+  - Settings: Amber/orange warm color schemes with multi-layered gradients
+  - Pricing: Cyan/blue/indigo blend with enhanced visual hierarchy
 
 ### Email Services
 - **SMTP Configuration**: Nodemailer with Gmail/custom SMTP support

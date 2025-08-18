@@ -11,7 +11,7 @@ import PaymentForm from "@/components/payment/payment-form";
 import { useAuthState } from "@/hooks/useAuthState";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Check, Loader2 } from "lucide-react";
+import { ArrowLeft, Check, Loader2, Shield } from "lucide-react";
 
 export default function ChoosePlan() {
   const [, setLocation] = useLocation();
