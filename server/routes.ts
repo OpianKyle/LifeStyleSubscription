@@ -192,7 +192,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Configuration routes
   app.get('/api/config/stripe', (_req: Request, res: Response) => {
     res.json({
-      publishableKey: process.env.STRIPE_PUBLISHABLE_KEY
+      publishableKey: process.env.VITE_STRIPE_PUBLIC_KEY
     });
   });
 
