@@ -73,15 +73,36 @@ export default function Home() {
     <div className="min-h-screen bg-white">
       <Navbar />
       
-      {/* Hero Section - Opian Style */}
-      <section className="relative overflow-hidden pt-20 pb-24 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 via-purple-500/20 to-cyan-500/20"></div>
+      {/* Hero Section - Split Design with Slanted Overlap */}
+      <section className="relative overflow-hidden min-h-screen flex items-center">
+        {/* Left Side - Image */}
+        <div className="absolute inset-0 w-1/2 z-0">
+          <img 
+            src={heroImage} 
+            alt="South African family protected by Opian Lifestyle" 
+            className="w-full h-full object-cover"
+          />
+          {/* Image overlay with slanted edge */}
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-slate-900/20 to-slate-900/60"></div>
         </div>
         
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+        {/* Slanted Overlay Section */}
+        <div className="absolute left-1/3 top-0 h-full w-2/3 z-10">
+          <div 
+            className="h-full w-full bg-gradient-to-br from-slate-900/95 via-slate-800/90 to-slate-900/95"
+            style={{
+              clipPath: 'polygon(20% 0%, 100% 0%, 100% 100%, 0% 100%)'
+            }}
+          ></div>
+        </div>
+        
+        {/* Content Container */}
+        <div className="relative z-20 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-12 items-center min-h-screen py-20">
+            {/* Left side - spacer for image */}
+            <div className="hidden lg:block"></div>
+            
+            {/* Right side - Content */}
             <div className="max-w-2xl">
               <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight">
                 The Protection Program that works for you
@@ -109,40 +130,72 @@ export default function Home() {
                   Get Started Today
                 </Button>
               </div>
-            </div>
-            
-            {/* Hero Image */}
-            <div className="flex justify-center lg:justify-end">
-              <div className="relative">
-                <div className="w-96 h-72 rounded-2xl shadow-2xl overflow-hidden transform hover:scale-105 transition-transform duration-300">
-                  <img 
-                    src={heroImage} 
-                    alt="South African family protected by Opian Lifestyle" 
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent"></div>
-                  <div className="absolute bottom-6 left-6 right-6 text-white">
-                    <h3 className="text-xl font-bold mb-2">Your Family's Protection</h3>
-                    <p className="text-sm opacity-90">Comprehensive lifestyle protection for South African families</p>
-                  </div>
+              
+              {/* Key Stats */}
+              <div className="grid grid-cols-3 gap-8 text-center text-white">
+                <div>
+                  <div className="text-3xl font-bold mb-2">24/7</div>
+                  <div className="text-slate-300 text-sm">Emergency Support</div>
+                </div>
+                <div>
+                  <div className="text-3xl font-bold mb-2">R350+</div>
+                  <div className="text-slate-300 text-sm">Plans from</div>
+                </div>
+                <div>
+                  <div className="text-3xl font-bold mb-2">100%</div>
+                  <div className="text-slate-300 text-sm">Family Coverage</div>
                 </div>
               </div>
             </div>
           </div>
-          
-          {/* Key Stats */}
-          <div className="grid sm:grid-cols-3 gap-8 mt-16 text-center text-white">
-            <div>
-              <div className="text-3xl font-bold mb-2">24/7</div>
-              <div className="text-slate-300">Emergency Support</div>
-            </div>
-            <div>
-              <div className="text-3xl font-bold mb-2">R350+</div>
-              <div className="text-slate-300">Plans from</div>
-            </div>
-            <div>
-              <div className="text-3xl font-bold mb-2">100%</div>
-              <div className="text-slate-300">Family Coverage</div>
+        </div>
+        
+        {/* Mobile Layout */}
+        <div className="lg:hidden relative z-20 w-full">
+          <div className="absolute inset-0 bg-slate-900/80"></div>
+          <div className="relative px-4 sm:px-6 py-20">
+            <div className="max-w-2xl mx-auto text-center">
+              <h1 className="text-4xl font-bold text-white mb-6 leading-tight">
+                The Protection Program that works for you
+              </h1>
+              <p className="text-xl text-slate-300 mb-8 leading-relaxed">
+                Make your money go further with our lifestyle protection plans.
+              </p>
+              
+              <div className="flex flex-col gap-4 mb-12">
+                <Button 
+                  size="lg" 
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-4 text-lg"
+                  onClick={scrollToPricing}
+                >
+                  More Information
+                  <ArrowRight className="ml-2 w-5 h-5" />
+                </Button>
+                
+                <Button 
+                  variant="outline" 
+                  size="lg"
+                  className="border-white text-white hover:bg-white hover:text-slate-900 font-semibold px-8 py-4 text-lg"
+                  onClick={() => setLocation('/auth')}
+                >
+                  Get Started Today
+                </Button>
+              </div>
+              
+              <div className="grid grid-cols-3 gap-4 text-center text-white">
+                <div>
+                  <div className="text-2xl font-bold mb-1">24/7</div>
+                  <div className="text-slate-300 text-xs">Emergency Support</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold mb-1">R350+</div>
+                  <div className="text-slate-300 text-xs">Plans from</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold mb-1">100%</div>
+                  <div className="text-slate-300 text-xs">Family Coverage</div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
