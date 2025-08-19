@@ -75,23 +75,23 @@ export default function Home() {
       
       {/* Hero Section - Split Design with Slanted Overlap */}
       <section className="relative overflow-hidden min-h-screen flex items-center">
-        {/* Left Side - Image */}
-        <div className="absolute inset-0 w-1/2 z-0">
+        {/* Right Side - Image */}
+        <div className="absolute inset-0 left-1/2 w-1/2 z-0">
           <img 
             src={heroImage} 
             alt="South African family protected by Opian Lifestyle" 
             className="w-full h-full object-cover"
           />
           {/* Image overlay with slanted edge */}
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-slate-900/20 to-slate-900/60"></div>
+          <div className="absolute inset-0 bg-gradient-to-l from-transparent via-slate-900/20 to-slate-900/60"></div>
         </div>
         
         {/* Slanted Overlay Section */}
-        <div className="absolute left-1/3 top-0 h-full w-2/3 z-10">
+        <div className="absolute right-1/3 top-0 h-full w-2/3 z-10">
           <div 
             className="h-full w-full bg-gradient-to-br from-slate-900/95 via-slate-800/90 to-slate-900/95"
             style={{
-              clipPath: 'polygon(20% 0%, 100% 0%, 100% 100%, 0% 100%)'
+              clipPath: 'polygon(0% 0%, 80% 0%, 100% 100%, 0% 100%)'
             }}
           ></div>
         </div>
@@ -99,10 +99,7 @@ export default function Home() {
         {/* Content Container */}
         <div className="relative z-20 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center min-h-screen py-20">
-            {/* Left side - spacer for image */}
-            <div className="hidden lg:block"></div>
-            
-            {/* Right side - Content */}
+            {/* Left side - Content */}
             <div className="max-w-2xl">
               <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight">
                 The Protection Program that works for you
@@ -147,6 +144,9 @@ export default function Home() {
                 </div>
               </div>
             </div>
+            
+            {/* Right side - spacer for image */}
+            <div className="hidden lg:block"></div>
           </div>
         </div>
         
