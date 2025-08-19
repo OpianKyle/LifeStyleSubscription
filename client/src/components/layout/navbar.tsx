@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuthState } from "@/hooks/useAuthState";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,17 @@ export default function Navbar() {
   const [location] = useLocation();
   const { isAuthenticated, user, logout } = useAuthState();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollTop = window.scrollY;
+      setIsScrolled(scrollTop > 50);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -24,7 +35,11 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-slate-200/60 shadow-sm">
+    <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${
+      isScrolled 
+        ? 'bg-white/95 backdrop-blur-sm border-b border-slate-200/60 shadow-sm' 
+        : 'bg-transparent border-b border-transparent'
+    }`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center space-x-4">
@@ -32,18 +47,26 @@ export default function Navbar() {
               <div className="w-8 h-8 bg-gradient-to-br from-brand-500 to-brand-700 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-sm">OL</span>
               </div>
-              <span className="font-semibold text-xl text-slate-900">Opian Lifestyle</span>
+              <span className={`font-semibold text-xl transition-colors duration-300 ${
+                isScrolled ? 'text-slate-900' : 'text-white'
+              }`}>Opian Lifestyle</span>
             </Link>
           </div>
           
           <div className="hidden md:flex items-center space-x-8">
-            <Link href="/pricing" className="text-slate-600 hover:text-brand-600 transition-colors duration-200 font-medium">
+            <Link href="/pricing" className={`hover:text-brand-600 transition-colors duration-200 font-medium ${
+              isScrolled ? 'text-slate-600' : 'text-white/90'
+            }`}>
               Pricing
             </Link>
-            <a href="#features" className="text-slate-600 hover:text-brand-600 transition-colors duration-200 font-medium">
+            <a href="#features" className={`hover:text-brand-600 transition-colors duration-200 font-medium ${
+              isScrolled ? 'text-slate-600' : 'text-white/90'
+            }`}>
               Features
             </a>
-            <a href="#about" className="text-slate-600 hover:text-brand-600 transition-colors duration-200 font-medium">
+            <a href="#about" className={`hover:text-brand-600 transition-colors duration-200 font-medium ${
+              isScrolled ? 'text-slate-600' : 'text-white/90'
+            }`}>
               About
             </a>
           </div>
@@ -85,12 +108,18 @@ export default function Navbar() {
             ) : (
               <>
                 <Link href="/auth">
-                  <Button variant="ghost" className="text-slate-600 hover:text-brand-600 transition-colors duration-200 font-medium" data-testid="button-signin">
+                  <Button variant="ghost" className={`hover:text-brand-600 transition-colors duration-200 font-medium ${
+                    isScrolled ? 'text-slate-600' : 'text-white/90'
+                  }`} data-testid="button-signin">
                     Sign In
                   </Button>
                 </Link>
                 <Link href="/auth">
-                  <Button className="btn-primary" data-testid="button-getstarted">
+                  <Button className={`font-medium transition-all duration-200 ${
+                    isScrolled 
+                      ? 'btn-primary' 
+                      : 'bg-white text-slate-900 hover:bg-white/90 border border-white'
+                  }`} data-testid="button-getstarted">
                     Get Started
                   </Button>
                 </Link>
