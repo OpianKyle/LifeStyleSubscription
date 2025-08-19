@@ -119,9 +119,8 @@ export default function Home() {
                 </Button>
                 
                 <Button 
-                  variant="outline" 
                   size="lg"
-                  className="border-white text-white hover:bg-white hover:text-slate-900 font-semibold px-8 py-4 text-lg"
+                  className="bg-white text-slate-900 hover:bg-slate-100 font-semibold px-8 py-4 text-lg"
                   onClick={() => setLocation('/auth')}
                 >
                   Get Started Today
@@ -173,9 +172,8 @@ export default function Home() {
                 </Button>
                 
                 <Button 
-                  variant="outline" 
                   size="lg"
-                  className="border-white text-white hover:bg-white hover:text-slate-900 font-semibold px-8 py-4 text-lg"
+                  className="bg-white text-slate-900 hover:bg-slate-100 font-semibold px-8 py-4 text-lg"
                   onClick={() => setLocation('/auth')}
                 >
                   Get Started Today
