@@ -43,7 +43,7 @@ export async function createStripeProducts() {
     try {
       // Create Stripe product
       const product = await stripe.products.create({
-        name: `LifeGuard ${planData.name}`,
+        name: `Opian Lifestyle ${planData.name}`,
         description: planData.description,
         metadata: {
           planName: planData.name,

@@ -6,9 +6,9 @@ export default function Footer() {
           <div className="col-span-1 md:col-span-2">
             <div className="flex items-center space-x-3 mb-4">
               <div className="w-10 h-10 bg-gradient-to-br from-brand-500 to-brand-600 rounded-xl flex items-center justify-center">
-                <span className="text-white font-bold">LG</span>
+                <span className="text-white font-bold">OL</span>
               </div>
-              <span className="font-bold text-xl">LifeGuard</span>
+              <span className="font-bold text-xl">Opian Lifestyle</span>
             </div>
             <p className="text-slate-400 mb-6 max-w-md">
               Providing comprehensive lifestyle protection and peace of mind for South African families with 24/7 support and nationwide coverage.
@@ -49,7 +49,7 @@ export default function Footer() {
         </div>
         
         <div className="border-t border-slate-800 mt-12 pt-8 text-center">
-          <p className="text-slate-400">&copy; 2024 LifeGuard. All rights reserved.</p>
+          <p className="text-slate-400">&copy; 2024 Opian Lifestyle. All rights reserved.</p>
         </div>
       </div>
     </footer>

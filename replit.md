@@ -2,7 +2,7 @@
 
 ## Overview
 
-This is a full-stack subscription-based lifestyle protection website built for the South African market. The application offers five subscription plans (OPPORTUNITY, MOMENTUM, PROSPER, PRESTIGE, PINNACLE) ranging from R350-R825 per month, providing services like emergency medical assistance, legal support, funeral cover, and family protection benefits. The system features a modern, clean design inspired by Entrepedia's aesthetic with rounded cards, soft shadows, and generous white space.
+This is a full-stack subscription-based Opian Lifestyle protection website built for the South African market. The application offers five subscription plans (OPPORTUNITY, MOMENTUM, PROSPER, PRESTIGE, PINNACLE) ranging from R350-R825 per month, providing services like emergency medical assistance, legal support, funeral cover, and family protection benefits. The system features a modern, clean design inspired by Entrepedia's aesthetic with rounded cards, soft shadows, and generous white space.
 
 ## User Preferences
 

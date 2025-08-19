@@ -30,9 +30,9 @@ export default function Navbar() {
           <div className="flex items-center space-x-4">
             <Link href="/" className="flex items-center space-x-3">
               <div className="w-8 h-8 bg-gradient-to-br from-brand-500 to-brand-700 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">LG</span>
+                <span className="text-white font-bold text-sm">OL</span>
               </div>
-              <span className="font-semibold text-xl text-slate-900">LifeGuard</span>
+              <span className="font-semibold text-xl text-slate-900">Opian Lifestyle</span>
             </Link>
           </div>
           

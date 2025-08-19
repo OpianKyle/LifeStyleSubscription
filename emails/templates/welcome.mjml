@@ -1,19 +1,19 @@
 <mjml>
   <mj-head>
-    <mj-title>Welcome to LifeGuard</mj-title>
+    <mj-title>Welcome to Opian Lifestyle</mj-title>
     <mj-preview>Your account is now active and ready to protect your lifestyle</mj-preview>
   </mj-head>
   <mj-body background-color="#f3f4f6">
     <mj-section background-color="#ffffff" padding="20px">
       <mj-column>
         <mj-text font-size="24px" color="#1f2937" font-weight="bold" align="center">
-          Welcome to LifeGuard!
+          Welcome to Opian Lifestyle!
         </mj-text>
         <mj-text font-size="16px" color="#4b5563" line-height="1.6">
           Hello {{name}},
         </mj-text>
         <mj-text font-size="16px" color="#4b5563" line-height="1.6">
-          Your LifeGuard account has been successfully verified! You now have access to comprehensive lifestyle protection services including emergency medical assistance, legal support, and family protection benefits.
+          Your Opian Lifestyle account has been successfully verified! You now have access to comprehensive lifestyle protection services including emergency medical assistance, legal support, and family protection benefits.
         </mj-text>
         <mj-text font-size="16px" color="#4b5563" line-height="1.6">
           Get started by choosing the protection plan that best fits your needs:
@@ -26,7 +26,7 @@
     <mj-section background-color="#f9fafb" padding="20px">
       <mj-column>
         <mj-text font-size="14px" color="#6b7280" align="center">
-          © 2025 LifeGuard. All rights reserved.
+          © 2025 Opian Lifestyle. All rights reserved.
         </mj-text>
       </mj-column>
     </mj-section>

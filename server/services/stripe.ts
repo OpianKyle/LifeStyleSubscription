@@ -206,7 +206,7 @@ export class StripeService {
     //   newPlan: newPlan.name,
     //   changeDate: new Date().toLocaleDateString(),
     //   nextBilling: new Date(currentSubscription.currentPeriodEnd!).toLocaleDateString()
-    // }, user.email, 'Your LifeGuard subscription has been updated');
+    // }, user.email, 'Your Opian Lifestyle subscription has been updated');
 
     return { message: 'Subscription updated successfully' };
   }
@@ -242,7 +242,7 @@ export class StripeService {
       newPlan: 'Canceled',
       changeDate: new Date().toLocaleDateString(),
       nextBilling: new Date(subscription.currentPeriodEnd!).toLocaleDateString()
-    }, user.email, 'Your LifeGuard subscription has been canceled');
+    }, user.email, 'Your Opian Lifestyle subscription has been canceled');
 
     return { message: 'Subscription canceled successfully' };
   }
@@ -300,7 +300,7 @@ export class StripeService {
       amount: `R${(invoice.amount_paid / 100).toFixed(2)}`,
       date: new Date().toLocaleDateString(),
       transactionId: invoice.id
-    }, user.email, 'Payment receipt for your LifeGuard subscription');
+    }, user.email, 'Payment receipt for your Opian Lifestyle subscription');
   }
 
   private static async handlePaymentFailed(invoice: Stripe.Invoice) {

@@ -156,7 +156,7 @@ export default function Auth() {
       <Card className="w-full max-w-md shadow-2xl">
         <CardHeader className="text-center">
           <div className="w-16 h-16 bg-gradient-to-br from-brand-500 to-brand-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <span className="text-white font-bold text-xl">LG</span>
+            <span className="text-white font-bold text-xl">OL</span>
           </div>
           <CardTitle className="text-2xl font-bold text-slate-900">{getTitle()}</CardTitle>
           <p className="text-slate-600 mt-2">{getDescription()}</p>

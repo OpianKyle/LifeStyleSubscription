@@ -67,7 +67,7 @@ export class AuthService {
         name: user.name,
         verificationLink: `${baseUrl}/verify-email?token=${emailVerificationToken}`,
         expiresAt: '24 hours'
-      }, user.email, 'Verify your LifeGuard account');
+      }, user.email, 'Verify your Opian Lifestyle account');
     } catch (emailError: any) {
       console.log('Email service not configured, skipping verification email:', emailError.message);
       // For development: auto-verify the user
@@ -114,7 +114,7 @@ export class AuthService {
     try {
       await sendEmail('welcome', {
         name: user.name
-      }, user.email, 'Welcome to LifeGuard!');
+      }, user.email, 'Welcome to Opian Lifestyle!');
     } catch (emailError: any) {
       console.log('Email service not configured, skipping welcome email:', emailError.message);
     }
@@ -138,7 +138,7 @@ export class AuthService {
       name: user.name,
       resetLink: `${process.env.FRONTEND_URL || 'http://localhost:5000'}/reset-password?token=${resetToken}`,
       expiresAt: '1 hour'
-    }, user.email, 'Reset your LifeGuard password');
+    }, user.email, 'Reset your Opian Lifestyle password');
 
     return { message: 'Password reset email sent' };
   }

@@ -44,7 +44,7 @@ export async function sendEmail(templateName: string, data: any, to: string, sub
     logger: true // Enable logging
   });
 
-  const fromEmail = process.env.SMTP_FROM || process.env.EMAIL_FROM || 'noreply@lifeguard.co.za';
+  const fromEmail = process.env.SMTP_FROM || process.env.EMAIL_FROM || 'noreply@opianlifestyle.co.za';
 
   try {
     await transporter.sendMail({ 
