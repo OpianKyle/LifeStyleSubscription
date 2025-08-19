@@ -118,9 +118,9 @@ export default function Navbar() {
                   <Button className={`font-medium transition-all duration-200 ${
                     isScrolled 
                       ? 'btn-primary' 
-                      : 'bg-white text-slate-900 hover:bg-white/90 border border-white'
+                      : 'bg-blue-600 text-white hover:bg-blue-700 border border-blue-600'
                   }`} data-testid="button-getstarted">
-                    Get Started
+                    Get Started Today
                   </Button>
                 </Link>
               </>
