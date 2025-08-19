@@ -10,6 +10,12 @@ import { useAuthState } from "@/hooks/useAuthState";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowRight, Shield, Heart, Phone, Scale, Users, Check, Loader2 } from "lucide-react";
 
+// Import generated images
+import heroImage from "@assets/generated_images/Family_protection_hero_image_fda77672.png";
+import medicalImage from "@assets/generated_images/Medical_assistance_services_illustration_d0d96e6e.png";
+import legalImage from "@assets/generated_images/Legal_support_services_illustration_4e8f75c7.png";
+import familyImage from "@assets/generated_images/Family_protection_benefits_illustration_1824d9d7.png";
+
 export default function Home() {
   const [, setLocation] = useLocation();
   const { isAuthenticated } = useAuthState();
@@ -105,15 +111,19 @@ export default function Home() {
               </div>
             </div>
             
-            {/* Hero Image/Card */}
+            {/* Hero Image */}
             <div className="flex justify-center lg:justify-end">
               <div className="relative">
-                <div className="w-80 h-48 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl shadow-2xl transform rotate-3 hover:rotate-0 transition-transform duration-300">
-                  <div className="absolute inset-0 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20"></div>
-                  <div className="relative p-8 h-full flex flex-col justify-center items-center text-white">
-                    <Shield className="w-16 h-16 mb-4" />
-                    <h3 className="text-xl font-bold mb-2">Protection Card</h3>
-                    <p className="text-center text-sm opacity-90">Your gateway to comprehensive lifestyle protection</p>
+                <div className="w-96 h-72 rounded-2xl shadow-2xl overflow-hidden transform hover:scale-105 transition-transform duration-300">
+                  <img 
+                    src={heroImage} 
+                    alt="South African family protected by Opian Lifestyle" 
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent"></div>
+                  <div className="absolute bottom-6 left-6 right-6 text-white">
+                    <h3 className="text-xl font-bold mb-2">Your Family's Protection</h3>
+                    <p className="text-sm opacity-90">Comprehensive lifestyle protection for South African families</p>
                   </div>
                 </div>
               </div>
@@ -153,8 +163,12 @@ export default function Home() {
           <div className="grid md:grid-cols-3 gap-8">
             <Card className="border-2 border-blue-100 hover:border-blue-200 transition-colors">
               <CardContent className="p-8 text-center">
-                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Shield className="w-8 h-8 text-blue-600" />
+                <div className="w-24 h-24 mx-auto mb-4 rounded-xl overflow-hidden">
+                  <img 
+                    src={medicalImage} 
+                    alt="Medical assistance services" 
+                    className="w-full h-full object-cover"
+                  />
                 </div>
                 <h3 className="text-xl font-semibold mb-3">Protection on Everything</h3>
                 <p className="text-slate-600">Emergency services, legal support, family benefits—comprehensive coverage for your everyday life.</p>
@@ -163,8 +177,12 @@ export default function Home() {
             
             <Card className="border-2 border-purple-100 hover:border-purple-200 transition-colors">
               <CardContent className="p-8 text-center">
-                <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Users className="w-8 h-8 text-purple-600" />
+                <div className="w-24 h-24 mx-auto mb-4 rounded-xl overflow-hidden">
+                  <img 
+                    src={legalImage} 
+                    alt="Legal support services" 
+                    className="w-full h-full object-cover"
+                  />
                 </div>
                 <h3 className="text-xl font-semibold mb-3">Build Your Own Protection Stack</h3>
                 <p className="text-slate-600">Combine our protection system with your current benefits to create comprehensive family coverage!</p>
@@ -173,8 +191,12 @@ export default function Home() {
             
             <Card className="border-2 border-green-100 hover:border-green-200 transition-colors">
               <CardContent className="p-8 text-center">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Heart className="w-8 h-8 text-green-600" />
+                <div className="w-24 h-24 mx-auto mb-4 rounded-xl overflow-hidden">
+                  <img 
+                    src={familyImage} 
+                    alt="Family protection benefits" 
+                    className="w-full h-full object-cover"
+                  />
                 </div>
                 <h3 className="text-xl font-semibold mb-3">Make Your Money Work for You</h3>
                 <p className="text-slate-600">With expert financial guidance, make smarter planning decisions to save and build wealth for your family.</p>
