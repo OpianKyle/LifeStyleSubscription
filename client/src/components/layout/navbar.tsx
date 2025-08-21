@@ -9,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { User, LogOut, Settings, Shield } from "lucide-react";
+import opianLogo from "@assets/opian-rewards-logo-Recovered_1755772691086.png";
 
 export default function Navbar() {
   const [location] = useLocation();
@@ -44,12 +45,12 @@ export default function Navbar() {
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center space-x-4">
             <Link href="/" className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-gradient-to-br from-brand-500 to-brand-700 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">OL</span>
-              </div>
-              <span className={`font-semibold text-xl transition-colors duration-300 ${
-                isScrolled ? 'text-slate-900' : 'text-white'
-              }`}>Opian Lifestyle</span>
+              <img 
+                src={opianLogo} 
+                alt="Opian Lifestyle" 
+                className="h-10 w-auto"
+                data-testid="navbar-logo"
+              />
             </Link>
           </div>
           
