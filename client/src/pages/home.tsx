@@ -29,17 +29,17 @@ export default function Home() {
 
   const handleSelectPlan = async (planName: string) => {
     if (!isAuthenticated) {
-      setLocation('/auth?redirect=/choose-plan');
+      setLocation('/auth?redirect=/dashboard');
       toast({
         title: "Authentication Required",
-        description: "Please sign in to select a plan.",
+        description: "Please sign in to view plans and pricing.",
         variant: "destructive",
       });
       return;
     }
 
-    // Redirect to choose plan page for authenticated users
-    setLocation('/choose-plan');
+    // Redirect to dashboard for authenticated users
+    setLocation('/dashboard');
   };
 
   const plans = (plansData as any)?.plans || [];
@@ -63,10 +63,16 @@ export default function Home() {
   ];
 
   const scrollToPricing = () => {
-    const pricingSection = document.getElementById('pricing');
-    if (pricingSection) {
-      pricingSection.scrollIntoView({ behavior: 'smooth' });
+    if (!isAuthenticated) {
+      setLocation('/auth?redirect=/dashboard');
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in to view plans and pricing.",
+        variant: "destructive",
+      });
+      return;
     }
+    setLocation('/dashboard');
   };
 
   return (
@@ -121,7 +127,7 @@ export default function Home() {
                 <Button 
                   size="lg"
                   className="bg-white text-slate-900 hover:bg-slate-100 font-semibold px-8 py-4 text-lg"
-                  onClick={() => setLocation('/auth')}
+                  onClick={() => setLocation('/dashboard')}
                 >
                   Get Started Today
                 </Button>
@@ -174,7 +180,7 @@ export default function Home() {
                 <Button 
                   size="lg"
                   className="bg-white text-slate-900 hover:bg-slate-100 font-semibold px-8 py-4 text-lg"
-                  onClick={() => setLocation('/auth')}
+                  onClick={() => setLocation('/dashboard')}
                 >
                   Get Started Today
                 </Button>
@@ -307,9 +313,9 @@ export default function Home() {
             <Button 
               size="lg" 
               className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-4 text-lg"
-              onClick={() => setLocation('/auth')}
+              onClick={() => setLocation('/dashboard')}
             >
-              More Information
+              View Plans
             </Button>
           </div>
         </div>
@@ -466,17 +472,17 @@ export default function Home() {
                 <Button 
                   size="lg" 
                   className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-4 text-lg"
-                  onClick={() => setLocation('/auth')}
+                  onClick={() => setLocation('/dashboard')}
                 >
-                  Get Information
+                  View Plans
                 </Button>
                 <Button 
                   variant="outline" 
                   size="lg"
                   className="border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold px-8 py-4 text-lg"
-                  onClick={() => setLocation('/auth')}
+                  onClick={() => setLocation('/dashboard')}
                 >
-                  Sign In
+                  View Plans
                 </Button>
               </div>
             </div>

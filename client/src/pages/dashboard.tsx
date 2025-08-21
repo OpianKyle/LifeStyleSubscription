@@ -38,9 +38,18 @@ import {
   Shield,
   LogOut,
   Menu,
-  Check
+  Check,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 import PlanCard from "@/components/pricing/plan-card";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 
 export default function Dashboard() {
   const [, setLocation] = useLocation();
@@ -380,7 +389,7 @@ export default function Dashboard() {
                 {/* Quick Actions */}
                 <div className="grid md:grid-cols-3 gap-6">
                   <Card className="group hover:shadow-lg transition-all duration-300 border-2 hover:border-brand-200 cursor-pointer" 
-                        onClick={() => setLocation('/pricing')} data-testid="card-change-plan">
+                        onClick={() => setActiveSection('pricing')} data-testid="card-change-plan">
                     <CardContent className="p-6 text-center">
                       <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
                         <CreditCard className="w-6 h-6 text-white" />
@@ -476,7 +485,7 @@ export default function Dashboard() {
 
                           <div className="flex space-x-3">
                             <Button 
-                              onClick={() => setLocation('/pricing')} 
+                              onClick={() => setActiveSection('pricing')} 
                               className="flex-1 bg-emerald-600 hover:bg-emerald-700"
                               data-testid="button-upgrade-plan"
                             >
@@ -505,7 +514,7 @@ export default function Dashboard() {
                         Choose from our comprehensive protection plans designed specifically for South African families.
                       </p>
                       <Button 
-                        onClick={() => setLocation('/pricing')} 
+                        onClick={() => setActiveSection('pricing')} 
                         size="lg"
                         className="bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700"
                         data-testid="button-browse-plans"
@@ -889,22 +898,29 @@ export default function Dashboard() {
                   </Card>
                 )}
 
-                {/* Plans Grid */}
+                {/* Plans Carousel */}
                 {plansLoading ? (
                   <div className="flex justify-center py-12">
                     <div className="animate-spin w-8 h-8 border-4 border-cyan-500 border-t-transparent rounded-full" />
                   </div>
                 ) : (
-                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {((plansData as any)?.plans || []).map((plan: any) => (
-                      <PlanCard
-                        key={plan.id}
-                        plan={plan}
-                        onSelect={handleSelectPlan}
-                        loading={updateSubscriptionMutation.isPending && selectedPlan === plan.name}
-                        isCurrentPlan={subscription?.plan.name === plan.name}
-                      />
-                    ))}
+                  <div className="px-12">
+                    <Carousel className="w-full">
+                      <CarouselContent className="-ml-4">
+                        {((plansData as any)?.plans || []).map((plan: any) => (
+                          <CarouselItem key={plan.id} className="pl-4 basis-full md:basis-1/2 lg:basis-1/3 xl:basis-1/4 2xl:basis-1/5">
+                            <PlanCard
+                              plan={plan}
+                              onSelect={handleSelectPlan}
+                              loading={updateSubscriptionMutation.isPending && selectedPlan === plan.name}
+                              isCurrentPlan={subscription?.plan.name === plan.name}
+                            />
+                          </CarouselItem>
+                        ))}
+                      </CarouselContent>
+                      <CarouselPrevious className="left-0" />
+                      <CarouselNext className="right-0" />
+                    </Carousel>
                   </div>
                 )}
 

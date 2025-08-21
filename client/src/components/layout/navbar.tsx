@@ -54,10 +54,10 @@ export default function Navbar() {
           </div>
           
           <div className="hidden md:flex items-center space-x-8">
-            <Link href="/pricing" className={`hover:text-brand-600 transition-colors duration-200 font-medium ${
+            <Link href="/dashboard" className={`hover:text-brand-600 transition-colors duration-200 font-medium ${
               isScrolled ? 'text-slate-600' : 'text-white/90'
             }`}>
-              Pricing
+              Plans & Pricing
             </Link>
             <a href="#features" className={`hover:text-brand-600 transition-colors duration-200 font-medium ${
               isScrolled ? 'text-slate-600' : 'text-white/90'
