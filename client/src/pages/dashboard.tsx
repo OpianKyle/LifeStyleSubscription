@@ -40,7 +40,8 @@ import {
   Menu,
   Check,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  UserPlus
 } from "lucide-react";
 import PlanCard from "@/components/pricing/plan-card";
 import {
@@ -50,6 +51,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import ExtendedCoverSection from "@/components/dashboard/extended-cover-section";
 
 export default function Dashboard() {
   const [, setLocation] = useLocation();
@@ -249,6 +251,12 @@ export default function Dashboard() {
       icon: Shield,
       id: "subscription", 
       onClick: () => setActiveSection('subscription')
+    },
+    {
+      title: "Extended Cover",
+      icon: UserPlus,
+      id: "extended-cover",
+      onClick: () => setActiveSection('extended-cover')
     },
     {
       title: "Invoices",
@@ -999,6 +1007,10 @@ export default function Dashboard() {
                   </CardContent>
                 </Card>
               </div>
+            )}
+
+            {activeSection === 'extended-cover' && (
+              <ExtendedCoverSection />
             )}
           </main>
         </SidebarInset>

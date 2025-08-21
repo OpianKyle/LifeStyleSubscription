@@ -3,6 +3,7 @@ import {
   subscriptionPlans, 
   subscriptions, 
   invoices,
+  extendedCover,
   type User, 
   type InsertUser,
   type SubscriptionPlan,
@@ -10,7 +11,9 @@ import {
   type Subscription,
   type InsertSubscription,
   type Invoice,
-  type InsertInvoice
+  type InsertInvoice,
+  type ExtendedCover,
+  type InsertExtendedCover
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, sql } from "drizzle-orm";
@@ -41,6 +44,12 @@ export interface IStorage {
   // Invoice operations
   createInvoice(invoice: InsertInvoice): Promise<Invoice>;
   getUserInvoices(userId: string): Promise<Invoice[]>;
+  
+  // Extended cover operations
+  createExtendedCover(cover: InsertExtendedCover): Promise<ExtendedCover>;
+  getUserExtendedCover(userId: string): Promise<ExtendedCover[]>;
+  updateExtendedCover(id: string, cover: Partial<ExtendedCover>): Promise<ExtendedCover | undefined>;
+  deleteExtendedCover(id: string): Promise<void>;
   
   // Admin operations
   getAllUsers(): Promise<(User & { subscription?: Subscription & { plan: SubscriptionPlan } })[]>;
@@ -270,6 +279,39 @@ export class DatabaseStorage implements IStorage {
       totalSubscribers: totalSubscribers[0]?.count || 0,
       totalRevenue: totalRevenue[0]?.sum || 0
     };
+  }
+
+  // Extended cover operations
+  async createExtendedCover(cover: InsertExtendedCover): Promise<ExtendedCover> {
+    const [newCover] = await db
+      .insert(extendedCover)
+      .values(cover)
+      .returning();
+    return newCover;
+  }
+
+  async getUserExtendedCover(userId: string): Promise<ExtendedCover[]> {
+    return await db
+      .select()
+      .from(extendedCover)
+      .where(and(eq(extendedCover.userId, userId), eq(extendedCover.isActive, true)))
+      .orderBy(desc(extendedCover.createdAt));
+  }
+
+  async updateExtendedCover(id: string, coverData: Partial<ExtendedCover>): Promise<ExtendedCover | undefined> {
+    const [cover] = await db
+      .update(extendedCover)
+      .set({ ...coverData, updatedAt: new Date() })
+      .where(eq(extendedCover.id, id))
+      .returning();
+    return cover;
+  }
+
+  async deleteExtendedCover(id: string): Promise<void> {
+    await db
+      .update(extendedCover)
+      .set({ isActive: false, updatedAt: new Date() })
+      .where(eq(extendedCover.id, id));
   }
 }
 

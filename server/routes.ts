@@ -60,6 +60,61 @@ const createSubscriptionSchema = z.object({
   planName: z.enum(['OPPORTUNITY', 'MOMENTUM', 'PROSPER', 'PRESTIGE', 'PINNACLE'])
 });
 
+const createExtendedCoverSchema = z.object({
+  name: z.string().min(2),
+  surname: z.string().min(2),
+  idNumber: z.string().optional(),
+  dateOfBirth: z.string().optional(),
+  age: z.number().min(0).max(120),
+  relation: z.enum(['SPOUSE', 'CHILD', 'PARENT', 'EXTENDED_FAMILY']),
+  coverAmount: z.number().min(1000)
+});
+
+// Premium calculation function based on the provided tables
+function calculatePremium(age: number, relation: string, coverAmount: number): number {
+  const coverPer1000 = coverAmount / 1000;
+  
+  // Single Funeral Cover rates (main member and spouse)
+  if (relation === 'SPOUSE') {
+    if (age >= 18 && age <= 45) return coverPer1000 * 2.55;
+    if (age >= 46 && age <= 50) return coverPer1000 * 2.95;
+    if (age >= 51 && age <= 60) return coverPer1000 * 3.55;
+    if (age >= 61 && age <= 70) return coverPer1000 * 3.55;
+  }
+  
+  // Children rates (0-20)
+  if (relation === 'CHILD') {
+    if (age >= 0 && age <= 5) return coverPer1000 * 1.95;
+    if (age >= 6 && age <= 13) return coverPer1000 * 2.05;
+    if (age >= 14 && age <= 20) return coverPer1000 * 2.25;
+  }
+  
+  // Parent funeral benefit (up to 75)
+  if (relation === 'PARENT') {
+    if (age >= 18 && age <= 25) return coverPer1000 * 2.48;
+    if (age >= 26 && age <= 30) return coverPer1000 * 3.88;
+    if (age >= 31 && age <= 35) return coverPer1000 * 4.72;
+    if (age >= 36 && age <= 40) return coverPer1000 * 5.48;
+    if (age >= 41 && age <= 45) return coverPer1000 * 5.64;
+    if (age >= 46 && age <= 50) return coverPer1000 * 6.44;
+    if (age >= 51 && age <= 55) return coverPer1000 * 6.44;
+    if (age >= 56 && age <= 60) return coverPer1000 * 8.94;
+    if (age >= 61 && age <= 65) return coverPer1000 * 13.12;
+    if (age >= 66 && age <= 70) return coverPer1000 * 20.08;
+    if (age >= 71 && age <= 75) return coverPer1000 * 21.84;
+  }
+  
+  // Extended family cover (18-64)
+  if (relation === 'EXTENDED_FAMILY') {
+    if (age >= 18 && age <= 45) return coverPer1000 * 2.55;
+    if (age >= 46 && age <= 55) return coverPer1000 * 3.55;
+    if (age >= 56 && age <= 64) return coverPer1000 * 4.55;
+  }
+  
+  // Default fallback
+  return coverPer1000 * 2.55;
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize subscription plans
   const plans = [
@@ -266,6 +321,84 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const updatedUser = await storage.updateUser(user.id, { emailVerified: true });
       res.json({ message: 'Email verified successfully', user: updatedUser });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Extended cover routes
+  app.get('/api/extended-cover', authenticateToken, async (req: any, res: Response) => {
+    try {
+      const covers = await storage.getUserExtendedCover(req.user.id);
+      res.json({ covers });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post('/api/extended-cover', authenticateToken, async (req: any, res: Response) => {
+    try {
+      const coverData = createExtendedCoverSchema.parse(req.body);
+      
+      // Calculate premium based on age, relation, and cover amount
+      const monthlyPremium = calculatePremium(coverData.age, coverData.relation, coverData.coverAmount);
+      
+      const cover = await storage.createExtendedCover({
+        ...coverData,
+        userId: req.user.id,
+        coverAmount: coverData.coverAmount.toString(),
+        monthlyPremium: monthlyPremium.toString()
+      });
+      
+      res.json({ cover });
+    } catch (error: any) {
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ message: 'Invalid data provided', errors: error.errors });
+      }
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.put('/api/extended-cover/:id', authenticateToken, async (req: any, res: Response) => {
+    try {
+      const { id } = req.params;
+      const coverData = createExtendedCoverSchema.partial().parse(req.body);
+      
+      // Recalculate premium if age, relation, or cover amount changed
+      let updateData: any = { ...coverData };
+      if (coverData.age || coverData.relation || coverData.coverAmount) {
+        const existingCover = await storage.getUserExtendedCover(req.user.id);
+        const cover = existingCover.find(c => c.id === id);
+        if (!cover) {
+          return res.status(404).json({ message: 'Extended cover not found' });
+        }
+        
+        const age = coverData.age || cover.age;
+        const relation = coverData.relation || cover.relation;
+        const coverAmount = coverData.coverAmount || Number(cover.coverAmount);
+        
+        const monthlyPremium = calculatePremium(age, relation, coverAmount);
+        updateData.monthlyPremium = monthlyPremium.toString();
+        if (coverData.coverAmount) {
+          updateData.coverAmount = coverData.coverAmount.toString();
+        }
+      }
+      
+      const cover = await storage.updateExtendedCover(id, updateData);
+      res.json({ cover });
+    } catch (error: any) {
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ message: 'Invalid data provided', errors: error.errors });
+      }
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.delete('/api/extended-cover/:id', authenticateToken, async (req: any, res: Response) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteExtendedCover(id);
+      res.json({ message: 'Extended cover deleted successfully' });
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }

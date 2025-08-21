@@ -17,6 +17,7 @@ import { relations } from "drizzle-orm";
 export const userRoleEnum = pgEnum('user_role', ['USER', 'ADMIN']);
 export const subscriptionStatusEnum = pgEnum('subscription_status', ['ACTIVE', 'CANCELED', 'PAST_DUE', 'INCOMPLETE']);
 export const planNameEnum = pgEnum('plan_name', ['OPPORTUNITY', 'MOMENTUM', 'PROSPER', 'PRESTIGE', 'PINNACLE']);
+export const familyRelationEnum = pgEnum('family_relation', ['SPOUSE', 'CHILD', 'PARENT', 'EXTENDED_FAMILY']);
 
 // Users table
 export const users = pgTable("users", {
@@ -79,10 +80,28 @@ export const invoices = pgTable("invoices", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Extended cover table for additional family members
+export const extendedCover = pgTable("extended_cover", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  surname: varchar("surname", { length: 255 }).notNull(),
+  idNumber: varchar("id_number", { length: 13 }),
+  dateOfBirth: varchar("date_of_birth", { length: 10 }),
+  age: integer("age").notNull(),
+  relation: familyRelationEnum("relation").notNull(),
+  coverAmount: decimal("cover_amount", { precision: 10, scale: 2 }).notNull(),
+  monthlyPremium: decimal("monthly_premium", { precision: 10, scale: 2 }).notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   subscriptions: many(subscriptions),
   invoices: many(invoices),
+  extendedCover: many(extendedCover),
 }));
 
 export const subscriptionPlansRelations = relations(subscriptionPlans, ({ many }) => ({
@@ -98,6 +117,10 @@ export const subscriptionsRelations = relations(subscriptions, ({ one, many }) =
 export const invoicesRelations = relations(invoices, ({ one }) => ({
   user: one(users, { fields: [invoices.userId], references: [users.id] }),
   subscription: one(subscriptions, { fields: [invoices.subscriptionId], references: [subscriptions.id] }),
+}));
+
+export const extendedCoverRelations = relations(extendedCover, ({ one }) => ({
+  user: one(users, { fields: [extendedCover.userId], references: [users.id] }),
 }));
 
 // Schema types
@@ -123,6 +146,12 @@ export const insertInvoiceSchema = createInsertSchema(invoices).omit({
   createdAt: true,
 });
 
+export const insertExtendedCoverSchema = createInsertSchema(extendedCover).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type SubscriptionPlan = typeof subscriptionPlans.$inferSelect;
@@ -131,3 +160,5 @@ export type Subscription = typeof subscriptions.$inferSelect;
 export type InsertSubscription = z.infer<typeof insertSubscriptionSchema>;
 export type Invoice = typeof invoices.$inferSelect;
 export type InsertInvoice = z.infer<typeof insertInvoiceSchema>;
+export type ExtendedCover = typeof extendedCover.$inferSelect;
+export type InsertExtendedCover = z.infer<typeof insertExtendedCoverSchema>;
