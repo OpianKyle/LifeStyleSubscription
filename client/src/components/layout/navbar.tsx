@@ -48,7 +48,9 @@ export default function Navbar() {
               <img 
                 src={opianLogo} 
                 alt="Opian Lifestyle" 
-                className="h-10 w-auto"
+                className={`h-10 w-auto transition-all duration-300 ${
+                  isScrolled ? 'filter-none' : 'brightness-0 invert'
+                }`}
                 data-testid="navbar-logo"
               />
             </Link>
