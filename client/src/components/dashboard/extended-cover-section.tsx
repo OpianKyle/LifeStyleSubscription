@@ -34,6 +34,18 @@ function calculateAgeFromId(idNumber: string): number | null {
   return age >= 0 && age <= 120 ? age : null;
 }
 
+// Function to get available cover amounts based on age
+function getAvailableCoverAmounts(age: number | null): number[] {
+  if (!age) return [10000, 15000, 20000, 25000, 30000];
+  
+  // People under 50 can get up to R100,000, people over 50 can get up to R30,000
+  if (age < 50) {
+    return [10000, 15000, 20000, 25000, 30000, 40000, 50000, 60000, 70000, 80000, 90000, 100000];
+  } else {
+    return [10000, 15000, 20000, 25000, 30000];
+  }
+}
+
 // Premium calculation function based on the provided tables
 function calculatePremium(age: number, relation: string, coverAmount: number): number {
   const coverPer1000 = coverAmount / 1000;
@@ -437,14 +449,21 @@ export default function ExtendedCoverSection() {
                             </Select>
                           </TableCell>
                           <TableCell>
-                            <Input
-                              type="number"
-                              value={member.coverAmount}
-                              onChange={(e) => updateMember(member.id!, 'coverAmount', Number(e.target.value))}
-                              placeholder="5000"
-                              className="w-full"
-                              data-testid={`input-amount-${member.id}`}
-                            />
+                            <Select
+                              value={member.coverAmount?.toString() || ""}
+                              onValueChange={(value) => updateMember(member.id!, 'coverAmount', Number(value))}
+                            >
+                              <SelectTrigger className="w-full" data-testid={`select-amount-${member.id}`}>
+                                <SelectValue placeholder="Select amount" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {getAvailableCoverAmounts(calculateAgeFromId(member.idNumber)).map((amount) => (
+                                  <SelectItem key={amount} value={amount.toString()}>
+                                    R{amount.toLocaleString()}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                           </TableCell>
                           <TableCell>
                             {(() => {
