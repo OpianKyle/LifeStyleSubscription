@@ -50,10 +50,11 @@ Design preferences: Light stained glass effect with vibrant, prominent colors ap
 ### Database Infrastructure
 - **PostgreSQL Database**: Standard PostgreSQL with connection pooling via pg driver
 - **Migration Status**: Successfully migrated from Neon to Replit PostgreSQL (August 13, 2025)
-- **Replit Migration**: Successfully migrated from Replit Agent to Replit environment (August 18, 2025)
+- **Replit Migration**: Successfully migrated from Replit Agent to Replit environment (August 21, 2025)
 - **Environment Setup**: All required API keys configured (Stripe, SMTP) for full functionality
 - **Database Setup**: PostgreSQL database configured and schema migrated successfully
 - **Development Mode**: Subscription system fully operational with development price IDs for testing
+- **Subscription Fix**: Fixed dashboard logic to properly handle both subscription creation and updates (August 21, 2025)
 - **UI Enhancement**: Comprehensive stained glass styling applied to all dashboard sections (August 18, 2025)
   - Overview: Blue/purple/pink gradient themes with enhanced vibrancy
   - Subscription: Emerald/green color palette with glassmorphism effects

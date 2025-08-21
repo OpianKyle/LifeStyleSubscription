@@ -121,6 +121,38 @@ export default function Dashboard() {
     },
   });
 
+  const createSubscriptionMutation = useMutation({
+    mutationFn: async (planName: string) => {
+      const response = await apiRequest("POST", "/api/subscriptions/create", { planName });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/subscriptions/current"] });
+      toast({
+        title: "Subscription Created",
+        description: "Your subscription has been created successfully.",
+      });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "You are logged out. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          setLocation("/auth");
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Error",
+        description: "Failed to create subscription. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const updateSubscriptionMutation = useMutation({
     mutationFn: async (planName: string) => {
       const response = await apiRequest("POST", "/api/subscriptions/update", { planName });
@@ -192,9 +224,16 @@ export default function Dashboard() {
     setSelectedPlan(planName);
     
     try {
-      await updateSubscriptionMutation.mutateAsync(planName);
+      // Check if user has an existing subscription
+      if (subscription) {
+        // User has existing subscription, update it
+        await updateSubscriptionMutation.mutateAsync(planName);
+      } else {
+        // User has no subscription, create new one
+        await createSubscriptionMutation.mutateAsync(planName);
+      }
     } catch (error) {
-      console.error('Subscription update failed:', error);
+      console.error('Subscription operation failed:', error);
     }
   };
 
