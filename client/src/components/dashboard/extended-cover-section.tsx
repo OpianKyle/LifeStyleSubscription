@@ -34,6 +34,51 @@ function calculateAgeFromId(idNumber: string): number | null {
   return age >= 0 && age <= 120 ? age : null;
 }
 
+// Premium calculation function based on the provided tables
+function calculatePremium(age: number, relation: string, coverAmount: number): number {
+  const coverPer1000 = coverAmount / 1000;
+  
+  // Single Funeral Cover rates (main member and spouse)
+  if (relation === 'SPOUSE') {
+    if (age >= 18 && age <= 45) return coverPer1000 * 2.55;
+    if (age >= 46 && age <= 50) return coverPer1000 * 2.95;
+    if (age >= 51 && age <= 60) return coverPer1000 * 3.55;
+    if (age >= 61 && age <= 70) return coverPer1000 * 3.55;
+  }
+  
+  // Children rates (0-20)
+  if (relation === 'CHILD') {
+    if (age >= 0 && age <= 5) return coverPer1000 * 1.95;
+    if (age >= 6 && age <= 13) return coverPer1000 * 2.05;
+    if (age >= 14 && age <= 20) return coverPer1000 * 2.25;
+  }
+  
+  // Parent funeral benefit (up to 75)
+  if (relation === 'PARENT') {
+    if (age >= 18 && age <= 25) return coverPer1000 * 2.48;
+    if (age >= 26 && age <= 30) return coverPer1000 * 3.88;
+    if (age >= 31 && age <= 35) return coverPer1000 * 4.72;
+    if (age >= 36 && age <= 40) return coverPer1000 * 5.48;
+    if (age >= 41 && age <= 45) return coverPer1000 * 5.64;
+    if (age >= 46 && age <= 50) return coverPer1000 * 6.44;
+    if (age >= 51 && age <= 55) return coverPer1000 * 6.44;
+    if (age >= 56 && age <= 60) return coverPer1000 * 8.94;
+    if (age >= 61 && age <= 65) return coverPer1000 * 13.12;
+    if (age >= 66 && age <= 70) return coverPer1000 * 20.08;
+    if (age >= 71 && age <= 75) return coverPer1000 * 21.84;
+  }
+  
+  // Extended family cover (18-64)
+  if (relation === 'EXTENDED_FAMILY') {
+    if (age >= 18 && age <= 45) return coverPer1000 * 2.55;
+    if (age >= 46 && age <= 55) return coverPer1000 * 3.55;
+    if (age >= 56 && age <= 64) return coverPer1000 * 4.55;
+  }
+  
+  // Default fallback
+  return coverPer1000 * 2.55;
+}
+
 interface FamilyMember {
   id?: string;
   name: string;
@@ -402,10 +447,12 @@ export default function ExtendedCoverSection() {
                             />
                           </TableCell>
                           <TableCell>
-                            {calculateAgeFromId(member.idNumber) ? 
-                              `R${(((member.coverAmount || 0) / 1000) * 2.55).toFixed(2)}` : 
-                              '-'
-                            }
+                            {(() => {
+                              const age = calculateAgeFromId(member.idNumber);
+                              if (!age || !member.coverAmount) return '-';
+                              const premium = calculatePremium(age, member.relation, member.coverAmount);
+                              return `R${premium.toFixed(2)}`;
+                            })()}
                           </TableCell>
                           <TableCell>
                             <div className="flex space-x-2">
