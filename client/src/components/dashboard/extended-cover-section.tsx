@@ -291,158 +291,160 @@ export default function ExtendedCoverSection() {
       </div>
 
       {/* Add/Edit Modal */}
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>{editingCover ? 'Edit Family Member' : 'Add Family Member'}</DialogTitle>
-        </DialogHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{editingCover ? 'Edit Family Member' : 'Add Family Member'}</DialogTitle>
+          </DialogHeader>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="John" {...field} data-testid="input-name" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="surname"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Surname</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Doe" {...field} data-testid="input-surname" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
               <FormField
                 control={form.control}
-                name="name"
+                name="relation"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Name</FormLabel>
+                    <FormLabel>Relationship</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger data-testid="select-relation">
+                          <SelectValue placeholder="Select relationship" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="SPOUSE">Spouse/Partner</SelectItem>
+                        <SelectItem value="CHILD">Child</SelectItem>
+                        <SelectItem value="PARENT">Parent</SelectItem>
+                        <SelectItem value="EXTENDED_FAMILY">Extended Family</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="age"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Age</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number" 
+                          placeholder="25" 
+                          {...field}
+                          onChange={(e) => field.onChange(Number(e.target.value))}
+                          data-testid="input-age"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="coverAmount"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Cover Amount (R)</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number" 
+                          placeholder="5000" 
+                          {...field}
+                          onChange={(e) => field.onChange(Number(e.target.value))}
+                          data-testid="input-cover-amount"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={form.control}
+                name="idNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>ID Number (Optional)</FormLabel>
                     <FormControl>
-                      <Input placeholder="John" {...field} data-testid="input-name" />
+                      <Input placeholder="9001010000000" {...field} data-testid="input-id-number" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
-                name="surname"
+                name="dateOfBirth"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Surname</FormLabel>
+                    <FormLabel>Date of Birth (Optional)</FormLabel>
                     <FormControl>
-                      <Input placeholder="Doe" {...field} data-testid="input-surname" />
+                      <Input type="date" {...field} data-testid="input-date-of-birth" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-            </div>
 
-            <FormField
-              control={form.control}
-              name="relation"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Relationship</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger data-testid="select-relation">
-                        <SelectValue placeholder="Select relationship" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="SPOUSE">Spouse/Partner</SelectItem>
-                      <SelectItem value="CHILD">Child</SelectItem>
-                      <SelectItem value="PARENT">Parent</SelectItem>
-                      <SelectItem value="EXTENDED_FAMILY">Extended Family</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="age"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Age</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="number" 
-                        placeholder="25" 
-                        {...field}
-                        onChange={(e) => field.onChange(Number(e.target.value))}
-                        data-testid="input-age"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="coverAmount"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Cover Amount (R)</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="number" 
-                        placeholder="5000" 
-                        {...field}
-                        onChange={(e) => field.onChange(Number(e.target.value))}
-                        data-testid="input-cover-amount"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <FormField
-              control={form.control}
-              name="idNumber"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>ID Number (Optional)</FormLabel>
-                  <FormControl>
-                    <Input placeholder="9001010000000" {...field} data-testid="input-id-number" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="dateOfBirth"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Date of Birth (Optional)</FormLabel>
-                  <FormControl>
-                    <Input type="date" {...field} data-testid="input-date-of-birth" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="flex justify-end space-x-2 pt-4">
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={() => {
-                  setIsModalOpen(false);
-                  setEditingCover(null);
-                  form.reset();
-                }}
-                data-testid="button-cancel"
-              >
-                Cancel
-              </Button>
-              <Button 
-                type="submit" 
-                disabled={createCoverMutation.isPending || updateCoverMutation.isPending}
-                data-testid="button-save"
-              >
-                {createCoverMutation.isPending || updateCoverMutation.isPending ? 'Saving...' : 'Save'}
-              </Button>
-            </div>
-          </form>
-        </Form>
-      </DialogContent>
+              <div className="flex justify-end space-x-2 pt-4">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => {
+                    setIsModalOpen(false);
+                    setEditingCover(null);
+                    form.reset();
+                  }}
+                  data-testid="button-cancel"
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={createCoverMutation.isPending || updateCoverMutation.isPending}
+                  data-testid="button-save"
+                >
+                  {createCoverMutation.isPending || updateCoverMutation.isPending ? 'Saving...' : 'Save'}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
