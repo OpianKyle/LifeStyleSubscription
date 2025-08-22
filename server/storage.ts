@@ -14,7 +14,7 @@ import {
   type InsertInvoice,
   type ExtendedCover,
   type InsertExtendedCover
-} from "@shared/schema";
+} from "@shared/schema-sqlite";
 import { db } from "./db";
 import { eq, and, desc, sql } from "drizzle-orm";
 
