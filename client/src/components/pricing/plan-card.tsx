@@ -51,7 +51,7 @@ export default function PlanCard({ plan, featured = false, onSelect, disabled = 
       </div>
       
       <ul className="space-y-3 mb-8 text-sm">
-        {plan.features.map((feature, index) => (
+        {(Array.isArray(plan.features) ? plan.features : JSON.parse(plan.features || '[]')).map((feature, index) => (
           <li key={index} className="flex items-start space-x-3">
             <Check className="w-5 h-5 text-emerald-500 mt-0.5 flex-shrink-0" />
             <span className="text-slate-600">{feature}</span>
