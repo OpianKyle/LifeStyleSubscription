@@ -88,7 +88,7 @@ export class DatabaseStorage implements IStorage {
   async updateUser(id: string, userData: Partial<User>): Promise<User | undefined> {
     const [user] = await db
       .update(users)
-      .set({ ...userData, updatedAt: new Date() })
+      .set({ ...userData, updatedAt: new Date().toISOString() })
       .where(eq(users.id, id))
       .returning();
     return user;
@@ -100,7 +100,7 @@ export class DatabaseStorage implements IStorage {
       .set({ 
         emailVerified: true, 
         emailVerificationToken: null,
-        updatedAt: new Date()
+        updatedAt: new Date().toISOString()
       })
       .where(eq(users.emailVerificationToken, token))
       .returning();
@@ -112,8 +112,8 @@ export class DatabaseStorage implements IStorage {
       .update(users)
       .set({ 
         passwordResetToken: token, 
-        passwordResetExpires: expires,
-        updatedAt: new Date()
+        passwordResetExpires: expires.toISOString(),
+        updatedAt: new Date().toISOString()
       })
       .where(eq(users.email, email));
   }
@@ -125,7 +125,7 @@ export class DatabaseStorage implements IStorage {
         password, 
         passwordResetToken: null, 
         passwordResetExpires: null,
-        updatedAt: new Date()
+        updatedAt: new Date().toISOString()
       })
       .where(and(
         eq(users.passwordResetToken, token),
