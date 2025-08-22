@@ -272,6 +272,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Full subscription creation with form data
+  app.post('/api/subscriptions/create-full', authenticateToken, async (req: any, res: Response) => {
+    try {
+      const subscriptionData = req.body;
+      
+      // First, get the plan by ID to get the plan name
+      const plan = await storage.getSubscriptionPlanById(subscriptionData.planId);
+      if (!plan) {
+        return res.status(404).json({ message: 'Plan not found' });
+      }
+
+      // Create the subscription with Stripe using plan name
+      const stripeResult = await StripeService.createSubscription(req.user.id, plan.name);
+      
+      // Check if stripeResult has subscription info or is an error
+      if ('message' in stripeResult) {
+        return res.status(400).json(stripeResult);
+      }
+      
+      // Store the full subscription details including form data
+      const fullSubscription = await storage.createFullSubscription({
+        userId: req.user.id,
+        planId: subscriptionData.planId,
+        stripeSubscriptionId: stripeResult.subscriptionId,
+        stripeCustomerId: req.user.stripeCustomerId || '',
+        status: 'ACTIVE'
+      });
+
+      // Create extended cover entries for each family member
+      if (subscriptionData.extendedMembers && subscriptionData.extendedMembers.length > 0) {
+        for (const member of subscriptionData.extendedMembers) {
+          await storage.createExtendedCover({
+            userId: req.user.id,
+            name: member.firstName + ' ' + member.surname,
+            surname: member.surname,
+            age: 0, // Will be calculated from ID
+            relation: member.relation,
+            coverAmount: member.coverAmount.toString(),
+            monthlyPremium: '0', // Will be calculated
+            idNumber: member.idNumber,
+            dateOfBirth: null
+          });
+        }
+      }
+      
+      res.json({
+        message: 'Subscription created successfully',
+        subscription: fullSubscription,
+        subscriptionId: stripeResult.subscriptionId
+      });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
   app.get('/api/subscriptions/current', authenticateToken, async (req: any, res: Response) => {
     try {
       const subscription = await storage.getUserSubscription(req.user.id);

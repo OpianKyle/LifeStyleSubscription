@@ -223,19 +223,16 @@ export default function Dashboard() {
       return;
     }
 
-    setSelectedPlan(planName);
-    
-    try {
-      // Check if user has an existing subscription
-      if (subscription) {
-        // User has existing subscription, update it
-        await updateSubscriptionMutation.mutateAsync(planName);
-      } else {
-        // User has no subscription, create new one
-        await createSubscriptionMutation.mutateAsync(planName);
-      }
-    } catch (error) {
-      console.error('Subscription operation failed:', error);
+    // Find the plan by name and redirect to subscription form
+    const plan = (plansData as any)?.plans?.find((p: any) => p.name === planName);
+    if (plan) {
+      setLocation(`/subscription-form/${plan.id}`);
+    } else {
+      toast({
+        title: "Error",
+        description: "Plan not found. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 

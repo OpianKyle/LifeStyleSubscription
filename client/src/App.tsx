@@ -8,6 +8,7 @@ import Home from "@/pages/home";
 import Auth from "@/pages/auth";
 import ChoosePlan from "@/pages/choose-plan";
 import Dashboard from "@/pages/dashboard";
+import SubscriptionForm from "@/pages/subscription-form";
 import Admin from "@/pages/admin";
 import NotFound from "@/pages/not-found";
 
@@ -33,6 +34,7 @@ function Router() {
       {isAuthenticated && (
         <>
           <Route path="/dashboard" component={Dashboard} />
+          <Route path="/subscription-form/:planId" component={SubscriptionForm} />
           {user?.role === 'ADMIN' && <Route path="/admin" component={Admin} />}
         </>
       )}

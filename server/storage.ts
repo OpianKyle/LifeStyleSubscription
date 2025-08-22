@@ -51,6 +51,9 @@ export interface IStorage {
   updateExtendedCover(id: string, cover: Partial<ExtendedCover>): Promise<ExtendedCover | undefined>;
   deleteExtendedCover(id: string): Promise<void>;
   
+  // Full subscription operations
+  createFullSubscription(subscriptionData: any): Promise<Subscription>;
+  
   // Admin operations
   getAllUsers(): Promise<(User & { subscription?: Subscription & { plan: SubscriptionPlan } })[]>;
   getSubscriptionStats(): Promise<any>;
@@ -312,6 +315,27 @@ export class DatabaseStorage implements IStorage {
       .update(extendedCover)
       .set({ isActive: false, updatedAt: new Date() })
       .where(eq(extendedCover.id, id));
+  }
+
+  // Full subscription operations
+  async createFullSubscription(subscriptionData: any): Promise<Subscription> {
+    // Create basic subscription record
+    const insertData = {
+      userId: subscriptionData.userId,
+      planId: subscriptionData.planId,
+      stripeSubscriptionId: subscriptionData.stripeSubscriptionId,
+      stripeCustomerId: subscriptionData.stripeCustomerId,
+      status: subscriptionData.status,
+      currentPeriodStart: new Date(),
+      currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+    };
+
+    const [subscription] = await db
+      .insert(subscriptions)
+      .values(insertData)
+      .returning();
+    
+    return subscription;
   }
 }
 
