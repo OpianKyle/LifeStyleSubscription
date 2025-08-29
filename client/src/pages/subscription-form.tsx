@@ -362,7 +362,7 @@ export default function SubscriptionForm() {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       
-      <div className="pt-16 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto py-8">
+      <div className="pt-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto py-8">
         <div className="mb-6">
           <Button 
             variant="ghost" 
@@ -384,8 +384,11 @@ export default function SubscriptionForm() {
           </div>
         </div>
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Form Column */}
+          <div className="lg:col-span-2">
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             
             {/* Main Member Details */}
             <Card>
@@ -1318,8 +1321,96 @@ export default function SubscriptionForm() {
                 )}
               </Button>
             </div>
-          </form>
-        </Form>
+              </form>
+            </Form>
+          </div>
+          
+          {/* Quote Preview Sidebar */}
+          <div className="lg:col-span-1">
+            <div className="sticky top-24">
+              <Card className="shadow-lg border-2 border-blue-200">
+                <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
+                  <CardTitle className="flex items-center text-lg">
+                    <Calculator className="w-5 h-5 mr-2" />
+                    Your Quote
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <div className="space-y-4">
+                    {/* Plan Details */}
+                    <div className="border-b pb-4">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="font-medium text-gray-700">{selectedPlan.name} Plan</span>
+                        <span className="font-semibold text-blue-600">R{parseFloat(selectedPlan.price).toFixed(2)}</span>
+                      </div>
+                      <p className="text-sm text-gray-500">{selectedPlan.description}</p>
+                    </div>
+
+                    {/* Extended Coverage */}
+                    {extendedMembers.length > 0 && (
+                      <div className="border-b pb-4">
+                        <h4 className="font-medium text-gray-700 mb-3">Extended Coverage</h4>
+                        <div className="space-y-2">
+                          {extendedMembers.map((member) => {
+                            const age = calculateAgeFromId(member.idNumber);
+                            const premium = age && member.relation && member.coverAmount 
+                              ? calculatePremium(age, member.relation, member.coverAmount)
+                              : 0;
+                            
+                            return (
+                              <div key={member.id} className="flex justify-between items-center text-sm">
+                                <div>
+                                  <span className="text-gray-600">
+                                    {member.firstName || 'New'} {member.surname || 'Member'}
+                                  </span>
+                                  {member.relation && (
+                                    <span className="text-xs text-gray-500 block">
+                                      {member.relation} • R{member.coverAmount?.toLocaleString() || '0'} cover
+                                    </span>
+                                  )}
+                                </div>
+                                <span className="font-medium text-gray-700">
+                                  R{premium.toFixed(2)}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Total */}
+                    <div className="bg-blue-50 p-4 rounded-lg">
+                      <div className="flex justify-between items-center">
+                        <span className="text-lg font-semibold text-gray-800">Monthly Total</span>
+                        <span className="text-2xl font-bold text-blue-600">
+                          R{quote.totalPrice.toFixed(2)}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-600 mt-1">
+                        Billed monthly • Cancel anytime
+                      </p>
+                    </div>
+
+                    {/* Breakdown Summary */}
+                    <div className="text-xs text-gray-500 space-y-1">
+                      <div className="flex justify-between">
+                        <span>Base plan:</span>
+                        <span>R{quote.planPrice.toFixed(2)}</span>
+                      </div>
+                      {quote.extendedTotal > 0 && (
+                        <div className="flex justify-between">
+                          <span>Extended coverage:</span>
+                          <span>R{quote.extendedTotal.toFixed(2)}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
