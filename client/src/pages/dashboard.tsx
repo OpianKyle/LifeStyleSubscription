@@ -5,6 +5,7 @@ import { useAuthState } from "@/hooks/useAuthState";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
+import { SubscriptionGuard } from "@/components/auth/SubscriptionGuard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -53,7 +54,7 @@ import {
 } from "@/components/ui/carousel";
 import ExtendedCoverSection from "@/components/dashboard/extended-cover-section";
 
-export default function Dashboard() {
+function DashboardContent() {
   const [, setLocation] = useLocation();
   const { user, isAuthenticated, isLoading } = useAuthState();
   const { toast } = useToast();
@@ -1013,5 +1014,13 @@ export default function Dashboard() {
         </SidebarInset>
       </div>
     </SidebarProvider>
+  );
+}
+
+export default function Dashboard() {
+  return (
+    <SubscriptionGuard requiresSubscription={true}>
+      <DashboardContent />
+    </SubscriptionGuard>
   );
 }

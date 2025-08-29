@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuthState } from "@/hooks/useAuthState";
+import { useSubscriptionState } from "@/hooks/useSubscriptionState";
 import Home from "@/pages/home";
 import Auth from "@/pages/auth";
 import ChoosePlan from "@/pages/choose-plan";
@@ -13,9 +14,10 @@ import Admin from "@/pages/admin";
 import NotFound from "@/pages/not-found";
 
 function Router() {
-  const { isAuthenticated, isLoading, user } = useAuthState();
+  const { isAuthenticated, isLoading: authLoading, user } = useAuthState();
+  const { hasActiveSubscription, isLoading: subscriptionLoading } = useSubscriptionState();
 
-  if (isLoading) {
+  if (authLoading || (isAuthenticated && subscriptionLoading)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" aria-label="Loading" />
@@ -27,17 +29,29 @@ function Router() {
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/auth" component={Auth} />
-      <Route path="/choose-plan" component={ChoosePlan} />
-      <Route path="/pricing" component={ChoosePlan} />
       <Route path="/verify-email" component={Auth} />
       <Route path="/reset-password" component={Auth} />
-      {isAuthenticated && (
+      
+      {/* Routes for authenticated users without subscription */}
+      {isAuthenticated && !hasActiveSubscription && (
         <>
+          <Route path="/choose-plan" component={ChoosePlan} />
+          <Route path="/pricing" component={ChoosePlan} />
+          <Route path="/subscription-form/:planId" component={SubscriptionForm} />
+        </>
+      )}
+      
+      {/* Routes for authenticated users with active subscription */}
+      {isAuthenticated && hasActiveSubscription && (
+        <>
+          <Route path="/choose-plan" component={ChoosePlan} />
+          <Route path="/pricing" component={ChoosePlan} />
           <Route path="/dashboard" component={Dashboard} />
           <Route path="/subscription-form/:planId" component={SubscriptionForm} />
           {user?.role === 'ADMIN' && <Route path="/admin" component={Admin} />}
         </>
       )}
+      
       <Route component={NotFound} />
     </Switch>
   );
