@@ -210,6 +210,12 @@ export default function SubscriptionForm() {
     }
   }, [watchedPartnerIdNumber, form]);
 
+  // Update debit amount when quote changes
+  useEffect(() => {
+    const currentQuote = calculateQuote();
+    form.setValue('debitAmountAuthorised', currentQuote.totalPrice);
+  }, [extendedMembers, selectedPlan, form]);
+
   // Add extended member
   const addExtendedMember = () => {
     const newMember: ExtendedMember = {
@@ -1050,10 +1056,8 @@ export default function SubscriptionForm() {
                           <Input 
                             {...field} 
                             type="number" 
-                            value={quote.totalPrice}
                             readOnly
                             className="bg-gray-100"
-                            onChange={(e) => field.onChange(Number(e.target.value))}
                             data-testid="input-debitAmountAuthorised"
                           />
                         </FormControl>
