@@ -59,7 +59,7 @@ export default function Navbar() {
           </div>
           
           <div className="hidden md:flex items-center space-x-8">
-            <Link href={isAuthenticated && !hasActiveSubscription ? "/choose-plan" : "/dashboard"} className={`hover:text-brand-600 transition-colors duration-200 font-medium ${
+            <Link href="/dashboard" className={`hover:text-brand-600 transition-colors duration-200 font-medium ${
               isScrolled ? 'text-slate-600' : 'text-white/90'
             }`}>
               Plans & Pricing
@@ -90,21 +90,12 @@ export default function Navbar() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
-                  {hasActiveSubscription ? (
-                    <DropdownMenuItem asChild>
-                      <Link href="/dashboard" className="flex items-center space-x-2" data-testid="nav-dashboard">
-                        <User className="w-4 h-4" />
-                        <span>Dashboard</span>
-                      </Link>
-                    </DropdownMenuItem>
-                  ) : (
-                    <DropdownMenuItem asChild>
-                      <Link href="/choose-plan" className="flex items-center space-x-2" data-testid="nav-choose-plan">
-                        <Shield className="w-4 h-4" />
-                        <span>Choose Plan</span>
-                      </Link>
-                    </DropdownMenuItem>
-                  )}
+                  <DropdownMenuItem asChild>
+                    <Link href="/dashboard" className="flex items-center space-x-2" data-testid="nav-dashboard">
+                      <User className="w-4 h-4" />
+                      <span>Dashboard</span>
+                    </Link>
+                  </DropdownMenuItem>
                   {user?.role === 'ADMIN' && (
                     <DropdownMenuItem asChild>
                       <Link href="/admin" className="flex items-center space-x-2" data-testid="nav-admin">

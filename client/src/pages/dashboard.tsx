@@ -2,10 +2,10 @@ import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { useAuthState } from "@/hooks/useAuthState";
+import { useSubscriptionState } from "@/hooks/useSubscriptionState";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
-import { SubscriptionGuard } from "@/components/auth/SubscriptionGuard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -57,9 +57,10 @@ import ExtendedCoverSection from "@/components/dashboard/extended-cover-section"
 function DashboardContent() {
   const [, setLocation] = useLocation();
   const { user, isAuthenticated, isLoading } = useAuthState();
+  const { hasActiveSubscription } = useSubscriptionState();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [activeSection, setActiveSection] = useState('overview');
+  const [activeSection, setActiveSection] = useState(hasActiveSubscription ? 'overview' : 'pricing');
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
 
   // Redirect to home if not authenticated
@@ -76,6 +77,13 @@ function DashboardContent() {
       return;
     }
   }, [isAuthenticated, isLoading, toast, setLocation]);
+
+  // Redirect users without subscription to pricing section
+  useEffect(() => {
+    if (!hasActiveSubscription && activeSection !== 'pricing') {
+      setActiveSection('pricing');
+    }
+  }, [hasActiveSubscription, activeSection]);
 
   const { data: subscriptionData, isLoading: subscriptionLoading } = useQuery({
     queryKey: ["/api/subscriptions/current"],
@@ -242,37 +250,43 @@ function DashboardContent() {
       title: "Overview",
       icon: Home,
       id: "overview",
-      onClick: () => setActiveSection('overview')
+      onClick: () => setActiveSection('overview'),
+      requiresSubscription: true
     },
     {
       title: "Subscription",
       icon: Shield,
       id: "subscription", 
-      onClick: () => setActiveSection('subscription')
+      onClick: () => setActiveSection('subscription'),
+      requiresSubscription: true
     },
     {
       title: "Extended Cover",
       icon: UserPlus,
       id: "extended-cover",
-      onClick: () => setActiveSection('extended-cover')
+      onClick: () => setActiveSection('extended-cover'),
+      requiresSubscription: true
     },
     {
       title: "Invoices",
       icon: FileText,
       id: "invoices",
-      onClick: () => setActiveSection('invoices')
+      onClick: () => setActiveSection('invoices'),
+      requiresSubscription: true
     },
     {
       title: "Plans & Pricing",
       icon: CreditCard,
       id: "pricing",
-      onClick: () => setActiveSection('pricing')
+      onClick: () => setActiveSection('pricing'),
+      requiresSubscription: false
     },
     {
       title: "Settings",
       icon: Settings,
       id: "settings",
-      onClick: () => setActiveSection('settings')
+      onClick: () => setActiveSection('settings'),
+      requiresSubscription: true
     }
   ];
 
@@ -299,18 +313,28 @@ function DashboardContent() {
               <SidebarGroupLabel>Dashboard</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {sidebarItems.map((item) => (
-                    <SidebarMenuItem key={item.id}>
-                      <SidebarMenuButton 
-                        onClick={item.onClick}
-                        isActive={activeSection === item.id}
-                        className="w-full"
-                      >
-                        <item.icon className="w-4 h-4" />
-                        <span>{item.title}</span>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
+                  {sidebarItems.map((item) => {
+                    const isLocked = item.requiresSubscription && !hasActiveSubscription;
+                    return (
+                      <SidebarMenuItem key={item.id}>
+                        <SidebarMenuButton 
+                          onClick={isLocked ? () => {
+                            toast({
+                              title: "Subscription Required",
+                              description: "Please select a plan to access this feature.",
+                              variant: "destructive",
+                            });
+                          } : item.onClick}
+                          isActive={activeSection === item.id}
+                          className={`w-full ${isLocked ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        >
+                          <item.icon className="w-4 h-4" />
+                          <span>{item.title}</span>
+                          {isLocked && <span className="ml-auto text-xs">🔒</span>}
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    )
+                  })}
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
@@ -1018,9 +1042,5 @@ function DashboardContent() {
 }
 
 export default function Dashboard() {
-  return (
-    <SubscriptionGuard requiresSubscription={true}>
-      <DashboardContent />
-    </SubscriptionGuard>
-  );
+  return <DashboardContent />;
 }

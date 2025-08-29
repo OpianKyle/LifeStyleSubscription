@@ -48,7 +48,7 @@ export default function Auth() {
     if (isAuthenticated) {
       const urlParams = new URLSearchParams(window.location.search);
       const redirect = urlParams.get('redirect');
-      setLocation(redirect || '/choose-plan');
+      setLocation(redirect || '/dashboard');
     }
   }, [isAuthenticated, setLocation]);
 

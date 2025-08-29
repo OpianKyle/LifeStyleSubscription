@@ -32,21 +32,12 @@ function Router() {
       <Route path="/verify-email" component={Auth} />
       <Route path="/reset-password" component={Auth} />
       
-      {/* Routes for authenticated users without subscription */}
-      {isAuthenticated && !hasActiveSubscription && (
+      {/* Routes for authenticated users */}
+      {isAuthenticated && (
         <>
-          <Route path="/choose-plan" component={ChoosePlan} />
-          <Route path="/pricing" component={ChoosePlan} />
-          <Route path="/subscription-form/:planId" component={SubscriptionForm} />
-        </>
-      )}
-      
-      {/* Routes for authenticated users with active subscription */}
-      {isAuthenticated && hasActiveSubscription && (
-        <>
-          <Route path="/choose-plan" component={ChoosePlan} />
-          <Route path="/pricing" component={ChoosePlan} />
           <Route path="/dashboard" component={Dashboard} />
+          <Route path="/choose-plan" component={ChoosePlan} />
+          <Route path="/pricing" component={ChoosePlan} />
           <Route path="/subscription-form/:planId" component={SubscriptionForm} />
           {user?.role === 'ADMIN' && <Route path="/admin" component={Admin} />}
         </>
