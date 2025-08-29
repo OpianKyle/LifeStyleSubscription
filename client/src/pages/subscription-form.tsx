@@ -321,17 +321,30 @@ export default function SubscriptionForm() {
 
       return apiRequest('POST', '/api/subscriptions/create-full', subscriptionData);
     },
-    onSuccess: () => {
-      toast({
-        title: "Subscription Created",
-        description: "Your subscription has been activated successfully!",
-      });
+    onSuccess: (result: any) => {
+      if (result.message && result.message.includes('already exists')) {
+        toast({
+          title: "Already Subscribed",
+          description: "You already have an active subscription to this plan. Redirecting to dashboard.",
+        });
+      } else {
+        toast({
+          title: "Subscription Created",
+          description: "Your subscription has been activated successfully!",
+        });
+      }
       setLocation('/dashboard');
     },
     onError: (error: any) => {
+      let errorMessage = error.message || "Failed to create subscription";
+      
+      if (errorMessage.includes('already subscribed')) {
+        errorMessage = "You already have an active subscription to this plan. Please go to your dashboard to manage it.";
+      }
+      
       toast({
         title: "Error",
-        description: error.message || "Failed to create subscription",
+        description: errorMessage,
         variant: "destructive",
       });
     },

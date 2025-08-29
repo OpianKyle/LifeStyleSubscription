@@ -133,7 +133,13 @@ export class StripeService {
       if (existingSubscription) {
         const existingPlan = await storage.getSubscriptionPlanById(existingSubscription.planId);
         if (existingPlan?.name === planName) {
-          throw new Error('You are already subscribed to this plan');
+          // Return the existing subscription instead of throwing an error
+          return {
+            subscriptionId: existingSubscription.stripeSubscriptionId,
+            customerId: user.stripeCustomerId || '',
+            status: existingSubscription.status,
+            message: 'Subscription already exists for this plan'
+          };
         }
         return await this.updateSubscription(userId, planName);
       }
