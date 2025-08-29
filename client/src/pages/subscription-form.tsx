@@ -239,7 +239,7 @@ export default function SubscriptionForm() {
 
   // Calculate total quote
   const calculateQuote = () => {
-    const planPrice = selectedPlan?.price || 0;
+    const planPrice = parseFloat(selectedPlan?.price) || 0;
     const extendedTotal = extendedMembers.reduce((total, member) => {
       const age = calculateAgeFromId(member.idNumber);
       if (age && member.relation && member.coverAmount) {
