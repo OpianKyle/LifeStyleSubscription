@@ -22,16 +22,16 @@ Design preferences: Light stained glass effect with vibrant, prominent colors ap
 ### Backend Architecture
 - **Runtime**: Node.js with Express.js framework
 - **API Design**: RESTful API with structured route handlers and middleware-based authentication
-- **Database ORM**: Drizzle ORM with PostgreSQL dialect
+- **Database ORM**: Drizzle ORM with MySQL dialect for Xneelo MySQL
 - **Authentication**: JWT-based authentication with access/refresh token pattern, bcrypt for password hashing
 - **Email System**: Nodemailer with MJML templates compiled using Handlebars
 - **Development Setup**: Hot module replacement with Vite middleware integration
 
 ### Data Storage Solutions
-- **Primary Database**: PostgreSQL with Neon serverless connection pooling
+- **Primary Database**: Xneelo MySQL with SSL connection pooling and automatic table creation
 - **Schema Design**: Relational database with users, subscription_plans, subscriptions, and invoices tables
 - **Data Validation**: Zod schemas for both client and server-side validation
-- **Migration System**: Drizzle Kit for database migrations and schema management
+- **Migration System**: Automated table creation on application startup with proper MySQL syntax
 
 ### Authentication and Authorization
 - **Authentication Flow**: Email/password with email verification requirement
@@ -43,13 +43,14 @@ Design preferences: Light stained glass effect with vibrant, prominent colors ap
 ## External Dependencies
 
 ### Payment Processing
-- **Stripe Integration**: Full subscription lifecycle management with webhooks
+- **Adumo Online Integration**: South African payment gateway with secure redirects
 - **Currency Support**: South African Rand (ZAR) pricing and billing
-- **Subscription Management**: Recurring billing, plan changes, and cancellation handling
+- **Subscription Management**: Plan selection, payment processing, and subscription lifecycle management
 
 ### Database Infrastructure
-- **PostgreSQL Database**: Standard PostgreSQL with connection pooling via pg driver
-- **Migration Status**: Successfully migrated from Neon to Replit PostgreSQL (August 13, 2025)
+- **Xneelo MySQL Database**: External MySQL hosting with SSL security and connection pooling
+- **Backend Migration**: Successfully migrated from PostgreSQL to Xneelo MySQL (September 10, 2025)
+- **Payment Migration**: Successfully migrated from Stripe to Adumo Online payment gateway (September 10, 2025)
 - **Replit Migration**: Successfully migrated from Replit Agent to Replit environment (August 21, 2025)
 - **Environment Setup**: All required API keys configured (Stripe, SMTP) for full functionality
 - **Database Setup**: PostgreSQL database configured and schema migrated successfully
