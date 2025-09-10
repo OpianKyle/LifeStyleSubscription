@@ -138,17 +138,17 @@ export default function Home() {
           <div className="grid lg:grid-cols-2 gap-12 items-center min-h-screen py-20">
             {/* Left side - Content */}
             <div className="max-w-2xl">
-              <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight">
+              <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight animate-fade-in-left" style={{animationDelay: '0.2s'}}>
                 The Protection Program that works for you
               </h1>
-              <p className="text-xl text-slate-300 mb-8 leading-relaxed">
+              <p className="text-xl text-slate-300 mb-8 leading-relaxed animate-fade-in-left" style={{animationDelay: '0.4s'}}>
                 Make your money go further with our lifestyle protection plans. Our comprehensive program protects you when you do everyday activities, plus we provide expert guidance on financial planning to help you make smart decisions.
               </p>
               
-              <div className="flex flex-col sm:flex-row gap-4 mb-12">
+              <div className="flex flex-col sm:flex-row gap-4 mb-12 animate-fade-in-left" style={{animationDelay: '0.6s'}}>
                 <Button 
                   size="lg" 
-                  className="bg-primary hover:bg-primary/90 text-white font-semibold px-8 py-4 text-lg"
+                  className="bg-primary hover:bg-primary/90 text-white font-semibold px-8 py-4 text-lg hover:scale-105 transition-all duration-300"
                   onClick={scrollToPricing}
                 >
                   More Information
@@ -157,7 +157,7 @@ export default function Home() {
                 
                 <Button 
                   size="lg"
-                  className="bg-secondary hover:bg-secondary/90 text-white font-semibold px-8 py-4 text-lg"
+                  className="bg-secondary hover:bg-secondary/90 text-white font-semibold px-8 py-4 text-lg hover:scale-105 transition-all duration-300"
                   onClick={() => setLocation('/dashboard')}
                 >
                   Get Started Today
@@ -165,17 +165,17 @@ export default function Home() {
               </div>
               
               {/* Key Stats */}
-              <div className="grid grid-cols-3 gap-8 text-center text-white">
-                <div>
-                  <div className="text-3xl font-bold mb-2">24/7</div>
+              <div className="grid grid-cols-3 gap-8 text-center text-white animate-fade-in-up" style={{animationDelay: '0.8s'}}>
+                <div className="hover:scale-110 transition-all duration-300">
+                  <div className="text-3xl font-bold mb-2 animate-bounce-gentle">24/7</div>
                   <div className="text-slate-300 text-sm">Emergency Support</div>
                 </div>
-                <div>
-                  <div className="text-3xl font-bold mb-2">R350+</div>
+                <div className="hover:scale-110 transition-all duration-300">
+                  <div className="text-3xl font-bold mb-2 animate-bounce-gentle" style={{animationDelay: '0.2s'}}>R350+</div>
                   <div className="text-slate-300 text-sm">Plans from</div>
                 </div>
-                <div>
-                  <div className="text-3xl font-bold mb-2">100%</div>
+                <div className="hover:scale-110 transition-all duration-300">
+                  <div className="text-3xl font-bold mb-2 animate-bounce-gentle" style={{animationDelay: '0.4s'}}>100%</div>
                   <div className="text-slate-300 text-sm">Family Coverage</div>
                 </div>
               </div>
