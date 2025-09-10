@@ -85,6 +85,9 @@ export class AdumoService {
     
     const subscriptionId = `sub_${userId}_${Date.now()}`;
     
+    // Generate payment data early to get merchant reference
+    const paymentData = this.generatePaymentData(plan, user);
+    
     const subscriptionData = {
       userId,
       planId: plan.id,
@@ -99,7 +102,7 @@ export class AdumoService {
     // Update user with subscription ID
     await storage.updateUser(userId, { adumoSubscriptionId: subscriptionId });
 
-    // Create initial invoice
+    // Create initial invoice with merchant reference in description
     await storage.createInvoice({
       userId,
       subscriptionId: subscription.id,
@@ -121,8 +124,6 @@ export class AdumoService {
       console.error('Failed to send welcome email:', emailError);
     }
 
-    const paymentData = this.generatePaymentData(plan, user);
-    
     return {
       subscriptionId,
       customerId,
