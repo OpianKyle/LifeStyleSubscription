@@ -170,11 +170,17 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllSubscriptionPlans(): Promise<SubscriptionPlan[]> {
-    return await db
+    const plans = await db
       .select()
       .from(subscriptionPlans)
       .where(eq(subscriptionPlans.isActive, true))
       .orderBy(subscriptionPlans.price);
+    
+    // Parse features JSON string back to array
+    return plans.map(plan => ({
+      ...plan,
+      features: plan.features ? JSON.parse(plan.features) : []
+    }));
   }
 
   async getSubscriptionPlanByName(name: string): Promise<SubscriptionPlan | undefined> {
@@ -182,7 +188,14 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(subscriptionPlans)
       .where(eq(subscriptionPlans.name, name as any));
-    return plan;
+    
+    if (!plan) return undefined;
+    
+    // Parse features JSON string back to array
+    return {
+      ...plan,
+      features: plan.features ? JSON.parse(plan.features) : []
+    };
   }
 
   async getSubscriptionPlanById(id: string): Promise<SubscriptionPlan | undefined> {
