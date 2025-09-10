@@ -84,10 +84,11 @@ async function createTablesIfNotExist(connection: mysql.PoolConnection) {
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL
     );
     
-    -- Subscription plans table
-    CREATE TABLE IF NOT EXISTS subscription_plans (
+    -- Drop and recreate subscription plans table to fix column name
+    DROP TABLE IF EXISTS subscription_plans;
+    CREATE TABLE subscription_plans (
       id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
-      plan_name ENUM('OPPORTUNITY', 'MOMENTUM', 'PROSPER', 'PRESTIGE', 'PINNACLE') NOT NULL UNIQUE,
+      name ENUM('OPPORTUNITY', 'MOMENTUM', 'PROSPER', 'PRESTIGE', 'PINNACLE') NOT NULL UNIQUE,
       price DECIMAL(10, 2) NOT NULL,
       currency VARCHAR(3) DEFAULT 'ZAR' NOT NULL,
       \`interval\` VARCHAR(20) DEFAULT 'month' NOT NULL,

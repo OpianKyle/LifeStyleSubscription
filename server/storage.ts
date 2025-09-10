@@ -165,7 +165,7 @@ export class DatabaseStorage implements IStorage {
     const [newPlan] = await db
       .select()
       .from(subscriptionPlans)
-      .where(eq(subscriptionPlans.planName, plan.planName as any));
+      .where(eq(subscriptionPlans.name, plan.name as any));
     return newPlan!;
   }
 
@@ -181,7 +181,7 @@ export class DatabaseStorage implements IStorage {
     const [plan] = await db
       .select()
       .from(subscriptionPlans)
-      .where(eq(subscriptionPlans.planName, name as any));
+      .where(eq(subscriptionPlans.name, name as any));
     return plan;
   }
 
