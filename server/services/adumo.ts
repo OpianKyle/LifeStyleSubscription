@@ -144,6 +144,7 @@ export class AdumoService {
     
     // Prepare payment form data according to Adumo Virtual specifications
     const reference = `sub_${user.id}_${Date.now()}`;
+    const merchantReference = `OPIAN_${user.id.substring(0, 8)}_${Date.now()}`;
     const amount = (parseFloat(plan.price) * 100).toString(); // Convert to cents
     
     return {
@@ -155,6 +156,7 @@ export class AdumoService {
         MerchantUID: ADUMO_CONFIG.merchantId,
         ApplicationUID: ADUMO_CONFIG.applicationId,
         TransactionReference: reference,
+        MerchantReference: merchantReference,
         Amount: amount,
         Currency: 'ZAR',
         Description: `${plan.name} Plan - Monthly Subscription`,
@@ -168,6 +170,7 @@ export class AdumoService {
       },
       
       reference,
+      merchantReference,
       token
     };
   }

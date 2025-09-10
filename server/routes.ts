@@ -288,21 +288,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: 'Plan not found' });
       }
 
-      // Create the subscription with Adumo using plan name
-      const adumoResult = await AdumoService.createSubscription(req.user.id, plan.name);
+      // Check if user already has a subscription to avoid duplicates
+      const existingSubscription = await storage.getUserSubscription(req.user.id);
+      
+      let adumoResult;
+      if (existingSubscription) {
+        // If subscription exists for the same plan, return existing info
+        const existingPlan = await storage.getSubscriptionPlanById(existingSubscription.planId);
+        if (existingPlan?.name === plan.name) {
+          const user = await storage.getUserById(req.user.id);
+          return res.json({
+            message: 'Subscription already exists for this plan',
+            subscription: existingSubscription,
+            subscriptionId: existingSubscription.adumoSubscriptionId,
+            paymentData: AdumoService.generatePaymentData(plan, user)
+          });
+        }
+        // Update existing subscription to new plan
+        adumoResult = await AdumoService.updateSubscription(req.user.id, plan.name);
+      } else {
+        // Create new subscription with Adumo using plan name
+        adumoResult = await AdumoService.createSubscription(req.user.id, plan.name);
+      }
       
       // Check if adumoResult has subscription info or is an error
       if (!('subscriptionId' in adumoResult)) {
         return res.status(400).json(adumoResult);
       }
-      
-      // Store the full subscription details including form data
-      const fullSubscription = await storage.createFullSubscription({
-        userId: req.user.id,
-        planId: subscriptionData.planId,
-        adumoSubscriptionId: adumoResult.subscriptionId,
-        status: 'ACTIVE'
-      });
 
       // Create extended cover entries for each family member
       if (subscriptionData.extendedMembers && subscriptionData.extendedMembers.length > 0) {
@@ -321,11 +333,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
+      // Get the subscription that was created by AdumoService
+      const subscription = await storage.getUserSubscription(req.user.id);
+      
       res.json({
         message: 'Subscription created successfully',
-        subscription: fullSubscription,
+        subscription: subscription,
         subscriptionId: adumoResult.subscriptionId,
-        paymentUrl: 'paymentUrl' in adumoResult ? adumoResult.paymentUrl : undefined
+        paymentData: 'paymentData' in adumoResult ? adumoResult.paymentData : undefined
       });
     } catch (error: any) {
       res.status(400).json({ message: error.message });
