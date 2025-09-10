@@ -12,9 +12,10 @@ import { ArrowRight, Shield, Heart, Phone, Scale, Users, Check, Loader2 } from "
 
 // Import generated images
 import heroImage from "@assets/generated_images/Family_protection_hero_image_fda77672.png";
-import medicalImage from "@assets/generated_images/Medical_assistance_services_illustration_d0d96e6e.png";
-import legalImage from "@assets/generated_images/Legal_support_services_illustration_4e8f75c7.png";
-import familyImage from "@assets/generated_images/Family_protection_benefits_illustration_1824d9d7.png";
+import medicalImage from "@assets/generated_images/Medical_assistance_services_scene_2e9b279b.png";
+import legalImage from "@assets/generated_images/Legal_support_consultation_scene_9e008e89.png";
+import familyImage from "@assets/generated_images/Family_protection_concept_image_723c8e84.png";
+import financialImage from "@assets/generated_images/Financial_planning_consultation_scene_acac4653.png";
 
 export default function Home() {
   const [, setLocation] = useLocation();
@@ -117,7 +118,7 @@ export default function Home() {
               <div className="flex flex-col sm:flex-row gap-4 mb-12">
                 <Button 
                   size="lg" 
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-4 text-lg"
+                  className="bg-primary hover:bg-primary/90 text-white font-semibold px-8 py-4 text-lg"
                   onClick={scrollToPricing}
                 >
                   More Information
@@ -126,7 +127,7 @@ export default function Home() {
                 
                 <Button 
                   size="lg"
-                  className="bg-white text-slate-900 hover:bg-slate-100 font-semibold px-8 py-4 text-lg"
+                  className="bg-secondary hover:bg-secondary/90 text-white font-semibold px-8 py-4 text-lg"
                   onClick={() => setLocation('/dashboard')}
                 >
                   Get Started Today
@@ -170,7 +171,7 @@ export default function Home() {
               <div className="flex flex-col gap-4 mb-12">
                 <Button 
                   size="lg" 
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-4 text-lg"
+                  className="bg-primary hover:bg-primary/90 text-white font-semibold px-8 py-4 text-lg"
                   onClick={scrollToPricing}
                 >
                   More Information
@@ -179,7 +180,7 @@ export default function Home() {
                 
                 <Button 
                   size="lg"
-                  className="bg-white text-slate-900 hover:bg-slate-100 font-semibold px-8 py-4 text-lg"
+                  className="bg-secondary hover:bg-secondary/90 text-white font-semibold px-8 py-4 text-lg"
                   onClick={() => setLocation('/dashboard')}
                 >
                   Get Started Today
@@ -205,118 +206,260 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Value Proposition Section */}
-      <section className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
-              What If Your Protection Plan Paid You Back?
-            </h2>
-            <p className="text-xl text-slate-600 max-w-3xl mx-auto">
-              Our innovative approach combines traditional protection with smart financial benefits, helping you build wealth while staying protected.
-            </p>
+      {/* Full-Width Section 1 - Medical Assistance (Image Left) */}
+      <section className="w-full bg-white">
+        <div className="grid lg:grid-cols-2 min-h-[80vh]">
+          {/* Image Left */}
+          <div className="relative">
+            <img 
+              src={medicalImage} 
+              alt="Medical assistance services" 
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/10 to-primary/30"></div>
           </div>
           
-          <div className="grid md:grid-cols-3 gap-8">
-            <Card className="border-2 border-blue-100 hover:border-blue-200 transition-colors">
-              <CardContent className="p-8 text-center">
-                <div className="w-24 h-24 mx-auto mb-4 rounded-xl overflow-hidden">
-                  <img 
-                    src={medicalImage} 
-                    alt="Medical assistance services" 
-                    className="w-full h-full object-cover"
-                  />
+          {/* Content Right */}
+          <div className="flex items-center justify-center p-8 lg:p-16 bg-gradient-to-br from-primary/5 to-primary/10">
+            <div className="max-w-xl">
+              <h2 className="text-4xl lg:text-5xl font-bold text-slate-900 mb-6">
+                24/7 Emergency Medical Services
+              </h2>
+              <p className="text-xl text-slate-600 mb-8 leading-relaxed">
+                Professional medical assistance available around the clock. Our experienced teams provide rapid response emergency services when you need them most, ensuring your family's health and safety.
+              </p>
+              <div className="space-y-4">
+                <div className="flex items-center space-x-3">
+                  <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center">
+                    <Check className="w-4 h-4 text-white" />
+                  </div>
+                  <span className="text-lg text-slate-700">Rapid emergency response</span>
                 </div>
-                <h3 className="text-xl font-semibold mb-3">Protection on Everything</h3>
-                <p className="text-slate-600">Emergency services, legal support, family benefits—comprehensive coverage for your everyday life.</p>
-              </CardContent>
-            </Card>
-            
-            <Card className="border-2 border-purple-100 hover:border-purple-200 transition-colors">
-              <CardContent className="p-8 text-center">
-                <div className="w-24 h-24 mx-auto mb-4 rounded-xl overflow-hidden">
-                  <img 
-                    src={legalImage} 
-                    alt="Legal support services" 
-                    className="w-full h-full object-cover"
-                  />
+                <div className="flex items-center space-x-3">
+                  <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center">
+                    <Check className="w-4 h-4 text-white" />
+                  </div>
+                  <span className="text-lg text-slate-700">Professional medical teams</span>
                 </div>
-                <h3 className="text-xl font-semibold mb-3">Build Your Own Protection Stack</h3>
-                <p className="text-slate-600">Combine our protection system with your current benefits to create comprehensive family coverage!</p>
-              </CardContent>
-            </Card>
-            
-            <Card className="border-2 border-green-100 hover:border-green-200 transition-colors">
-              <CardContent className="p-8 text-center">
-                <div className="w-24 h-24 mx-auto mb-4 rounded-xl overflow-hidden">
-                  <img 
-                    src={familyImage} 
-                    alt="Family protection benefits" 
-                    className="w-full h-full object-cover"
-                  />
+                <div className="flex items-center space-x-3">
+                  <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center">
+                    <Check className="w-4 h-4 text-white" />
+                  </div>
+                  <span className="text-lg text-slate-700">24/7 availability</span>
                 </div>
-                <h3 className="text-xl font-semibold mb-3">Make Your Money Work for You</h3>
-                <p className="text-slate-600">With expert financial guidance, make smarter planning decisions to save and build wealth for your family.</p>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* How It Works Section */}
-      <section className="py-16 bg-slate-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
-              Simple Steps. Serious Protection.
-            </h2>
-            <p className="text-xl text-slate-600 max-w-3xl mx-auto">
-              Getting started is simple and empowering. Every step is designed to help you gain protection and unlock greater benefits—just by doing what you already do.
-            </p>
-          </div>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <div className="text-center">
-              <div className="w-20 h-20 bg-blue-600 text-white rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">
-                1
+      {/* Full-Width Section 2 - Legal Support (Image Right) */}
+      <section className="w-full bg-white">
+        <div className="grid lg:grid-cols-2 min-h-[80vh]">
+          {/* Content Left */}
+          <div className="flex items-center justify-center p-8 lg:p-16 bg-gradient-to-br from-secondary/5 to-secondary/10">
+            <div className="max-w-xl">
+              <h2 className="text-4xl lg:text-5xl font-bold text-slate-900 mb-6">
+                Expert Legal Assistance
+              </h2>
+              <p className="text-xl text-slate-600 mb-8 leading-relaxed">
+                Professional legal support and consultation services to help you navigate complex legal matters. Our expert lawyers provide guidance when you need it most.
+              </p>
+              <div className="space-y-4">
+                <div className="flex items-center space-x-3">
+                  <div className="w-6 h-6 bg-secondary rounded-full flex items-center justify-center">
+                    <Check className="w-4 h-4 text-white" />
+                  </div>
+                  <span className="text-lg text-slate-700">Professional consultations</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <div className="w-6 h-6 bg-secondary rounded-full flex items-center justify-center">
+                    <Check className="w-4 h-4 text-white" />
+                  </div>
+                  <span className="text-lg text-slate-700">Expert legal guidance</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <div className="w-6 h-6 bg-secondary rounded-full flex items-center justify-center">
+                    <Check className="w-4 h-4 text-white" />
+                  </div>
+                  <span className="text-lg text-slate-700">Complex matter support</span>
+                </div>
               </div>
-              <h3 className="text-lg font-semibold mb-3">Personalized Support</h3>
-              <p className="text-slate-600">Submit your details and one of our friendly agents will reach out to guide you through the sign-up process.</p>
-            </div>
-            
-            <div className="text-center">
-              <div className="w-20 h-20 bg-purple-600 text-white rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">
-                2
-              </div>
-              <h3 className="text-lg font-semibold mb-3">Get Protected Instantly</h3>
-              <p className="text-slate-600">Choose your plan and get immediate access to emergency services, legal support, and family benefits.</p>
-            </div>
-            
-            <div className="text-center">
-              <div className="w-20 h-20 bg-green-600 text-white rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">
-                3
-              </div>
-              <h3 className="text-lg font-semibold mb-3">Stack Your Benefits</h3>
-              <p className="text-slate-600">Combine different protection channels and watch your coverage multiply. The more comprehensive, the better protected.</p>
-            </div>
-            
-            <div className="text-center">
-              <div className="w-20 h-20 bg-red-600 text-white rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">
-                4
-              </div>
-              <h3 className="text-lg font-semibold mb-3">Live Protected</h3>
-              <p className="text-slate-600">Start your protection journey now and transform how you plan, protect, and prosper. Join thousands already protected.</p>
             </div>
           </div>
           
-          <div className="text-center mt-12">
-            <Button 
-              size="lg" 
-              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-4 text-lg"
-              onClick={() => setLocation('/dashboard')}
-            >
-              View Plans
-            </Button>
+          {/* Image Right */}
+          <div className="relative">
+            <img 
+              src={legalImage} 
+              alt="Legal support services" 
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-l from-transparent via-secondary/10 to-secondary/30"></div>
+          </div>
+        </div>
+      </section>
+
+      {/* Full-Width Section 3 - Family Protection (Image Left) */}
+      <section className="w-full bg-white">
+        <div className="grid lg:grid-cols-2 min-h-[80vh]">
+          {/* Image Left */}
+          <div className="relative">
+            <img 
+              src={familyImage} 
+              alt="Family protection benefits" 
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/10 to-primary/30"></div>
+          </div>
+          
+          {/* Content Right */}
+          <div className="flex items-center justify-center p-8 lg:p-16 bg-gradient-to-br from-primary/5 to-primary/10">
+            <div className="max-w-xl">
+              <h2 className="text-4xl lg:text-5xl font-bold text-slate-900 mb-6">
+                Comprehensive Family Protection
+              </h2>
+              <p className="text-xl text-slate-600 mb-8 leading-relaxed">
+                Complete family coverage including funeral assistance, income benefits, and comprehensive support services for all your loved ones.
+              </p>
+              <div className="space-y-4">
+                <div className="flex items-center space-x-3">
+                  <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center">
+                    <Check className="w-4 h-4 text-white" />
+                  </div>
+                  <span className="text-lg text-slate-700">Funeral assistance coverage</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center">
+                    <Check className="w-4 h-4 text-white" />
+                  </div>
+                  <span className="text-lg text-slate-700">Family income benefits</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center">
+                    <Check className="w-4 h-4 text-white" />
+                  </div>
+                  <span className="text-lg text-slate-700">Complete support services</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Curved Heading Section */}
+      <section className="min-h-screen bg-gradient-to-br from-slate-50 to-white relative overflow-hidden">
+        <div className="grid lg:grid-cols-2 min-h-screen">
+          {/* Left Side - Curved Headings */}
+          <div className="flex items-center justify-center relative px-8 lg:px-16">
+            <div className="space-y-12 relative z-10">
+              {/* Curved path for headings */}
+              <div className="relative">
+                <h2 
+                  className="text-4xl lg:text-6xl font-bold text-primary mb-4 cursor-pointer hover:scale-105 transition-transform duration-300"
+                  style={{ transform: 'translateX(0px) translateY(0px)' }}
+                >
+                  Medical Care
+                </h2>
+                <p className="text-lg text-slate-600 max-w-md">24/7 emergency medical assistance and professional healthcare support</p>
+              </div>
+              
+              <div className="relative">
+                <h2 
+                  className="text-4xl lg:text-6xl font-bold text-secondary mb-4 cursor-pointer hover:scale-105 transition-transform duration-300"
+                  style={{ transform: 'translateX(50px) translateY(20px)' }}
+                >
+                  Legal Support
+                </h2>
+                <p className="text-lg text-slate-600 max-w-md ml-12">Expert legal consultation and professional guidance for complex matters</p>
+              </div>
+              
+              <div className="relative">
+                <h2 
+                  className="text-4xl lg:text-6xl font-bold text-primary mb-4 cursor-pointer hover:scale-105 transition-transform duration-300"
+                  style={{ transform: 'translateX(100px) translateY(40px)' }}
+                >
+                  Family Protection
+                </h2>
+                <p className="text-lg text-slate-600 max-w-md ml-24">Comprehensive coverage for your loved ones with complete peace of mind</p>
+              </div>
+              
+              <div className="relative">
+                <h2 
+                  className="text-4xl lg:text-6xl font-bold text-secondary mb-4 cursor-pointer hover:scale-105 transition-transform duration-300"
+                  style={{ transform: 'translateX(150px) translateY(60px)' }}
+                >
+                  Financial Planning
+                </h2>
+                <p className="text-lg text-slate-600 max-w-md ml-36">Smart financial guidance to build wealth and secure your future</p>
+              </div>
+            </div>
+            
+            {/* Curved line decoration */}
+            <div className="absolute inset-0 pointer-events-none">
+              <svg 
+                className="w-full h-full" 
+                viewBox="0 0 600 800" 
+                fill="none" 
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path 
+                  d="M100 150 Q300 200 350 350 Q400 500 450 650" 
+                  stroke="url(#gradient)" 
+                  strokeWidth="3" 
+                  fill="none"
+                  opacity="0.3"
+                />
+                <defs>
+                  <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="hsl(210, 100%, 50%)" />
+                    <stop offset="50%" stopColor="hsl(142, 76%, 36%)" />
+                    <stop offset="100%" stopColor="hsl(210, 100%, 50%)" />
+                  </linearGradient>
+                </defs>
+              </svg>
+            </div>
+          </div>
+          
+          {/* Right Side - Dynamic Image Display */}
+          <div className="relative bg-gradient-to-bl from-primary/10 to-secondary/10">
+            <div className="absolute inset-0 flex items-center justify-center p-8">
+              <div className="relative w-full max-w-2xl">
+                {/* Default Image - Financial Planning */}
+                <div className="aspect-video rounded-2xl overflow-hidden shadow-2xl">
+                  <img 
+                    src={financialImage} 
+                    alt="Financial planning consultation" 
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                
+                {/* Floating cards with content */}
+                <div className="absolute -top-8 -left-8 bg-white rounded-xl p-6 shadow-lg border border-primary/20">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center">
+                      <Phone className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-slate-900">24/7 Support</h4>
+                      <p className="text-sm text-slate-600">Always available</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="absolute -bottom-8 -right-8 bg-white rounded-xl p-6 shadow-lg border border-secondary/20">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-12 h-12 bg-secondary rounded-lg flex items-center justify-center">
+                      <Shield className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-slate-900">Protected</h4>
+                      <p className="text-sm text-slate-600">Complete coverage</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
