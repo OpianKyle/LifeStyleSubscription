@@ -132,46 +132,6 @@ export class AdumoService {
     };
   }
 
-  static generatePaymentData(plan: any, user: any) {
-    // Generate JWT token for authentication
-    const payload = {
-      merchantId: ADUMO_CONFIG.merchantId,
-      applicationId: ADUMO_CONFIG.applicationId,
-      timestamp: Date.now()
-    };
-    
-    const token = jwt.sign(payload, ADUMO_CONFIG.jwtSecret, { expiresIn: '1h' });
-    
-    // Prepare payment form data according to Adumo Virtual specifications
-    const reference = `sub_${user.id}_${Date.now()}`;
-    const amount = (parseFloat(plan.price) * 100).toString(); // Convert to cents
-    
-    return {
-      // Form POST URL
-      url: ADUMO_CONFIG.environment === 'production' ? ADUMO_CONFIG.prodUrl : ADUMO_CONFIG.testUrl,
-      
-      // Required form parameters for Adumo Virtual
-      formData: {
-        MerchantUID: ADUMO_CONFIG.merchantId,
-        ApplicationUID: ADUMO_CONFIG.applicationId,
-        TransactionReference: reference,
-        Amount: amount,
-        Currency: 'ZAR',
-        Description: `${plan.name} Plan - Monthly Subscription`,
-        CustomerFirstName: user.name.split(' ')[0] || user.name,
-        CustomerLastName: user.name.split(' ').slice(1).join(' ') || '',
-        CustomerEmail: user.email,
-        ReturnURL: `${process.env.FRONTEND_URL || 'http://localhost:5000'}/dashboard?payment=success&ref=${reference}`,
-        CancelURL: `${process.env.FRONTEND_URL || 'http://localhost:5000'}/choose-plan?payment=canceled`,
-        WebhookURL: `${process.env.FRONTEND_URL || 'http://localhost:5000'}/api/webhooks/adumo`,
-        Token: token
-      },
-      
-      reference,
-      token
-    };
-  }
-
   static async updateSubscription(userId: string, newPlanName: string) {
     const user = await storage.getUserById(userId);
     const currentSubscription = await storage.getUserSubscription(userId);
@@ -232,6 +192,45 @@ export class AdumoService {
     return { message: 'Subscription canceled successfully' };
   }
 
+  static generatePaymentData(plan: any, user: any) {
+    // Generate JWT token for authentication
+    const payload = {
+      merchantId: ADUMO_CONFIG.merchantId,
+      applicationId: ADUMO_CONFIG.applicationId,
+      timestamp: Date.now()
+    };
+    
+    const token = jwt.sign(payload, ADUMO_CONFIG.jwtSecret, { expiresIn: '1h' });
+    
+    // Prepare payment form data according to Adumo Virtual specifications
+    const reference = `sub_${user.id}_${Date.now()}`;
+    const amount = (parseFloat(plan.price) * 100).toString(); // Convert to cents
+    
+    return {
+      // Form POST URL
+      url: ADUMO_CONFIG.environment === 'production' ? ADUMO_CONFIG.prodUrl : ADUMO_CONFIG.testUrl,
+      
+      // Required form parameters for Adumo Virtual
+      formData: {
+        MerchantUID: ADUMO_CONFIG.merchantId,
+        ApplicationUID: ADUMO_CONFIG.applicationId,
+        TransactionReference: reference,
+        Amount: amount,
+        Currency: 'ZAR',
+        Description: `${plan.name} Plan - Monthly Subscription`,
+        CustomerFirstName: user.name.split(' ')[0] || user.name,
+        CustomerLastName: user.name.split(' ').slice(1).join(' ') || '',
+        CustomerEmail: user.email,
+        ReturnURL: `${process.env.FRONTEND_URL || 'http://localhost:5000'}/dashboard?payment=success&ref=${reference}`,
+        CancelURL: `${process.env.FRONTEND_URL || 'http://localhost:5000'}/choose-plan?payment=canceled`,
+        WebhookURL: `${process.env.FRONTEND_URL || 'http://localhost:5000'}/api/webhooks/adumo`,
+        Token: token
+      },
+      
+      reference,
+      token
+  }
+
   private static async calculateProration(currentSubscription: any, newPlan: any): Promise<number> {
     // Simple proration calculation
     const currentPlan = await storage.getSubscriptionPlanById(currentSubscription.planId);
@@ -247,12 +246,11 @@ export class AdumoService {
   }
 
   static async processPaymentWebhook(payload: any) {
-    // Handle Adumo webhook notifications according to Virtual payment response
+    // Handle Adumo webhook notifications
     try {
-      // Adumo Virtual sends different response parameters
-      const { TransactionReference: reference, Status: status, Amount: amount, TransactionID: transaction_id } = payload;
+      const { reference, status, amount, transaction_id } = payload;
       
-      if (status === 'successful' || status === 'Successful') {
+      if (status === 'successful') {
         // Extract user ID from reference
         const userIdMatch = reference.match(/sub_(.+?)_/);
         if (!userIdMatch) return;
