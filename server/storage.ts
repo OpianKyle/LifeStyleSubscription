@@ -257,7 +257,10 @@ export class DatabaseStorage implements IStorage {
     
     return {
       ...result.subscriptions,
-      plan: result.subscription_plans
+      plan: {
+        ...result.subscription_plans,
+        features: result.subscription_plans.features ? JSON.parse(result.subscription_plans.features) : []
+      }
     };
   }
 
