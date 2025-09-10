@@ -21,6 +21,7 @@ export default function Home() {
   const [, setLocation] = useLocation();
   const { isAuthenticated } = useAuthState();
   const { toast } = useToast();
+  const [selectedService, setSelectedService] = useState('financial');
 
   const { data: plansData, isLoading } = useQuery({
     queryKey: ["/api/plans"],
@@ -44,6 +45,33 @@ export default function Home() {
   };
 
   const plans = (plansData as any)?.plans || [];
+
+  const services = {
+    medical: {
+      title: "Medical Care",
+      subtitle: "24/7 emergency medical assistance and professional healthcare support",
+      image: medicalImage,
+      features: ["Rapid emergency response", "Professional medical teams", "24/7 availability", "Ambulance services"]
+    },
+    legal: {
+      title: "Legal Support", 
+      subtitle: "Expert legal consultation and professional guidance for complex matters",
+      image: legalImage,
+      features: ["Professional consultations", "Expert legal guidance", "Complex matter support", "Document assistance"]
+    },
+    family: {
+      title: "Family Protection",
+      subtitle: "Comprehensive coverage for your loved ones with complete peace of mind",
+      image: familyImage,
+      features: ["Funeral assistance coverage", "Family income benefits", "Complete support services", "Emergency assistance"]
+    },
+    financial: {
+      title: "Financial Planning",
+      subtitle: "Smart financial guidance to build wealth and secure your future",
+      image: financialImage,
+      features: ["Investment guidance", "Budget planning", "Wealth building strategies", "Retirement planning"]
+    }
+  };
 
   const features = [
     {
@@ -356,42 +384,62 @@ export default function Home() {
               {/* Curved path for headings */}
               <div className="relative">
                 <h2 
-                  className="text-4xl lg:text-6xl font-bold text-primary mb-4 cursor-pointer hover:scale-105 transition-transform duration-300"
+                  className={`text-4xl lg:text-6xl font-bold mb-4 cursor-pointer hover:scale-105 transition-all duration-300 ${
+                    selectedService === 'medical' ? 'text-primary scale-110' : 'text-slate-400 hover:text-primary'
+                  }`}
                   style={{ transform: 'translateX(0px) translateY(0px)' }}
+                  onClick={() => setSelectedService('medical')}
                 >
                   Medical Care
                 </h2>
-                <p className="text-lg text-slate-600 max-w-md">24/7 emergency medical assistance and professional healthcare support</p>
+                <p className={`text-lg max-w-md transition-colors duration-300 ${
+                  selectedService === 'medical' ? 'text-slate-700' : 'text-slate-500'
+                }`}>24/7 emergency medical assistance and professional healthcare support</p>
               </div>
               
               <div className="relative">
                 <h2 
-                  className="text-4xl lg:text-6xl font-bold text-secondary mb-4 cursor-pointer hover:scale-105 transition-transform duration-300"
+                  className={`text-4xl lg:text-6xl font-bold mb-4 cursor-pointer hover:scale-105 transition-all duration-300 ${
+                    selectedService === 'legal' ? 'text-secondary scale-110' : 'text-slate-400 hover:text-secondary'
+                  }`}
                   style={{ transform: 'translateX(50px) translateY(20px)' }}
+                  onClick={() => setSelectedService('legal')}
                 >
                   Legal Support
                 </h2>
-                <p className="text-lg text-slate-600 max-w-md ml-12">Expert legal consultation and professional guidance for complex matters</p>
+                <p className={`text-lg max-w-md ml-12 transition-colors duration-300 ${
+                  selectedService === 'legal' ? 'text-slate-700' : 'text-slate-500'
+                }`}>Expert legal consultation and professional guidance for complex matters</p>
               </div>
               
               <div className="relative">
                 <h2 
-                  className="text-4xl lg:text-6xl font-bold text-primary mb-4 cursor-pointer hover:scale-105 transition-transform duration-300"
+                  className={`text-4xl lg:text-6xl font-bold mb-4 cursor-pointer hover:scale-105 transition-all duration-300 ${
+                    selectedService === 'family' ? 'text-primary scale-110' : 'text-slate-400 hover:text-primary'
+                  }`}
                   style={{ transform: 'translateX(100px) translateY(40px)' }}
+                  onClick={() => setSelectedService('family')}
                 >
                   Family Protection
                 </h2>
-                <p className="text-lg text-slate-600 max-w-md ml-24">Comprehensive coverage for your loved ones with complete peace of mind</p>
+                <p className={`text-lg max-w-md ml-24 transition-colors duration-300 ${
+                  selectedService === 'family' ? 'text-slate-700' : 'text-slate-500'
+                }`}>Comprehensive coverage for your loved ones with complete peace of mind</p>
               </div>
               
               <div className="relative">
                 <h2 
-                  className="text-4xl lg:text-6xl font-bold text-secondary mb-4 cursor-pointer hover:scale-105 transition-transform duration-300"
+                  className={`text-4xl lg:text-6xl font-bold mb-4 cursor-pointer hover:scale-105 transition-all duration-300 ${
+                    selectedService === 'financial' ? 'text-secondary scale-110' : 'text-slate-400 hover:text-secondary'
+                  }`}
                   style={{ transform: 'translateX(150px) translateY(60px)' }}
+                  onClick={() => setSelectedService('financial')}
                 >
                   Financial Planning
                 </h2>
-                <p className="text-lg text-slate-600 max-w-md ml-36">Smart financial guidance to build wealth and secure your future</p>
+                <p className={`text-lg max-w-md ml-36 transition-colors duration-300 ${
+                  selectedService === 'financial' ? 'text-slate-700' : 'text-slate-500'
+                }`}>Smart financial guidance to build wealth and secure your future</p>
               </div>
             </div>
             
@@ -425,36 +473,56 @@ export default function Home() {
           <div className="relative bg-gradient-to-bl from-primary/10 to-secondary/10">
             <div className="absolute inset-0 flex items-center justify-center p-8">
               <div className="relative w-full max-w-2xl">
-                {/* Default Image - Financial Planning */}
-                <div className="aspect-video rounded-2xl overflow-hidden shadow-2xl">
+                {/* Dynamic Image based on selected service */}
+                <div className="aspect-video rounded-2xl overflow-hidden shadow-2xl transition-all duration-500">
                   <img 
-                    src={financialImage} 
-                    alt="Financial planning consultation" 
+                    src={services[selectedService as keyof typeof services].image} 
+                    alt={services[selectedService as keyof typeof services].title} 
                     className="w-full h-full object-cover"
                   />
                 </div>
                 
-                {/* Floating cards with content */}
-                <div className="absolute -top-8 -left-8 bg-white rounded-xl p-6 shadow-lg border border-primary/20">
+                {/* Dynamic content card */}
+                <div className="absolute -bottom-12 left-0 right-0 bg-white rounded-xl p-6 shadow-lg border border-primary/20 mx-4">
+                  <h3 className="text-2xl font-bold text-slate-900 mb-3">
+                    {services[selectedService as keyof typeof services].title}
+                  </h3>
+                  <p className="text-slate-600 mb-4">
+                    {services[selectedService as keyof typeof services].subtitle}
+                  </p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {services[selectedService as keyof typeof services].features.map((feature, index) => (
+                      <div key={index} className="flex items-center space-x-2">
+                        <div className="w-4 h-4 bg-primary rounded-full flex items-center justify-center">
+                          <Check className="w-3 h-3 text-white" />
+                        </div>
+                        <span className="text-sm text-slate-700">{feature}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Floating indicator cards */}
+                <div className="absolute -top-8 -left-8 bg-white rounded-xl p-4 shadow-lg border border-primary/20">
                   <div className="flex items-center space-x-3">
-                    <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center">
-                      <Phone className="w-6 h-6 text-white" />
+                    <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+                      <Phone className="w-5 h-5 text-white" />
                     </div>
                     <div>
-                      <h4 className="font-semibold text-slate-900">24/7 Support</h4>
-                      <p className="text-sm text-slate-600">Always available</p>
+                      <h4 className="font-semibold text-slate-900 text-sm">24/7 Support</h4>
+                      <p className="text-xs text-slate-600">Always available</p>
                     </div>
                   </div>
                 </div>
                 
-                <div className="absolute -bottom-8 -right-8 bg-white rounded-xl p-6 shadow-lg border border-secondary/20">
+                <div className="absolute -top-8 -right-8 bg-white rounded-xl p-4 shadow-lg border border-secondary/20">
                   <div className="flex items-center space-x-3">
-                    <div className="w-12 h-12 bg-secondary rounded-lg flex items-center justify-center">
-                      <Shield className="w-6 h-6 text-white" />
+                    <div className="w-10 h-10 bg-secondary rounded-lg flex items-center justify-center">
+                      <Shield className="w-5 h-5 text-white" />
                     </div>
                     <div>
-                      <h4 className="font-semibold text-slate-900">Protected</h4>
-                      <p className="text-sm text-slate-600">Complete coverage</p>
+                      <h4 className="font-semibold text-slate-900 text-sm">Protected</h4>
+                      <p className="text-xs text-slate-600">Complete coverage</p>
                     </div>
                   </div>
                 </div>
