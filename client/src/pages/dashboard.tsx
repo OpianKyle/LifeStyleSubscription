@@ -523,12 +523,22 @@ function DashboardContent() {
                         <div>
                           <h4 className="font-semibold text-emerald-900 mb-3">Your Benefits</h4>
                           <div className="space-y-2 max-h-48 overflow-y-auto">
-                            {subscription.plan.features?.map((feature: string, index: number) => (
-                              <div key={index} className="flex items-start space-x-3">
-                                <CheckCircle className="w-4 h-4 text-emerald-600 mt-0.5 flex-shrink-0" />
-                                <span className="text-sm text-emerald-800">{feature}</span>
-                              </div>
-                            ))}
+                            {Array.isArray(subscription.plan.features) 
+                              ? subscription.plan.features.map((feature: string, index: number) => (
+                                  <div key={index} className="flex items-start space-x-3">
+                                    <CheckCircle className="w-4 h-4 text-emerald-600 mt-0.5 flex-shrink-0" />
+                                    <span className="text-sm text-emerald-800">{feature}</span>
+                                  </div>
+                                ))
+                              : typeof subscription.plan.features === 'string' 
+                                ? JSON.parse(subscription.plan.features).map((feature: string, index: number) => (
+                                    <div key={index} className="flex items-start space-x-3">
+                                      <CheckCircle className="w-4 h-4 text-emerald-600 mt-0.5 flex-shrink-0" />
+                                      <span className="text-sm text-emerald-800">{feature}</span>
+                                    </div>
+                                  ))
+                                : null
+                            }
                           </div>
                         </div>
                         
