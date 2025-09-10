@@ -487,64 +487,52 @@ export default function Home() {
           <div className="flex items-center justify-center relative px-8 lg:px-16">
             <div className="space-y-12 relative z-10">
               {/* Curved path for headings */}
-              <div className="relative">
+              <div className="relative animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
                 <h2 
-                  className={`text-4xl lg:text-6xl font-bold mb-4 cursor-pointer hover:scale-105 transition-all duration-300 ${
-                    selectedService === 'medical' ? 'text-primary scale-110' : 'text-slate-400 hover:text-primary'
+                  className={`text-4xl lg:text-6xl font-bold cursor-pointer hover:scale-110 transition-all duration-500 hover:rotate-1 ${
+                    selectedService === 'medical' ? 'text-primary scale-115 animate-pulse' : 'text-slate-400 hover:text-primary'
                   }`}
                   style={{ transform: 'translateX(0px) translateY(0px)' }}
                   onClick={() => setSelectedService('medical')}
                 >
                   Medical Care
                 </h2>
-                <p className={`text-lg max-w-md transition-colors duration-300 ${
-                  selectedService === 'medical' ? 'text-slate-700' : 'text-slate-500'
-                }`}>24/7 emergency medical assistance and professional healthcare support</p>
               </div>
               
-              <div className="relative">
+              <div className="relative animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
                 <h2 
-                  className={`text-4xl lg:text-6xl font-bold mb-4 cursor-pointer hover:scale-105 transition-all duration-300 ${
-                    selectedService === 'legal' ? 'text-secondary scale-110' : 'text-slate-400 hover:text-secondary'
+                  className={`text-4xl lg:text-6xl font-bold cursor-pointer hover:scale-110 transition-all duration-500 hover:-rotate-1 ${
+                    selectedService === 'legal' ? 'text-secondary scale-115 animate-pulse' : 'text-slate-400 hover:text-secondary'
                   }`}
                   style={{ transform: 'translateX(50px) translateY(20px)' }}
                   onClick={() => setSelectedService('legal')}
                 >
                   Legal Support
                 </h2>
-                <p className={`text-lg max-w-md ml-12 transition-colors duration-300 ${
-                  selectedService === 'legal' ? 'text-slate-700' : 'text-slate-500'
-                }`}>Expert legal consultation and professional guidance for complex matters</p>
               </div>
               
-              <div className="relative">
+              <div className="relative animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
                 <h2 
-                  className={`text-4xl lg:text-6xl font-bold mb-4 cursor-pointer hover:scale-105 transition-all duration-300 ${
-                    selectedService === 'family' ? 'text-primary scale-110' : 'text-slate-400 hover:text-primary'
+                  className={`text-4xl lg:text-6xl font-bold cursor-pointer hover:scale-110 transition-all duration-500 hover:rotate-1 ${
+                    selectedService === 'family' ? 'text-primary scale-115 animate-pulse' : 'text-slate-400 hover:text-primary'
                   }`}
                   style={{ transform: 'translateX(100px) translateY(40px)' }}
                   onClick={() => setSelectedService('family')}
                 >
                   Family Protection
                 </h2>
-                <p className={`text-lg max-w-md ml-24 transition-colors duration-300 ${
-                  selectedService === 'family' ? 'text-slate-700' : 'text-slate-500'
-                }`}>Comprehensive coverage for your loved ones with complete peace of mind</p>
               </div>
               
-              <div className="relative">
+              <div className="relative animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
                 <h2 
-                  className={`text-4xl lg:text-6xl font-bold mb-4 cursor-pointer hover:scale-105 transition-all duration-300 ${
-                    selectedService === 'financial' ? 'text-secondary scale-110' : 'text-slate-400 hover:text-secondary'
+                  className={`text-4xl lg:text-6xl font-bold cursor-pointer hover:scale-110 transition-all duration-500 hover:-rotate-1 ${
+                    selectedService === 'financial' ? 'text-secondary scale-115 animate-pulse' : 'text-slate-400 hover:text-secondary'
                   }`}
                   style={{ transform: 'translateX(150px) translateY(60px)' }}
                   onClick={() => setSelectedService('financial')}
                 >
                   Financial Planning
                 </h2>
-                <p className={`text-lg max-w-md ml-36 transition-colors duration-300 ${
-                  selectedService === 'financial' ? 'text-slate-700' : 'text-slate-500'
-                }`}>Smart financial guidance to build wealth and secure your future</p>
               </div>
             </div>
             
