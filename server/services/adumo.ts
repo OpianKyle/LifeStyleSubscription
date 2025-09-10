@@ -12,11 +12,11 @@ interface AdumoConfig {
   environment: 'test' | 'production';
 }
 
-// Use Adumo's provided test credentials for development
+// Use Adumo's staging credentials for development
 const ADUMO_CONFIG: AdumoConfig = {
-  merchantId: process.env.ADUMO_MERCHANT_ID || '9BA5008C-08EE-4286-A349-54AF91A621B0', // Test MerchantID
-  applicationId: process.env.ADUMO_APPLICATION_ID || '904A34AF-0CE9-42B1-9C98-B69E6329D154', // Non-3D Secure test app
-  jwtSecret: process.env.ADUMO_JWT_SECRET || 'yglTxLCSMm7PEsfaMszAKf2LSRvM2qVW', // Test JWT Secret
+  merchantId: process.env.ADUMO_MERCHANT_ID || '9ba5008c-08ee-4286-a349-54af91a621b0', // Staging MerchantID
+  applicationId: process.env.ADUMO_APPLICATION_ID || '4196b0b8-db88-42e5-a06d-294a5e4ded87', // Staging ApplicationID
+  jwtSecret: process.env.ADUMO_JWT_SECRET || 'yglTxLCSMm7PEsfaMszAKf2LSRvM2qVW', // Staging JWT Secret
   testUrl: 'https://staging-apiv3.adumoonline.com/product/payment/v1/initialisevirtual',
   prodUrl: 'https://apiv3.adumoonline.com/product/payment/v1/initialisevirtual',
   environment: (process.env.NODE_ENV === 'production' ? 'production' : 'test') as 'test' | 'production'
