@@ -289,7 +289,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const adumoResult = await AdumoService.createSubscription(req.user.id, plan.name);
       
       // Check if adumoResult has subscription info or is an error
-      if ('message' in adumoResult) {
+      if (!('subscriptionId' in adumoResult)) {
         return res.status(400).json(adumoResult);
       }
       
@@ -321,7 +321,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({
         message: 'Subscription created successfully',
         subscription: fullSubscription,
-        subscriptionId: adumoResult.subscriptionId
+        subscriptionId: adumoResult.subscriptionId,
+        paymentUrl: 'paymentUrl' in adumoResult ? adumoResult.paymentUrl : undefined
       });
     } catch (error: any) {
       res.status(400).json({ message: error.message });

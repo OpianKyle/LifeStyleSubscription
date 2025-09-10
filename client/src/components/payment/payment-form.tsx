@@ -1,19 +1,10 @@
-import { useState, useEffect } from "react";
-import { loadStripe, Stripe } from "@stripe/stripe-js";
-import {
-  Elements,
-  CardElement,
-  useStripe,
-  useElements
-} from "@stripe/react-stripe-js";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, CreditCard, Lock } from "lucide-react";
-
-let stripePromise: Promise<Stripe | null> | null = null;
+import { Loader2, CreditCard, Shield, ExternalLink } from "lucide-react";
 
 interface PaymentFormProps {
   planName: string;
@@ -22,9 +13,7 @@ interface PaymentFormProps {
   onCancel: () => void;
 }
 
-function PaymentFormInner({ planName, planPrice, onSuccess, onCancel }: PaymentFormProps) {
-  const stripe = useStripe();
-  const elements = useElements();
+export default function PaymentForm({ planName, planPrice, onSuccess, onCancel }: PaymentFormProps) {
   const { toast } = useToast();
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -32,58 +21,38 @@ function PaymentFormInner({ planName, planPrice, onSuccess, onCancel }: PaymentF
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     
-    if (!stripe || !elements) {
-      return;
-    }
-
     setIsProcessing(true);
     setError(null);
 
     try {
-      // Create subscription and get client secret
+      // Create subscription with Adumo
       const response = await apiRequest("POST", "/api/subscriptions/create", { planName });
       const data = await response.json();
 
-      if (data.clientSecret) {
-        // Confirm payment with Stripe
-        const cardElement = elements.getElement(CardElement);
-        if (!cardElement) {
-          throw new Error('Card element not found');
-        }
-
-        const { error: stripeError, paymentIntent } = await stripe.confirmCardPayment(
-          data.clientSecret,
-          {
-            payment_method: {
-              card: cardElement,
-            }
-          }
-        );
-
-        if (stripeError) {
-          throw new Error(stripeError.message);
-        }
-
-        if (paymentIntent?.status === 'succeeded') {
-          toast({
-            title: "Payment Successful",
-            description: `You've successfully subscribed to ${planName}!`,
-          });
-          onSuccess();
-        }
+      if (data.paymentUrl) {
+        // Redirect to Adumo payment page
+        toast({
+          title: "Redirecting to Payment",
+          description: "You'll be redirected to complete your payment securely with Adumo Online.",
+        });
+        
+        // Add a small delay so user can see the message
+        setTimeout(() => {
+          window.location.href = data.paymentUrl;
+        }, 1500);
       } else {
         // Development mode or immediate activation
         toast({
-          title: "Subscription Created",
+          title: "Subscription Activated",
           description: `You've successfully subscribed to ${planName}!`,
         });
         onSuccess();
       }
     } catch (err: any) {
-      setError(err.message || 'Payment failed');
+      setError(err.message || 'Subscription creation failed');
       toast({
-        title: "Payment Failed",
-        description: err.message || 'Payment failed',
+        title: "Subscription Error",
+        description: err.message || 'Failed to create subscription. Please try again.',
         variant: "destructive",
       });
     } finally {
@@ -91,24 +60,12 @@ function PaymentFormInner({ planName, planPrice, onSuccess, onCancel }: PaymentF
     }
   };
 
-  const cardOptions = {
-    style: {
-      base: {
-        fontSize: '16px',
-        color: '#424770',
-        '::placeholder': {
-          color: '#aab7c4',
-        },
-      },
-    },
-  };
-
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
         <CardTitle className="flex items-center space-x-2">
           <CreditCard className="w-5 h-5" />
-          <span>Payment Details</span>
+          <span>Complete Your Subscription</span>
         </CardTitle>
         <div className="text-sm text-slate-600">
           <p className="font-medium">{planName} Plan</p>
@@ -123,18 +80,37 @@ function PaymentFormInner({ planName, planPrice, onSuccess, onCancel }: PaymentF
             </Alert>
           )}
 
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
-              Card Information
-            </label>
-            <div className="p-3 border border-slate-300 rounded-md">
-              <CardElement options={cardOptions} />
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="flex items-start space-x-3">
+              <Shield className="w-5 h-5 text-blue-600 mt-0.5" />
+              <div className="text-sm">
+                <p className="font-medium text-blue-900 mb-1">Secure Payment with Adumo Online</p>
+                <p className="text-blue-700">
+                  You'll be redirected to our secure payment partner, Adumo Online, to complete your subscription.
+                  Your payment information is protected with bank-level security.
+                </p>
+              </div>
             </div>
           </div>
 
-          <div className="flex items-center space-x-2 text-sm text-slate-500">
-            <Lock className="w-4 h-4" />
-            <span>Your payment information is secure and encrypted</span>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-slate-600">Plan:</span>
+              <span className="font-medium">{planName}</span>
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-slate-600">Monthly Fee:</span>
+              <span className="font-medium">R{planPrice}</span>
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-slate-600">Currency:</span>
+              <span className="font-medium">South African Rand (ZAR)</span>
+            </div>
+            <hr className="border-slate-200" />
+            <div className="flex items-center justify-between font-medium">
+              <span>Total Monthly:</span>
+              <span className="text-lg">R{planPrice}</span>
+            </div>
           </div>
 
           <div className="flex space-x-3">
@@ -149,7 +125,7 @@ function PaymentFormInner({ planName, planPrice, onSuccess, onCancel }: PaymentF
             </Button>
             <Button
               type="submit"
-              disabled={!stripe || isProcessing}
+              disabled={isProcessing}
               className="flex-1"
             >
               {isProcessing ? (
@@ -158,76 +134,19 @@ function PaymentFormInner({ planName, planPrice, onSuccess, onCancel }: PaymentF
                   Processing...
                 </>
               ) : (
-                <>Pay R{planPrice}/month</>
+                <>
+                  <ExternalLink className="w-4 h-4 mr-2" />
+                  Continue to Payment
+                </>
               )}
             </Button>
+          </div>
+
+          <div className="text-xs text-slate-500 text-center">
+            By clicking "Continue to Payment", you agree to our terms of service and will be redirected to Adumo Online to complete your payment securely.
           </div>
         </form>
       </CardContent>
     </Card>
-  );
-}
-
-export default function PaymentForm(props: PaymentFormProps) {
-  const [stripe, setStripe] = useState<Promise<Stripe | null> | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const initializeStripe = async () => {
-      try {
-        if (!stripePromise) {
-          const response = await apiRequest('GET', '/api/config/stripe');
-          const config = await response.json();
-          
-          if (config.publishableKey) {
-            stripePromise = loadStripe(config.publishableKey);
-          }
-        }
-        
-        if (stripePromise) {
-          setStripe(stripePromise);
-        } else {
-          setError('Payment processing is not configured');
-        }
-      } catch (err) {
-        setError('Failed to initialize payment system');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    initializeStripe();
-  }, []);
-
-  if (loading) {
-    return (
-      <Card className="w-full max-w-md mx-auto">
-        <CardContent className="p-6 flex items-center justify-center">
-          <Loader2 className="w-6 h-6 animate-spin mr-2" />
-          <span>Loading payment form...</span>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (error || !stripe) {
-    return (
-      <Card className="w-full max-w-md mx-auto">
-        <CardContent className="p-6">
-          <Alert variant="destructive">
-            <AlertDescription>
-              {error || 'Payment processing is not configured. Please contact support.'}
-            </AlertDescription>
-          </Alert>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  return (
-    <Elements stripe={stripe}>
-      <PaymentFormInner {...props} />
-    </Elements>
   );
 }
