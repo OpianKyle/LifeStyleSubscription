@@ -39,7 +39,7 @@ export const users = mysqlTable("users", {
 // Subscription plans table
 export const subscriptionPlans = mysqlTable("subscription_plans", {
   id: varchar("id", { length: 36 }).primaryKey().default(sql`(UUID())`),
-  name: planNameEnum.notNull().unique(),
+  planName: planNameEnum.notNull().unique(),
   price: decimal("price", { precision: 10, scale: 2 }).notNull(),
   currency: varchar("currency", { length: 3 }).default('ZAR').notNull(),
   interval: varchar("interval", { length: 20 }).default('month').notNull(),

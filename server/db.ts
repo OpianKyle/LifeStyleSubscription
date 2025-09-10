@@ -87,7 +87,7 @@ async function createTablesIfNotExist(connection: mysql.PoolConnection) {
     -- Subscription plans table
     CREATE TABLE IF NOT EXISTS subscription_plans (
       id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
-      name ENUM('OPPORTUNITY', 'MOMENTUM', 'PROSPER', 'PRESTIGE', 'PINNACLE') NOT NULL UNIQUE,
+      plan_name ENUM('OPPORTUNITY', 'MOMENTUM', 'PROSPER', 'PRESTIGE', 'PINNACLE') NOT NULL UNIQUE,
       price DECIMAL(10, 2) NOT NULL,
       currency VARCHAR(3) DEFAULT 'ZAR' NOT NULL,
       \`interval\` VARCHAR(20) DEFAULT 'month' NOT NULL,
