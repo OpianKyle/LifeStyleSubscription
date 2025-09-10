@@ -62,11 +62,16 @@ export interface IStorage {
 export class DatabaseStorage implements IStorage {
   // User operations
   async createUser(insertUser: InsertUser): Promise<User> {
-    const [user] = await db
+    await db
       .insert(users)
-      .values(insertUser)
-      .returning();
-    return user;
+      .values(insertUser);
+    
+    // Get the inserted user
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, insertUser.email));
+    return user!;
   }
 
   async getUserById(id: string): Promise<User | undefined> {
@@ -86,24 +91,34 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateUser(id: string, userData: Partial<User>): Promise<User | undefined> {
-    const [user] = await db
+    await db
       .update(users)
       .set({ ...userData, updatedAt: new Date() })
-      .where(eq(users.id, id))
-      .returning();
+      .where(eq(users.id, id));
+    
+    // Get the updated user
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, id));
     return user;
   }
 
   async verifyUserEmail(token: string): Promise<User | undefined> {
-    const [user] = await db
+    await db
       .update(users)
       .set({ 
         emailVerified: true, 
         emailVerificationToken: null,
         updatedAt: new Date()
       })
-      .where(eq(users.emailVerificationToken, token))
-      .returning();
+      .where(eq(users.emailVerificationToken, token));
+    
+    // Get the updated user
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.emailVerificationToken, token));
     return user;
   }
 
@@ -119,7 +134,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async resetPassword(token: string, password: string): Promise<User | undefined> {
-    const [user] = await db
+    await db
       .update(users)
       .set({ 
         password, 
@@ -130,18 +145,28 @@ export class DatabaseStorage implements IStorage {
       .where(and(
         eq(users.passwordResetToken, token),
         sql`password_reset_expires > NOW()`
-      ))
-      .returning();
+      ));
+    
+    // Get the updated user
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.passwordResetToken, token));
     return user;
   }
 
   // Subscription plan operations
   async createSubscriptionPlan(plan: InsertSubscriptionPlan): Promise<SubscriptionPlan> {
-    const [newPlan] = await db
+    await db
       .insert(subscriptionPlans)
-      .values(plan)
-      .returning();
-    return newPlan;
+      .values(plan);
+    
+    // Get the inserted plan
+    const [newPlan] = await db
+      .select()
+      .from(subscriptionPlans)
+      .where(eq(subscriptionPlans.planName, plan.planName as any));
+    return newPlan!;
   }
 
   async getAllSubscriptionPlans(): Promise<SubscriptionPlan[]> {
@@ -169,21 +194,33 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateSubscriptionPlan(id: string, planData: Partial<SubscriptionPlan>): Promise<SubscriptionPlan | undefined> {
-    const [updatedPlan] = await db
+    await db
       .update(subscriptionPlans)
       .set(planData)
-      .where(eq(subscriptionPlans.id, id))
-      .returning();
+      .where(eq(subscriptionPlans.id, id));
+    
+    // Get the updated plan
+    const [updatedPlan] = await db
+      .select()
+      .from(subscriptionPlans)
+      .where(eq(subscriptionPlans.id, id));
     return updatedPlan;
   }
 
   // Subscription operations
   async createSubscription(subscription: InsertSubscription): Promise<Subscription> {
-    const [newSubscription] = await db
+    await db
       .insert(subscriptions)
-      .values(subscription)
-      .returning();
-    return newSubscription;
+      .values(subscription);
+    
+    // Get the inserted subscription
+    const [newSubscription] = await db
+      .select()
+      .from(subscriptions)
+      .where(eq(subscriptions.userId, subscription.userId))
+      .orderBy(desc(subscriptions.createdAt))
+      .limit(1);
+    return newSubscription!;
   }
 
   async getSubscriptionById(id: string): Promise<Subscription | undefined> {
@@ -212,33 +249,50 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateSubscription(id: string, subscriptionData: Partial<Subscription>): Promise<Subscription | undefined> {
-    const [subscription] = await db
+    await db
       .update(subscriptions)
       .set({ ...subscriptionData, updatedAt: new Date() })
-      .where(eq(subscriptions.id, id))
-      .returning();
+      .where(eq(subscriptions.id, id));
+    
+    // Get the updated subscription
+    const [subscription] = await db
+      .select()
+      .from(subscriptions)
+      .where(eq(subscriptions.id, id));
     return subscription;
   }
 
   async cancelSubscription(id: string): Promise<Subscription | undefined> {
-    const [subscription] = await db
+    await db
       .update(subscriptions)
       .set({ 
         cancelAtPeriodEnd: true,
         updatedAt: new Date()
       })
-      .where(eq(subscriptions.id, id))
-      .returning();
+      .where(eq(subscriptions.id, id));
+    
+    // Get the updated subscription
+    const [subscription] = await db
+      .select()
+      .from(subscriptions)
+      .where(eq(subscriptions.id, id));
     return subscription;
   }
 
   // Invoice operations
   async createInvoice(invoice: InsertInvoice): Promise<Invoice> {
-    const [newInvoice] = await db
+    await db
       .insert(invoices)
-      .values(invoice)
-      .returning();
-    return newInvoice;
+      .values(invoice);
+    
+    // Get the inserted invoice
+    const [newInvoice] = await db
+      .select()
+      .from(invoices)
+      .where(eq(invoices.userId, invoice.userId))
+      .orderBy(desc(invoices.createdAt))
+      .limit(1);
+    return newInvoice!;
   }
 
   async getUserInvoices(userId: string): Promise<Invoice[]> {
@@ -286,11 +340,18 @@ export class DatabaseStorage implements IStorage {
 
   // Extended cover operations
   async createExtendedCover(cover: InsertExtendedCover): Promise<ExtendedCover> {
-    const [newCover] = await db
+    await db
       .insert(extendedCover)
-      .values(cover)
-      .returning();
-    return newCover;
+      .values(cover);
+    
+    // Get the inserted cover
+    const [newCover] = await db
+      .select()
+      .from(extendedCover)
+      .where(eq(extendedCover.userId, cover.userId))
+      .orderBy(desc(extendedCover.createdAt))
+      .limit(1);
+    return newCover!;
   }
 
   async getUserExtendedCover(userId: string): Promise<ExtendedCover[]> {
@@ -302,11 +363,16 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateExtendedCover(id: string, coverData: Partial<ExtendedCover>): Promise<ExtendedCover | undefined> {
-    const [cover] = await db
+    await db
       .update(extendedCover)
       .set({ ...coverData, updatedAt: new Date() })
-      .where(eq(extendedCover.id, id))
-      .returning();
+      .where(eq(extendedCover.id, id));
+    
+    // Get the updated cover
+    const [cover] = await db
+      .select()
+      .from(extendedCover)
+      .where(eq(extendedCover.id, id));
     return cover;
   }
 
@@ -330,12 +396,19 @@ export class DatabaseStorage implements IStorage {
       currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
     };
 
-    const [subscription] = await db
+    await db
       .insert(subscriptions)
-      .values(insertData)
-      .returning();
+      .values(insertData);
     
-    return subscription;
+    // Get the inserted subscription
+    const [subscription] = await db
+      .select()
+      .from(subscriptions)
+      .where(eq(subscriptions.userId, insertData.userId))
+      .orderBy(desc(subscriptions.createdAt))
+      .limit(1);
+    
+    return subscription!;
   }
 }
 
