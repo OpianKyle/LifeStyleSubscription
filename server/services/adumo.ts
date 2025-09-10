@@ -1,21 +1,25 @@
 import { storage } from '../storage';
 import { sendEmail } from './email';
+import jwt from 'jsonwebtoken';
 
-// Adumo Online Payment Gateway Configuration
+// Adumo Online Virtual Payment Gateway Configuration
 interface AdumoConfig {
   merchantId: string;
-  storeId: string;
   applicationId: string;
-  apiKey: string;
-  baseUrl: string;
+  jwtSecret: string;
+  testUrl: string;
+  prodUrl: string;
+  environment: 'test' | 'production';
 }
 
+// Use Adumo's provided test credentials for development
 const ADUMO_CONFIG: AdumoConfig = {
-  merchantId: process.env.ADUMO_MERCHANT_ID || '',
-  storeId: process.env.ADUMO_STORE_ID || '',
-  applicationId: process.env.ADUMO_APPLICATION_ID || '',
-  apiKey: process.env.ADUMO_API_KEY || '',
-  baseUrl: process.env.ADUMO_BASE_URL || 'https://api.adumo.com/v1'
+  merchantId: process.env.ADUMO_MERCHANT_ID || '9BA5008C-08EE-4286-A349-54AF91A621B0', // Test MerchantID
+  applicationId: process.env.ADUMO_APPLICATION_ID || '904A34AF-0CE9-42B1-9C98-B69E6329D154', // Non-3D Secure test app
+  jwtSecret: process.env.ADUMO_JWT_SECRET || 'yglTxLCSMm7PEsfaMszAKf2LSRvM2qVW', // Test JWT Secret
+  testUrl: 'https://staging-apiv3.adumoonline.com/product/payment/v1/initialisevirtual',
+  prodUrl: 'https://apiv3.adumoonline.com/product/payment/v1/initialisevirtual',
+  environment: (process.env.NODE_ENV === 'production' ? 'production' : 'test') as 'test' | 'production'
 };
 
 export class AdumoService {
@@ -117,10 +121,12 @@ export class AdumoService {
       console.error('Failed to send welcome email:', emailError);
     }
 
+    const paymentData = this.generatePaymentData(plan, user);
+    
     return {
       subscriptionId,
       customerId,
-      paymentUrl: this.generatePaymentUrl(plan, user),
+      paymentData,
       requiresPayment: true,
       message: 'Subscription created successfully'
     };
@@ -186,22 +192,43 @@ export class AdumoService {
     return { message: 'Subscription canceled successfully' };
   }
 
-  static generatePaymentUrl(plan: any, user: any): string {
-    // Generate Adumo payment URL with proper parameters
-    const params = new URLSearchParams({
-      merchant_id: ADUMO_CONFIG.merchantId,
-      store_id: ADUMO_CONFIG.storeId,
-      amount: (parseFloat(plan.price) * 100).toString(), // Convert to cents
-      currency: 'ZAR',
-      description: `${plan.name} Plan - Monthly Subscription`,
-      customer_email: user.email,
-      customer_name: user.name,
-      return_url: `${process.env.FRONTEND_URL || 'http://localhost:5000'}/dashboard?payment=success`,
-      cancel_url: `${process.env.FRONTEND_URL || 'http://localhost:5000'}/choose-plan?payment=canceled`,
-      reference: `sub_${user.id}_${Date.now()}`
-    });
-
-    return `${ADUMO_CONFIG.baseUrl}/payment?${params.toString()}`;
+  static generatePaymentData(plan: any, user: any) {
+    // Generate JWT token for authentication
+    const payload = {
+      merchantId: ADUMO_CONFIG.merchantId,
+      applicationId: ADUMO_CONFIG.applicationId,
+      timestamp: Date.now()
+    };
+    
+    const token = jwt.sign(payload, ADUMO_CONFIG.jwtSecret, { expiresIn: '1h' });
+    
+    // Prepare payment form data according to Adumo Virtual specifications
+    const reference = `sub_${user.id}_${Date.now()}`;
+    const amount = (parseFloat(plan.price) * 100).toString(); // Convert to cents
+    
+    return {
+      // Form POST URL
+      url: ADUMO_CONFIG.environment === 'production' ? ADUMO_CONFIG.prodUrl : ADUMO_CONFIG.testUrl,
+      
+      // Required form parameters for Adumo Virtual
+      formData: {
+        MerchantUID: ADUMO_CONFIG.merchantId,
+        ApplicationUID: ADUMO_CONFIG.applicationId,
+        TransactionReference: reference,
+        Amount: amount,
+        Currency: 'ZAR',
+        Description: `${plan.name} Plan - Monthly Subscription`,
+        CustomerFirstName: user.name.split(' ')[0] || user.name,
+        CustomerLastName: user.name.split(' ').slice(1).join(' ') || '',
+        CustomerEmail: user.email,
+        ReturnURL: `${process.env.FRONTEND_URL || 'http://localhost:5000'}/dashboard?payment=success&ref=${reference}`,
+        CancelURL: `${process.env.FRONTEND_URL || 'http://localhost:5000'}/choose-plan?payment=canceled`,
+        WebhookURL: `${process.env.FRONTEND_URL || 'http://localhost:5000'}/api/webhooks/adumo`,
+        Token: token
+      },
+      
+      reference,
+      token
   }
 
   private static async calculateProration(currentSubscription: any, newPlan: any): Promise<number> {

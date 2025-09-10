@@ -17,6 +17,7 @@ export default function PaymentForm({ planName, planPrice, onSuccess, onCancel }
   const { toast } = useToast();
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [paymentData, setPaymentData] = useState<any>(null);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -29,16 +30,18 @@ export default function PaymentForm({ planName, planPrice, onSuccess, onCancel }
       const response = await apiRequest("POST", "/api/subscriptions/create", { planName });
       const data = await response.json();
 
-      if (data.paymentUrl) {
-        // Redirect to Adumo payment page
+      if (data.paymentData) {
+        // Store payment data for form submission
+        setPaymentData(data.paymentData);
+        
         toast({
           title: "Redirecting to Payment",
           description: "You'll be redirected to complete your payment securely with Adumo Online.",
         });
         
-        // Add a small delay so user can see the message
+        // Submit form to Adumo after a short delay
         setTimeout(() => {
-          window.location.href = data.paymentUrl;
+          submitToAdumo(data.paymentData);
         }, 1500);
       } else {
         // Development mode or immediate activation
@@ -58,6 +61,26 @@ export default function PaymentForm({ planName, planPrice, onSuccess, onCancel }
     } finally {
       setIsProcessing(false);
     }
+  };
+
+  const submitToAdumo = (paymentData: any) => {
+    // Create a hidden form and submit to Adumo Virtual
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = paymentData.url;
+    form.style.display = 'none';
+
+    // Add all form fields
+    Object.entries(paymentData.formData).forEach(([key, value]) => {
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = key;
+      input.value = value as string;
+      form.appendChild(input);
+    });
+
+    document.body.appendChild(form);
+    form.submit();
   };
 
   return (
