@@ -281,12 +281,48 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Banner Section 1 - Emergency Response */}
+      <section 
+        className="relative py-32 bg-fixed bg-cover bg-center"
+        style={{
+          backgroundImage: `url(${medicalImage})`
+        }}
+      >
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/90 via-primary/80 to-secondary/90"></div>
+        <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-4xl md:text-6xl font-bold text-white mb-6">
+            When Every Second Counts
+          </h2>
+          <p className="text-2xl text-white/90 mb-8">
+            Our emergency response team is ready 24/7 to provide immediate assistance when you need it most.
+          </p>
+          <div className="grid md:grid-cols-3 gap-8 text-white">
+            <div>
+              <div className="text-4xl font-bold mb-2">5 min</div>
+              <div className="text-white/80">Average Response Time</div>
+            </div>
+            <div>
+              <div className="text-4xl font-bold mb-2">24/7</div>
+              <div className="text-white/80">Available Every Day</div>
+            </div>
+            <div>
+              <div className="text-4xl font-bold mb-2">100%</div>
+              <div className="text-white/80">Coverage Guarantee</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Full-Width Section 2 - Legal Support (Image Right) */}
-      <section className="w-full bg-white">
+      <section className="w-full bg-gradient-to-br from-white to-slate-50">
         <div className="grid lg:grid-cols-2 min-h-[80vh]">
           {/* Content Left */}
-          <div className="flex items-center justify-center p-8 lg:p-16 bg-gradient-to-br from-secondary/5 to-secondary/10">
+          <div className="flex items-center justify-center p-8 lg:p-16 bg-gradient-to-br from-secondary/5 to-secondary/15">
             <div className="max-w-xl">
+              <div className="inline-flex items-center bg-secondary/10 text-secondary px-4 py-2 rounded-full text-sm font-medium mb-4">
+                <Scale className="w-4 h-4 mr-2" />
+                Legal Excellence
+              </div>
               <h2 className="text-4xl lg:text-5xl font-bold text-slate-900 mb-6">
                 Expert Legal Assistance
               </h2>
@@ -324,50 +360,117 @@ export default function Home() {
               className="w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-l from-transparent via-secondary/10 to-secondary/30"></div>
+            <div className="absolute bottom-8 right-8 bg-white/95 backdrop-blur-sm rounded-xl p-6 shadow-lg">
+              <div className="flex items-center space-x-3">
+                <div className="w-12 h-12 bg-secondary rounded-lg flex items-center justify-center">
+                  <Scale className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-slate-900">Legal Protection</h4>
+                  <p className="text-sm text-slate-600">Expert guidance available</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Full-Width Section 3 - Family Protection (Image Left) */}
-      <section className="w-full bg-white">
-        <div className="grid lg:grid-cols-2 min-h-[80vh]">
-          {/* Image Left */}
-          <div className="relative">
-            <img 
-              src={familyImage} 
-              alt="Family protection benefits" 
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/10 to-primary/30"></div>
+      {/* Banner Section 2 - Family Values */}
+      <section 
+        className="relative py-32 bg-fixed bg-cover bg-center"
+        style={{
+          backgroundImage: `url(${familyImage})`
+        }}
+      >
+        <div className="absolute inset-0 bg-gradient-to-r from-secondary/90 via-primary/80 to-secondary/90"></div>
+        <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            <div>
+              <h2 className="text-4xl md:text-6xl font-bold text-white mb-6">
+                Your Family is Our Priority
+              </h2>
+              <p className="text-2xl text-white/90 mb-8">
+                We understand that family comes first. That's why our protection plans are designed to keep your loved ones safe and secure.
+              </p>
+              <Button 
+                size="lg" 
+                className="bg-white text-slate-900 hover:bg-slate-100 font-semibold px-8 py-4 text-lg"
+                onClick={() => setLocation('/dashboard')}
+              >
+                Protect Your Family Today
+              </Button>
+            </div>
+            <div className="grid grid-cols-2 gap-6 text-white">
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6">
+                <Heart className="w-12 h-12 text-white mb-4" />
+                <h3 className="text-xl font-bold mb-2">Family Care</h3>
+                <p className="text-white/80">Comprehensive coverage for every family member</p>
+              </div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6">
+                <Shield className="w-12 h-12 text-white mb-4" />
+                <h3 className="text-xl font-bold mb-2">Protection</h3>
+                <p className="text-white/80">Complete security and peace of mind</p>
+              </div>
+            </div>
           </div>
-          
-          {/* Content Right */}
-          <div className="flex items-center justify-center p-8 lg:p-16 bg-gradient-to-br from-primary/5 to-primary/10">
+        </div>
+      </section>
+
+      {/* Full-Width Section 3 - Financial Planning (Image Right) */}
+      <section className="w-full bg-gradient-to-br from-slate-50 to-white">
+        <div className="grid lg:grid-cols-2 min-h-[80vh]">
+          {/* Content Left */}
+          <div className="flex items-center justify-center p-8 lg:p-16 bg-gradient-to-br from-primary/5 to-primary/15">
             <div className="max-w-xl">
+              <div className="inline-flex items-center bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-4">
+                <Users className="w-4 h-4 mr-2" />
+                Financial Growth
+              </div>
               <h2 className="text-4xl lg:text-5xl font-bold text-slate-900 mb-6">
-                Comprehensive Family Protection
+                Smart Financial Planning
               </h2>
               <p className="text-xl text-slate-600 mb-8 leading-relaxed">
-                Complete family coverage including funeral assistance, income benefits, and comprehensive support services for all your loved ones.
+                Expert financial guidance to help you build wealth while staying protected. Our advisors provide personalized strategies for your financial future.
               </p>
               <div className="space-y-4">
                 <div className="flex items-center space-x-3">
                   <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center">
                     <Check className="w-4 h-4 text-white" />
                   </div>
-                  <span className="text-lg text-slate-700">Funeral assistance coverage</span>
+                  <span className="text-lg text-slate-700">Investment guidance</span>
                 </div>
                 <div className="flex items-center space-x-3">
                   <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center">
                     <Check className="w-4 h-4 text-white" />
                   </div>
-                  <span className="text-lg text-slate-700">Family income benefits</span>
+                  <span className="text-lg text-slate-700">Budget planning strategies</span>
                 </div>
                 <div className="flex items-center space-x-3">
                   <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center">
                     <Check className="w-4 h-4 text-white" />
                   </div>
-                  <span className="text-lg text-slate-700">Complete support services</span>
+                  <span className="text-lg text-slate-700">Wealth building support</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Image Right */}
+          <div className="relative">
+            <img 
+              src={financialImage} 
+              alt="Financial planning consultation" 
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-l from-transparent via-primary/10 to-primary/30"></div>
+            <div className="absolute bottom-8 right-8 bg-white/95 backdrop-blur-sm rounded-xl p-6 shadow-lg">
+              <div className="flex items-center space-x-3">
+                <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center">
+                  <Users className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-slate-900">Financial Growth</h4>
+                  <p className="text-sm text-slate-600">Expert advice available</p>
                 </div>
               </div>
             </div>
