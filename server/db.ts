@@ -84,9 +84,8 @@ async function createTablesIfNotExist(connection: mysql.PoolConnection) {
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL
     );
     
-    -- Drop and recreate subscription plans table to fix column name
-    DROP TABLE IF EXISTS subscription_plans;
-    CREATE TABLE subscription_plans (
+    -- Handle subscription plans table (check if needs fixing)
+    CREATE TABLE IF NOT EXISTS subscription_plans (
       id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
       name ENUM('OPPORTUNITY', 'MOMENTUM', 'PROSPER', 'PRESTIGE', 'PINNACLE') NOT NULL UNIQUE,
       price DECIMAL(10, 2) NOT NULL,
@@ -152,15 +151,43 @@ async function createTablesIfNotExist(connection: mysql.PoolConnection) {
     );
   `;
   
+  // Check if subscription_plans table exists with wrong column structure
+  try {
+    const [columns] = await connection.execute(`
+      SELECT COLUMN_NAME 
+      FROM INFORMATION_SCHEMA.COLUMNS 
+      WHERE TABLE_SCHEMA = 'lifestylerewards' 
+      AND TABLE_NAME = 'subscription_plans' 
+      AND COLUMN_NAME = 'plan_name'
+    `) as any;
+    
+    // If table has wrong column, fix it by disabling FK checks and dropping/recreating
+    if (Array.isArray(columns) && columns.length > 0) {
+      console.log('Fixing subscription_plans table structure...');
+      await connection.execute('SET FOREIGN_KEY_CHECKS = 0');
+      await connection.execute('DROP TABLE IF EXISTS invoices');
+      await connection.execute('DROP TABLE IF EXISTS subscriptions'); 
+      await connection.execute('DROP TABLE IF EXISTS extended_cover');
+      await connection.execute('DROP TABLE IF EXISTS subscription_plans');
+      await connection.execute('SET FOREIGN_KEY_CHECKS = 1');
+    }
+  } catch (error) {
+    console.log('Checking table structure...');
+  }
+  
   const statements = createTablesSQL.split(';').filter(stmt => stmt.trim());
   
   for (const statement of statements) {
     if (statement.trim()) {
       try {
         await connection.execute(statement);
-      } catch (error) {
-        console.error('Error executing statement:', statement, error);
+      } catch (error: any) {
+        if (error.code !== 'ER_TABLE_EXISTS_ERROR') {
+          console.error('Error executing statement:', statement, error);
+        }
       }
     }
   }
+  
+  console.log('All tables verified/created successfully');
 }

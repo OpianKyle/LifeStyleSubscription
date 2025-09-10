@@ -16,7 +16,7 @@ import { relations } from "drizzle-orm";
 // Enums
 export const userRoleEnum = mysqlEnum('user_role', ['USER', 'ADMIN']);
 export const subscriptionStatusEnum = mysqlEnum('subscription_status', ['ACTIVE', 'CANCELED', 'PAST_DUE', 'INCOMPLETE']);
-export const planNameEnum = mysqlEnum('plan_name', ['OPPORTUNITY', 'MOMENTUM', 'PROSPER', 'PRESTIGE', 'PINNACLE']);
+export const planNameEnum = mysqlEnum('name', ['OPPORTUNITY', 'MOMENTUM', 'PROSPER', 'PRESTIGE', 'PINNACLE']);
 export const familyRelationEnum = mysqlEnum('family_relation', ['SPOUSE', 'CHILD', 'PARENT', 'EXTENDED_FAMILY']);
 
 // Users table
@@ -44,7 +44,7 @@ export const subscriptionPlans = mysqlTable("subscription_plans", {
   currency: varchar("currency", { length: 3 }).default('ZAR').notNull(),
   interval: varchar("interval", { length: 20 }).default('month').notNull(),
   description: text("description"),
-  features: text("features"), // MySQL uses JSON column type
+  features: text("features"), // Store JSON string
   stripeProductId: varchar("stripe_product_id", { length: 255 }),
   stripePriceId: varchar("stripe_price_id", { length: 255 }),
   isActive: boolean("is_active").default(true).notNull(),

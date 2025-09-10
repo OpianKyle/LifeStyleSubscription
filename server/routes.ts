@@ -160,7 +160,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const existingPlan = await storage.getSubscriptionPlanByName(planData.name);
       if (!existingPlan) {
-        await storage.createSubscriptionPlan(planData);
+        await storage.createSubscriptionPlan({
+          ...planData,
+          features: JSON.stringify(planData.features) // Serialize array to JSON string
+        });
       }
     } catch (error) {
       console.error(`Error creating plan ${planData.name}:`, error);
