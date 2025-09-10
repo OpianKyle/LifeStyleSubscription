@@ -16,6 +16,8 @@ import medicalImage from "@assets/generated_images/Medical_assistance_services_s
 import legalImage from "@assets/generated_images/Legal_support_consultation_scene_9e008e89.png";
 import familyImage from "@assets/generated_images/Family_protection_concept_image_723c8e84.png";
 import financialImage from "@assets/generated_images/Financial_planning_consultation_scene_acac4653.png";
+import emergencyBannerImage from "@assets/generated_images/Emergency_response_team_action_665c58d4.png";
+import familyBannerImage from "@assets/generated_images/Family_celebration_portrait_e106c10d.png";
 
 export default function Home() {
   const [, setLocation] = useLocation();
@@ -285,10 +287,10 @@ export default function Home() {
       <section 
         className="relative py-32 bg-fixed bg-cover bg-center"
         style={{
-          backgroundImage: `url(${medicalImage})`
+          backgroundImage: `url(${emergencyBannerImage})`
         }}
       >
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/90 via-primary/80 to-secondary/90"></div>
+        <div className="absolute inset-0 bg-black/70"></div>
         <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-4xl md:text-6xl font-bold text-white mb-6">
             When Every Second Counts
@@ -379,10 +381,10 @@ export default function Home() {
       <section 
         className="relative py-32 bg-fixed bg-cover bg-center"
         style={{
-          backgroundImage: `url(${familyImage})`
+          backgroundImage: `url(${familyBannerImage})`
         }}
       >
-        <div className="absolute inset-0 bg-gradient-to-r from-secondary/90 via-primary/80 to-secondary/90"></div>
+        <div className="absolute inset-0 bg-black/75"></div>
         <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
