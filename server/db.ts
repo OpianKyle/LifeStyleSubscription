@@ -189,5 +189,41 @@ async function createTablesIfNotExist(connection: mysql.PoolConnection) {
     }
   }
   
+  // Add missing columns to existing tables if they don't exist
+  try {
+    // Check and add adumo columns to users table
+    await connection.execute(`
+      ALTER TABLE users 
+      ADD COLUMN IF NOT EXISTS adumo_customer_id VARCHAR(255),
+      ADD COLUMN IF NOT EXISTS adumo_subscription_id VARCHAR(255)
+    `);
+
+    // Check and add adumo columns to subscription_plans table
+    await connection.execute(`
+      ALTER TABLE subscription_plans 
+      ADD COLUMN IF NOT EXISTS adumo_product_id VARCHAR(255),
+      ADD COLUMN IF NOT EXISTS adumo_price_id VARCHAR(255)
+    `);
+
+    // Check and add adumo columns to subscriptions table
+    await connection.execute(`
+      ALTER TABLE subscriptions 
+      ADD COLUMN IF NOT EXISTS adumo_subscription_id VARCHAR(255) UNIQUE
+    `);
+
+    // Check and add adumo columns to invoices table
+    await connection.execute(`
+      ALTER TABLE invoices 
+      ADD COLUMN IF NOT EXISTS adumo_invoice_id VARCHAR(255) UNIQUE
+    `);
+    
+    console.log('Table columns updated successfully');
+  } catch (error: any) {
+    // Ignore duplicate column errors
+    if (error.code !== 'ER_DUP_FIELDNAME') {
+      console.error('Error updating table columns:', error);
+    }
+  }
+  
   console.log('All tables verified/created successfully');
 }

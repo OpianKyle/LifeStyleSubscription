@@ -14,10 +14,10 @@ import { z } from "zod";
 import { relations } from "drizzle-orm";
 
 // Enums
-export const userRoleEnum = mysqlEnum('user_role', ['USER', 'ADMIN']);
-export const subscriptionStatusEnum = mysqlEnum('subscription_status', ['ACTIVE', 'CANCELED', 'PAST_DUE', 'INCOMPLETE']);
+export const userRoleEnum = mysqlEnum('role', ['USER', 'ADMIN']);
+export const subscriptionStatusEnum = mysqlEnum('status', ['ACTIVE', 'CANCELED', 'PAST_DUE', 'INCOMPLETE']);
 export const planNameEnum = mysqlEnum('name', ['OPPORTUNITY', 'MOMENTUM', 'PROSPER', 'PRESTIGE', 'PINNACLE']);
-export const familyRelationEnum = mysqlEnum('family_relation', ['SPOUSE', 'CHILD', 'PARENT', 'EXTENDED_FAMILY']);
+export const familyRelationEnum = mysqlEnum('relation', ['SPOUSE', 'CHILD', 'PARENT', 'EXTENDED_FAMILY']);
 
 // Users table
 export const users = mysqlTable("users", {

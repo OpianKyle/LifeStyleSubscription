@@ -154,20 +154,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   ];
 
-  // Initialize plans in database
-  for (const planData of plans) {
-    try {
-      const existingPlan = await storage.getSubscriptionPlanByName(planData.name);
-      if (!existingPlan) {
-        await storage.createSubscriptionPlan({
-          ...planData,
-          features: JSON.stringify(planData.features) // Serialize array to JSON string
-        });
+  // Initialize plans in database with retry logic
+  setTimeout(async () => {
+    for (const planData of plans) {
+      try {
+        const existingPlan = await storage.getSubscriptionPlanByName(planData.name);
+        if (!existingPlan) {
+          await storage.createSubscriptionPlan({
+            ...planData,
+            features: JSON.stringify(planData.features) // Serialize array to JSON string
+          });
+          console.log(`Created plan: ${planData.name}`);
+        }
+      } catch (error) {
+        console.error(`Error creating plan ${planData.name}:`, error);
       }
-    } catch (error) {
-      console.error(`Error creating plan ${planData.name}:`, error);
     }
-  }
+  }, 2000); // Wait 2 seconds for database migration to complete
 
   // Auth routes
   app.post('/api/auth/register', async (req: Request, res: Response) => {
