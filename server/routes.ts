@@ -3,9 +3,8 @@ import express from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { AuthService } from "./services/auth";
-import { StripeService } from "./services/stripe";
+import { AdumoService } from "./services/adumo";
 import { z } from "zod";
-import Stripe from 'stripe';
 import nodemailer from 'nodemailer';
 
 // Authentication middleware
@@ -123,35 +122,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
       price: '350.00',
       description: 'Essential protection for everyday life',
       features: ['EMS Assist', 'Legal Assist', 'Repatriation Cover', 'Celebrate Life', '24/7 Nurse On-Call', 'Funeral Cover', 'Accidental Death Cover', 'Funeral Assist', 'Family Income Benefit', 'Lawyer Assist', 'Virtual GP Assistant', 'Medical Second Opinion', 'Crime Victim Assist', 'Assault & Trauma Assist', 'Emergency Medical Services'],
-      stripePriceId: 'price_dev_opportunity_350'
+      adumoPriceId: 'adumo_dev_opportunity_350'
     },
     {
       name: 'MOMENTUM' as const,
       price: '450.00',
       description: 'Enhanced protection with increased coverage',
       features: ['Funeral Cover: R5,000', 'Funeral Assist', 'EMS Assist', 'Legal Assist', 'Repatriation Cover', 'Celebrate Life', '24/7 Nurse On-Call', 'Accidental Death Cover', 'Family Income Benefit', 'Lawyer Assist', 'Virtual GP Assistant', 'Medical Second Opinion', 'Crime Victim Assist', 'Assault & Trauma Assist', 'Emergency Medical Services'],
-      stripePriceId: 'price_dev_momentum_450'
+      adumoPriceId: 'adumo_dev_momentum_450'
     },
     {
       name: 'PROSPER' as const,
       price: '550.00',
       description: 'Comprehensive protection for growing families',
       features: ['Funeral Cover: R10,000', 'Accidental Death Cover: R20,000', 'Funeral Assist', 'Family Income Benefit: R5,000 x6', 'EMS Assist', 'Legal Assist', 'Repatriation Cover', 'Celebrate Life', '24/7 Nurse On-Call', 'Virtual GP Assistant', 'Medical Second Opinion', 'Lawyer Assist', 'Crime Victim Assist', 'Assault & Trauma Assist', 'Emergency Medical Services'],
-      stripePriceId: 'price_dev_prosper_550'
+      adumoPriceId: 'adumo_dev_prosper_550'
     },
     {
       name: 'PRESTIGE' as const,
       price: '695.00',
       description: 'Premium protection with superior benefits',
       features: ['Funeral Cover: R15,000', 'Accidental Death Cover: R50,000', 'Funeral Assist', 'Family Income Benefit: R5,000 x6', 'EMS Assist', 'Legal Assist', 'Repatriation Cover', 'Celebrate Life', '24/7 Nurse On-Call', 'Virtual GP Assistant', 'Medical Second Opinion', 'Crime Victim Assist', 'Assault & Trauma Assist', 'Emergency Medical Services', 'Lawyer Assist'],
-      stripePriceId: 'price_dev_prestige_695'
+      adumoPriceId: 'adumo_dev_prestige_695'
     },
     {
       name: 'PINNACLE' as const,
       price: '825.00',
       description: 'Ultimate protection with maximum coverage',
       features: ['Funeral Cover: R20,000', 'Accidental Death Cover: R100,000', 'Funeral Assist', 'Family Income Benefit: R5,000 x6', 'EMS Assist', 'Legal Assist', 'Lawyer Assist', 'Repatriation Cover', 'Celebrate Life', '24/7 Nurse On-Call', 'Virtual GP Assistant', 'Medical Second Opinion', 'Crime Victim Assist', 'Assault & Trauma Assist', 'Emergency Medical Services'],
-      stripePriceId: 'price_dev_pinnacle_825'
+      adumoPriceId: 'adumo_dev_pinnacle_825'
     }
   ];
 
@@ -248,9 +247,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Configuration routes
-  app.get('/api/config/stripe', (_req: Request, res: Response) => {
+  app.get('/api/config/adumo', (_req: Request, res: Response) => {
     res.json({
-      publishableKey: process.env.VITE_STRIPE_PUBLIC_KEY
+      merchantId: process.env.ADUMO_MERCHANT_ID
     });
   });
 
@@ -268,7 +267,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/subscriptions/create', authenticateToken, async (req: any, res: Response) => {
     try {
       const { planName } = createSubscriptionSchema.parse(req.body);
-      const result = await StripeService.createSubscription(req.user.id, planName);
+      const result = await AdumoService.createSubscription(req.user.id, planName);
       res.json(result);
     } catch (error: any) {
       res.status(400).json({ message: error.message });
@@ -286,20 +285,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: 'Plan not found' });
       }
 
-      // Create the subscription with Stripe using plan name
-      const stripeResult = await StripeService.createSubscription(req.user.id, plan.name);
+      // Create the subscription with Adumo using plan name
+      const adumoResult = await AdumoService.createSubscription(req.user.id, plan.name);
       
-      // Check if stripeResult has subscription info or is an error
-      if ('message' in stripeResult) {
-        return res.status(400).json(stripeResult);
+      // Check if adumoResult has subscription info or is an error
+      if ('message' in adumoResult) {
+        return res.status(400).json(adumoResult);
       }
       
       // Store the full subscription details including form data
       const fullSubscription = await storage.createFullSubscription({
         userId: req.user.id,
         planId: subscriptionData.planId,
-        stripeSubscriptionId: stripeResult.subscriptionId,
-        stripeCustomerId: req.user.stripeCustomerId || '',
+        adumoSubscriptionId: adumoResult.subscriptionId,
         status: 'ACTIVE'
       });
 
@@ -323,7 +321,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({
         message: 'Subscription created successfully',
         subscription: fullSubscription,
-        subscriptionId: stripeResult.subscriptionId
+        subscriptionId: adumoResult.subscriptionId
       });
     } catch (error: any) {
       res.status(400).json({ message: error.message });
@@ -342,7 +340,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/subscriptions/update', authenticateToken, async (req: any, res: Response) => {
     try {
       const { planName } = createSubscriptionSchema.parse(req.body);
-      const result = await StripeService.updateSubscription(req.user.id, planName);
+      const result = await AdumoService.updateSubscription(req.user.id, planName);
       res.json(result);
     } catch (error: any) {
       res.status(400).json({ message: error.message });
@@ -351,7 +349,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/subscriptions/cancel', authenticateToken, async (req: any, res: Response) => {
     try {
-      const result = await StripeService.cancelSubscription(req.user.id);
+      const result = await AdumoService.cancelSubscription(req.user.id);
       res.json(result);
     } catch (error: any) {
       res.status(400).json({ message: error.message });
@@ -482,18 +480,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Test endpoints for credential verification
-  app.post('/api/test/stripe', async (_req: Request, res: Response) => {
+  app.post('/api/test/adumo', async (_req: Request, res: Response) => {
     try {
-      if (!process.env.STRIPE_SECRET_KEY) {
-        return res.status(400).json({ success: false, message: 'STRIPE_SECRET_KEY not configured' });
+      if (!process.env.ADUMO_API_KEY) {
+        return res.status(400).json({ success: false, message: 'ADUMO_API_KEY not configured' });
       }
 
-      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-      await stripe.customers.list({ limit: 1 }); // Simple test call
+      // Simple validation of Adumo configuration
+      const requiredFields = ['ADUMO_MERCHANT_ID', 'ADUMO_STORE_ID', 'ADUMO_APPLICATION_ID'];
+      const missing = requiredFields.filter(field => !process.env[field]);
       
-      res.json({ success: true, message: 'Stripe credentials are working' });
+      if (missing.length > 0) {
+        return res.status(400).json({ 
+          success: false, 
+          message: `Missing Adumo configuration: ${missing.join(', ')}` 
+        });
+      }
+      
+      res.json({ success: true, message: 'Adumo credentials are configured' });
     } catch (error: any) {
-      res.status(400).json({ success: false, message: `Stripe error: ${error.message}` });
+      res.status(400).json({ success: false, message: `Adumo error: ${error.message}` });
     }
   });
 
@@ -532,23 +538,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Stripe webhook
-  app.post('/api/webhooks/stripe', express.raw({ type: 'application/json' }), async (req: Request, res: Response) => {
-    const sig = req.headers['stripe-signature'] as string;
-    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
-
-    if (!webhookSecret) {
-      return res.status(400).json({ message: 'Webhook secret not configured' });
-    }
-
+  // Adumo webhook
+  app.post('/api/webhooks/adumo', express.json(), async (req: Request, res: Response) => {
     try {
-      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
-      const event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
-      
-      await StripeService.handleWebhook(event);
+      await AdumoService.processPaymentWebhook(req.body);
       res.json({ received: true });
     } catch (error: any) {
-      console.error('Webhook error:', error.message);
+      console.error('Adumo webhook error:', error.message);
       res.status(400).json({ message: `Webhook Error: ${error.message}` });
     }
   });

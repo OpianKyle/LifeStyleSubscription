@@ -402,8 +402,7 @@ export class DatabaseStorage implements IStorage {
     const insertData = {
       userId: subscriptionData.userId,
       planId: subscriptionData.planId,
-      stripeSubscriptionId: subscriptionData.stripeSubscriptionId,
-      stripeCustomerId: subscriptionData.stripeCustomerId,
+      adumoSubscriptionId: subscriptionData.adumoSubscriptionId,
       status: subscriptionData.status,
       currentPeriodStart: new Date(),
       currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now

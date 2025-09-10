@@ -78,8 +78,8 @@ async function createTablesIfNotExist(connection: mysql.PoolConnection) {
       email_verification_token VARCHAR(255),
       password_reset_token VARCHAR(255),
       password_reset_expires TIMESTAMP NULL,
-      stripe_customer_id VARCHAR(255),
-      stripe_subscription_id VARCHAR(255),
+      adumo_customer_id VARCHAR(255),
+      adumo_subscription_id VARCHAR(255),
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL
     );
@@ -93,8 +93,8 @@ async function createTablesIfNotExist(connection: mysql.PoolConnection) {
       \`interval\` VARCHAR(20) DEFAULT 'month' NOT NULL,
       description TEXT,
       features JSON,
-      stripe_product_id VARCHAR(255),
-      stripe_price_id VARCHAR(255),
+      adumo_product_id VARCHAR(255),
+      adumo_price_id VARCHAR(255),
       is_active BOOLEAN DEFAULT TRUE NOT NULL,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
     );
@@ -104,7 +104,7 @@ async function createTablesIfNotExist(connection: mysql.PoolConnection) {
       id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
       user_id VARCHAR(36) NOT NULL,
       plan_id VARCHAR(36) NOT NULL,
-      stripe_subscription_id VARCHAR(255) UNIQUE,
+      adumo_subscription_id VARCHAR(255) UNIQUE,
       status ENUM('ACTIVE', 'CANCELED', 'PAST_DUE', 'INCOMPLETE') DEFAULT 'ACTIVE' NOT NULL,
       current_period_start TIMESTAMP NULL,
       current_period_end TIMESTAMP NULL,
@@ -121,7 +121,7 @@ async function createTablesIfNotExist(connection: mysql.PoolConnection) {
       id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
       user_id VARCHAR(36) NOT NULL,
       subscription_id VARCHAR(36),
-      stripe_invoice_id VARCHAR(255) UNIQUE,
+      adumo_invoice_id VARCHAR(255) UNIQUE,
       amount DECIMAL(10, 2) NOT NULL,
       currency VARCHAR(3) DEFAULT 'ZAR' NOT NULL,
       status VARCHAR(20) NOT NULL,
