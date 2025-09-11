@@ -250,21 +250,56 @@ async function createTablesIfNotExist(connection: mysql.PoolConnection) {
       console.log('Added billing_address column to users table');
     }
 
-    // Check and add adumo columns if they don't exist
-    const columnsToCheck = [
+    // Check and add missing invoices columns specifically
+    try {
+      console.log('Checking invoices table columns...');
+      const [existingColumns] = await connection.execute(`
+        SELECT COLUMN_NAME 
+        FROM INFORMATION_SCHEMA.COLUMNS 
+        WHERE TABLE_SCHEMA = 'lifestylerewards'
+        AND TABLE_NAME = 'invoices'
+      `) as any;
+      
+      const existingColumnNames = new Set(existingColumns.map((row: any) => row.COLUMN_NAME));
+      console.log('Existing invoices columns:', Array.from(existingColumnNames));
+      
+      const requiredColumns = [
+        { name: 'adumo_payment_id', type: 'VARCHAR(255)' },
+        { name: 'adumo_webhook_id', type: 'VARCHAR(255)' },
+        { name: 'failure_reason', type: 'TEXT' },
+        { name: 'updated_at', type: 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP' }
+      ];
+      
+      const missingColumns = requiredColumns.filter(col => !existingColumnNames.has(col.name));
+      console.log('Missing invoices columns:', missingColumns.map(c => c.name));
+      
+      if (missingColumns.length > 0) {
+        const alterSQL = `ALTER TABLE invoices ${missingColumns.map(col => 
+          `ADD COLUMN ${col.name} ${col.type} NULL`
+        ).join(', ')}`;
+        
+        console.log('Executing ALTER TABLE for invoices:', alterSQL);
+        await connection.execute(alterSQL);
+        console.log(`Added ${missingColumns.length} columns to invoices table:`, missingColumns.map(c => c.name));
+      }
+    } catch (error: any) {
+      console.error('Error checking/adding invoices columns:', error);
+    }
+
+    // Check and add other adumo columns
+    const otherColumnsToCheck = [
       { table: 'users', column: 'adumo_customer_id', type: 'VARCHAR(255)' },
       { table: 'users', column: 'adumo_subscription_id', type: 'VARCHAR(255)' },
       { table: 'subscription_plans', column: 'adumo_product_id', type: 'VARCHAR(255)' },
       { table: 'subscription_plans', column: 'adumo_price_id', type: 'VARCHAR(255)' },
-      { table: 'subscriptions', column: 'adumo_subscription_id', type: 'VARCHAR(255)' },
-      { table: 'invoices', column: 'adumo_invoice_id', type: 'VARCHAR(255)' }
+      { table: 'subscriptions', column: 'adumo_subscription_id', type: 'VARCHAR(255)' }
     ];
     
-    for (const { table, column, type } of columnsToCheck) {
+    for (const { table, column, type } of otherColumnsToCheck) {
       const [existing] = await connection.execute(`
         SELECT COLUMN_NAME 
         FROM INFORMATION_SCHEMA.COLUMNS 
-        WHERE TABLE_SCHEMA = DATABASE()
+        WHERE TABLE_SCHEMA = 'lifestylerewards'
         AND TABLE_NAME = ? 
         AND COLUMN_NAME = ?
       `, [table, column]) as any;

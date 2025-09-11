@@ -578,6 +578,77 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Health check endpoint
+  app.get('/api/health', (_req: Request, res: Response) => {
+    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  });
+
+  // Test transactions endpoint
+  app.post('/api/test/transactions', async (req: Request, res: Response) => {
+    try {
+      // First get a test user and create an invoice
+      const [testUser] = await storage.getAllUsers();
+      if (!testUser) {
+        return res.status(400).json({ message: 'No test user found' });
+      }
+
+      // Create a test invoice
+      const testInvoice = await storage.createInvoice({
+        userId: testUser.id,
+        amount: "350.00",
+        currency: "ZAR",
+        status: "pending",
+        dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+      });
+
+      // Create test transaction
+      const merchantRef = `TEST_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+      const testTransaction = await storage.createTransaction({
+        invoiceId: testInvoice.id,
+        userId: testUser.id,
+        merchantReference: merchantRef,
+        adumoTransactionId: `ADU_${Date.now()}`,
+        adumoStatus: 'PENDING',
+        paymentMethod: 'CARD',
+        gateway: 'ADUMO',
+        amount: "350.00",
+        currency: "ZAR",
+        requestPayload: JSON.stringify({ test: 'data', amount: 350 }),
+        responsePayload: JSON.stringify({ status: 'pending' }),
+      });
+
+      // Test retrieval methods
+      const transactionById = await storage.getTransactionByMerchantReference(merchantRef);
+      const userTransactions = await storage.getTransactionsByUserId(testUser.id);
+      const invoiceTransactions = await storage.getTransactionsByInvoiceId(testInvoice.id);
+
+      res.json({
+        success: true,
+        data: {
+          createdTransaction: testTransaction,
+          retrievedByMerchantRef: transactionById,
+          userTransactionsCount: userTransactions.length,
+          invoiceTransactionsCount: invoiceTransactions.length,
+          latestUserTransaction: userTransactions[0]
+        }
+      });
+    } catch (error: any) {
+      console.error('Transaction test error:', error);
+      res.status(500).json({ success: false, message: error.message });
+    }
+  });
+
+  // Get transactions for user endpoint
+  app.get('/api/transactions/:userId', async (req: Request, res: Response) => {
+    try {
+      const { userId } = req.params;
+      const transactions = await storage.getTransactionsByUserId(userId);
+      res.json({ transactions });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

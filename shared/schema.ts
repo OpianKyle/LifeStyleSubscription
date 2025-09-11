@@ -19,7 +19,7 @@ export const userRoleEnum = mysqlEnum('role', ['USER', 'ADMIN']);
 export const subscriptionStatusEnum = mysqlEnum('status', ['ACTIVE', 'CANCELED', 'PAST_DUE', 'INCOMPLETE']);
 export const planNameEnum = mysqlEnum('name', ['OPPORTUNITY', 'MOMENTUM', 'PROSPER', 'PRESTIGE', 'PINNACLE']);
 export const familyRelationEnum = mysqlEnum('relation', ['SPOUSE', 'CHILD', 'PARENT', 'EXTENDED_FAMILY']);
-export const transactionStatusEnum = mysqlEnum('transaction_status', ['PENDING', 'SUCCESS', 'FAILED', 'CANCELED', 'REFUNDED']);
+export const transactionStatusEnum = mysqlEnum('adumo_status', ['PENDING', 'SUCCESS', 'FAILED', 'CANCELED', 'REFUNDED']);
 export const gatewayEnum = mysqlEnum('gateway', ['ADUMO', 'STRIPE', 'OTHER']);
 
 // Users table
