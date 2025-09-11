@@ -508,7 +508,7 @@ export default function Home() {
           </div>
           
           {/* Right Side - Dynamic Image Display */}
-          <div className="relative bg-gradient-to-bl from-primary/10 to-secondary/10 order-first lg:order-last">
+          <div className="relative bg-gradient-to-bl from-primary/10 to-secondary/10">
             <div className="flex items-center justify-center p-4 sm:p-6 md:p-8 h-96 lg:h-full">
               <div className="relative w-full max-w-2xl">
                 {/* Dynamic Image based on selected service */}
