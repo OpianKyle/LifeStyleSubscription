@@ -319,7 +319,7 @@ export class AdumoService {
           merchantReference: `OPIAN_${userId.substring(0, 8)}_${Date.now()}`,
           adumoTransactionId: transaction_id,
           adumoStatus: 'SUCCESS',
-          paymentMethod: webhookData.payment_method || null,
+          paymentMethod: payload.PaymentMethod || null,
           gateway: 'ADUMO',
           amount: (amount / 100).toString(),
           currency: 'ZAR',
@@ -327,10 +327,10 @@ export class AdumoService {
           responsePayload: JSON.stringify({
             transaction_id,
             amount,
-            payment_method: webhookData.payment_method || null,
+            payment_method: payload.PaymentMethod || null,
             result: 'SUCCESS'
           }),
-          notifyUrlResponse: JSON.stringify(webhookData)
+          notifyUrlResponse: JSON.stringify(payload)
         });
 
         // Send payment confirmation email
