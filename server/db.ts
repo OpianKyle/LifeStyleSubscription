@@ -80,6 +80,8 @@ async function createTablesIfNotExist(connection: mysql.PoolConnection) {
       password_reset_expires TIMESTAMP NULL,
       adumo_customer_id VARCHAR(255),
       adumo_subscription_id VARCHAR(255),
+      phone_number VARCHAR(20) NULL,
+      billing_address TEXT NULL,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL
     );
@@ -189,40 +191,69 @@ async function createTablesIfNotExist(connection: mysql.PoolConnection) {
     }
   }
   
-  // Add missing columns to existing tables if they don't exist
+  // Add missing columns to existing tables using safe column checks
   try {
-    // Check and add adumo columns to users table
-    await connection.execute(`
-      ALTER TABLE users 
-      ADD COLUMN IF NOT EXISTS adumo_customer_id VARCHAR(255),
-      ADD COLUMN IF NOT EXISTS adumo_subscription_id VARCHAR(255)
-    `);
+    // Check and add missing columns to users table
+    const [phoneColumns] = await connection.execute(`
+      SELECT COLUMN_NAME 
+      FROM INFORMATION_SCHEMA.COLUMNS 
+      WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'users' 
+      AND COLUMN_NAME = 'phone_number'
+    `) as any;
+    
+    if (!Array.isArray(phoneColumns) || phoneColumns.length === 0) {
+      await connection.execute(`
+        ALTER TABLE users ADD COLUMN phone_number VARCHAR(20) NULL
+      `);
+      console.log('Added phone_number column to users table');
+    }
+    
+    const [billingColumns] = await connection.execute(`
+      SELECT COLUMN_NAME 
+      FROM INFORMATION_SCHEMA.COLUMNS 
+      WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'users' 
+      AND COLUMN_NAME = 'billing_address'
+    `) as any;
+    
+    if (!Array.isArray(billingColumns) || billingColumns.length === 0) {
+      await connection.execute(`
+        ALTER TABLE users ADD COLUMN billing_address TEXT NULL
+      `);
+      console.log('Added billing_address column to users table');
+    }
 
-    // Check and add adumo columns to subscription_plans table
-    await connection.execute(`
-      ALTER TABLE subscription_plans 
-      ADD COLUMN IF NOT EXISTS adumo_product_id VARCHAR(255),
-      ADD COLUMN IF NOT EXISTS adumo_price_id VARCHAR(255)
-    `);
-
-    // Check and add adumo columns to subscriptions table
-    await connection.execute(`
-      ALTER TABLE subscriptions 
-      ADD COLUMN IF NOT EXISTS adumo_subscription_id VARCHAR(255) UNIQUE
-    `);
-
-    // Check and add adumo columns to invoices table
-    await connection.execute(`
-      ALTER TABLE invoices 
-      ADD COLUMN IF NOT EXISTS adumo_invoice_id VARCHAR(255) UNIQUE
-    `);
+    // Check and add adumo columns if they don't exist
+    const columnsToCheck = [
+      { table: 'users', column: 'adumo_customer_id', type: 'VARCHAR(255)' },
+      { table: 'users', column: 'adumo_subscription_id', type: 'VARCHAR(255)' },
+      { table: 'subscription_plans', column: 'adumo_product_id', type: 'VARCHAR(255)' },
+      { table: 'subscription_plans', column: 'adumo_price_id', type: 'VARCHAR(255)' },
+      { table: 'subscriptions', column: 'adumo_subscription_id', type: 'VARCHAR(255)' },
+      { table: 'invoices', column: 'adumo_invoice_id', type: 'VARCHAR(255)' }
+    ];
+    
+    for (const { table, column, type } of columnsToCheck) {
+      const [existing] = await connection.execute(`
+        SELECT COLUMN_NAME 
+        FROM INFORMATION_SCHEMA.COLUMNS 
+        WHERE TABLE_SCHEMA = DATABASE()
+        AND TABLE_NAME = ? 
+        AND COLUMN_NAME = ?
+      `, [table, column]) as any;
+      
+      if (!Array.isArray(existing) || existing.length === 0) {
+        await connection.execute(`
+          ALTER TABLE ${table} ADD COLUMN ${column} ${type} NULL
+        `);
+        console.log(`Added ${column} column to ${table} table`);
+      }
+    }
     
     console.log('Table columns updated successfully');
   } catch (error: any) {
-    // Ignore duplicate column errors
-    if (error.code !== 'ER_DUP_FIELDNAME') {
-      console.error('Error updating table columns:', error);
-    }
+    console.error('Error updating table columns:', error);
   }
   
   console.log('All tables verified/created successfully');
