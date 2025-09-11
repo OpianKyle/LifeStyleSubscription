@@ -3,6 +3,7 @@ import {
   subscriptionPlans, 
   subscriptions, 
   invoices,
+  transactions,
   extendedCover,
   type User, 
   type InsertUser,
@@ -12,6 +13,8 @@ import {
   type InsertSubscription,
   type Invoice,
   type InsertInvoice,
+  type Transaction,
+  type InsertTransaction,
   type ExtendedCover,
   type InsertExtendedCover
 } from "@shared/schema";
@@ -44,6 +47,13 @@ export interface IStorage {
   // Invoice operations
   createInvoice(invoice: InsertInvoice): Promise<Invoice>;
   getUserInvoices(userId: string): Promise<Invoice[]>;
+  
+  // Transaction operations
+  createTransaction(transaction: InsertTransaction): Promise<Transaction>;
+  getTransactionsByInvoiceId(invoiceId: string): Promise<Transaction[]>;
+  getTransactionsByUserId(userId: string): Promise<Transaction[]>;
+  updateTransaction(id: string, transaction: Partial<Transaction>): Promise<Transaction | undefined>;
+  getTransactionByMerchantReference(merchantReference: string): Promise<Transaction | undefined>;
   
   // Extended cover operations
   createExtendedCover(cover: InsertExtendedCover): Promise<ExtendedCover>;
@@ -317,6 +327,60 @@ export class DatabaseStorage implements IStorage {
       .from(invoices)
       .where(eq(invoices.userId, userId))
       .orderBy(desc(invoices.createdAt));
+  }
+
+  // Transaction operations
+  async createTransaction(transaction: InsertTransaction): Promise<Transaction> {
+    await db
+      .insert(transactions)
+      .values(transaction);
+    
+    // Get the inserted transaction
+    const [newTransaction] = await db
+      .select()
+      .from(transactions)
+      .where(eq(transactions.merchantReference, transaction.merchantReference))
+      .orderBy(desc(transactions.createdAt))
+      .limit(1);
+    return newTransaction!;
+  }
+
+  async getTransactionsByInvoiceId(invoiceId: string): Promise<Transaction[]> {
+    return await db
+      .select()
+      .from(transactions)
+      .where(eq(transactions.invoiceId, invoiceId))
+      .orderBy(desc(transactions.createdAt));
+  }
+
+  async getTransactionsByUserId(userId: string): Promise<Transaction[]> {
+    return await db
+      .select()
+      .from(transactions)
+      .where(eq(transactions.userId, userId))
+      .orderBy(desc(transactions.createdAt));
+  }
+
+  async updateTransaction(id: string, transactionData: Partial<Transaction>): Promise<Transaction | undefined> {
+    await db
+      .update(transactions)
+      .set({ ...transactionData, updatedAt: new Date() })
+      .where(eq(transactions.id, id));
+    
+    // Get the updated transaction
+    const [transaction] = await db
+      .select()
+      .from(transactions)
+      .where(eq(transactions.id, id));
+    return transaction;
+  }
+
+  async getTransactionByMerchantReference(merchantReference: string): Promise<Transaction | undefined> {
+    const [transaction] = await db
+      .select()
+      .from(transactions)
+      .where(eq(transactions.merchantReference, merchantReference));
+    return transaction;
   }
 
   // Admin operations
