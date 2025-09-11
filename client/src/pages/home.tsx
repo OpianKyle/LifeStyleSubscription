@@ -113,7 +113,7 @@ export default function Home() {
       {/* Hero Section - Split Design with Slanted Overlap */}
       <section className="relative overflow-hidden min-h-screen flex items-center">
         {/* Right Side - Image */}
-        <div className="absolute inset-0 left-1/2 w-1/2 z-0">
+        <div className="absolute inset-0 left-1/2 w-1/2 z-0 md:block hidden">
           <img 
             src={heroImage} 
             alt="South African family protected by Opian Lifestyle" 
@@ -124,7 +124,7 @@ export default function Home() {
         </div>
         
         {/* Slanted Overlay Section */}
-        <div className="absolute right-1/3 top-0 h-full w-2/3 z-10">
+        <div className="absolute right-1/3 top-0 h-full w-2/3 z-10 md:block hidden">
           <div 
             className="h-full w-full bg-gradient-to-br from-slate-900/95 via-slate-800/90 to-slate-900/95"
             style={{
@@ -135,49 +135,33 @@ export default function Home() {
         
         {/* Content Container */}
         <div className="relative z-20 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-12 items-center min-h-screen py-20">
+          <div className="grid md:grid-cols-1 lg:grid-cols-2 gap-12 items-center min-h-screen py-20">
             {/* Left side - Content */}
-            <div className="max-w-2xl">
-              <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight animate-fade-in-left" style={{animationDelay: '0.2s'}}>
+            <div className="max-w-2xl mx-auto md:mx-0">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight animate-fade-in-left" style={{animationDelay: '0.2s'}}>
                 The Protection Program that works for you
               </h1>
-              <p className="text-xl text-slate-300 mb-8 leading-relaxed animate-fade-in-left" style={{animationDelay: '0.4s'}}>
+              <p className="text-lg sm:text-xl text-slate-300 mb-8 leading-relaxed animate-fade-in-left" style={{animationDelay: '0.4s'}}>
                 Make your money go further with our lifestyle protection plans. Our comprehensive program protects you when you do everyday activities, plus we provide expert guidance on financial planning to help you make smart decisions.
               </p>
               
               <div className="flex flex-col sm:flex-row gap-4 mb-12 animate-fade-in-left" style={{animationDelay: '0.6s'}}>
                 <Button 
                   size="lg" 
-                  className="bg-primary hover:bg-primary/90 text-white font-semibold px-8 py-4 text-lg hover:scale-105 transition-all duration-300"
+                  className="bg-primary hover:bg-primary/90 text-white font-semibold px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg hover:scale-105 transition-all duration-300 w-full sm:w-auto"
                   onClick={scrollToPricing}
                 >
                   More Information
-                  <ArrowRight className="ml-2 w-5 h-5" />
+                  <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
                 </Button>
                 
                 <Button 
                   size="lg"
-                  className="bg-secondary hover:bg-secondary/90 text-white font-semibold px-8 py-4 text-lg hover:scale-105 transition-all duration-300"
+                  className="bg-secondary hover:bg-secondary/90 text-white font-semibold px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg hover:scale-105 transition-all duration-300 w-full sm:w-auto"
                   onClick={() => setLocation('/dashboard')}
                 >
                   Get Started Today
                 </Button>
-              </div>
-              
-              {/* Key Stats */}
-              <div className="grid grid-cols-3 gap-8 text-center text-white animate-fade-in-up" style={{animationDelay: '0.8s'}}>
-                <div className="hover:scale-110 transition-all duration-300">
-                  <div className="text-3xl font-bold mb-2 animate-bounce-gentle">24/7</div>
-                  <div className="text-slate-300 text-sm">Emergency Support</div>
-                </div>
-                <div className="hover:scale-110 transition-all duration-300">
-                  <div className="text-3xl font-bold mb-2 animate-bounce-gentle" style={{animationDelay: '0.2s'}}>R350+</div>
-                  <div className="text-slate-300 text-sm">Plans from</div>
-                </div>
-                <div className="hover:scale-110 transition-all duration-300">
-                  <div className="text-3xl font-bold mb-2 animate-bounce-gentle" style={{animationDelay: '0.4s'}}>100%</div>
-                  <div className="text-slate-300 text-sm">Family Coverage</div>
-                </div>
               </div>
             </div>
             
@@ -186,53 +170,14 @@ export default function Home() {
           </div>
         </div>
         
-        {/* Mobile Layout */}
-        <div className="lg:hidden relative z-20 w-full">
+        {/* Mobile Background */}
+        <div className="md:hidden absolute inset-0 z-0">
+          <img 
+            src={heroImage} 
+            alt="South African family protected by Opian Lifestyle" 
+            className="w-full h-full object-cover"
+          />
           <div className="absolute inset-0 bg-slate-900/80"></div>
-          <div className="relative px-4 sm:px-6 py-20">
-            <div className="max-w-2xl mx-auto text-center">
-              <h1 className="text-4xl font-bold text-white mb-6 leading-tight">
-                The Protection Program that works for you
-              </h1>
-              <p className="text-xl text-slate-300 mb-8 leading-relaxed">
-                Make your money go further with our lifestyle protection plans.
-              </p>
-              
-              <div className="flex flex-col gap-4 mb-12">
-                <Button 
-                  size="lg" 
-                  className="bg-primary hover:bg-primary/90 text-white font-semibold px-8 py-4 text-lg"
-                  onClick={scrollToPricing}
-                >
-                  More Information
-                  <ArrowRight className="ml-2 w-5 h-5" />
-                </Button>
-                
-                <Button 
-                  size="lg"
-                  className="bg-secondary hover:bg-secondary/90 text-white font-semibold px-8 py-4 text-lg"
-                  onClick={() => setLocation('/dashboard')}
-                >
-                  Get Started Today
-                </Button>
-              </div>
-              
-              <div className="grid grid-cols-3 gap-4 text-center text-white">
-                <div>
-                  <div className="text-2xl font-bold mb-1">24/7</div>
-                  <div className="text-slate-300 text-xs">Emergency Support</div>
-                </div>
-                <div>
-                  <div className="text-2xl font-bold mb-1">R350+</div>
-                  <div className="text-slate-300 text-xs">Plans from</div>
-                </div>
-                <div>
-                  <div className="text-2xl font-bold mb-1">100%</div>
-                  <div className="text-slate-300 text-xs">Family Coverage</div>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       </section>
 
@@ -482,15 +427,15 @@ export default function Home() {
 
       {/* Curved Heading Section */}
       <section className="min-h-screen bg-gradient-to-br from-slate-50 to-white relative overflow-hidden">
-        <div className="grid lg:grid-cols-2 min-h-screen">
+        <div className="grid grid-cols-1 lg:grid-cols-2 min-h-screen">
           {/* Left Side - Curved Headings */}
-          <div className="flex items-center justify-center relative px-8 lg:px-16">
-            <div className="space-y-12 relative z-10">
+          <div className="flex items-center justify-center relative px-4 sm:px-6 md:px-8 lg:px-16 py-8 lg:py-0">
+            <div className="space-y-8 sm:space-y-10 md:space-y-12 relative z-10">
               {/* Curved path for headings */}
               <div className="relative animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
                 <h2 
-                  className={`text-4xl lg:text-6xl font-bold cursor-pointer hover:scale-110 transition-all duration-500 hover:rotate-1 ${
-                    selectedService === 'medical' ? 'text-primary scale-115 animate-pulse' : 'text-slate-400 hover:text-primary'
+                  className={`text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-bold cursor-pointer hover:scale-110 transition-all duration-500 hover:rotate-1 ${
+                    selectedService === 'medical' ? 'text-primary scale-115 animate-pulse-slow' : 'text-slate-400 hover:text-primary'
                   }`}
                   style={{ transform: 'translateX(0px) translateY(0px)' }}
                   onClick={() => setSelectedService('medical')}
@@ -501,8 +446,8 @@ export default function Home() {
               
               <div className="relative animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
                 <h2 
-                  className={`text-4xl lg:text-6xl font-bold cursor-pointer hover:scale-110 transition-all duration-500 hover:-rotate-1 ${
-                    selectedService === 'legal' ? 'text-secondary scale-115 animate-pulse' : 'text-slate-400 hover:text-secondary'
+                  className={`text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-bold cursor-pointer hover:scale-110 transition-all duration-500 hover:-rotate-1 ${
+                    selectedService === 'legal' ? 'text-secondary scale-115 animate-pulse-slow' : 'text-slate-400 hover:text-secondary'
                   }`}
                   style={{ transform: 'translateX(50px) translateY(20px)' }}
                   onClick={() => setSelectedService('legal')}
@@ -513,8 +458,8 @@ export default function Home() {
               
               <div className="relative animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
                 <h2 
-                  className={`text-4xl lg:text-6xl font-bold cursor-pointer hover:scale-110 transition-all duration-500 hover:rotate-1 ${
-                    selectedService === 'family' ? 'text-primary scale-115 animate-pulse' : 'text-slate-400 hover:text-primary'
+                  className={`text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-bold cursor-pointer hover:scale-110 transition-all duration-500 hover:rotate-1 ${
+                    selectedService === 'family' ? 'text-primary scale-115 animate-pulse-slow' : 'text-slate-400 hover:text-primary'
                   }`}
                   style={{ transform: 'translateX(100px) translateY(40px)' }}
                   onClick={() => setSelectedService('family')}
@@ -525,8 +470,8 @@ export default function Home() {
               
               <div className="relative animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
                 <h2 
-                  className={`text-4xl lg:text-6xl font-bold cursor-pointer hover:scale-110 transition-all duration-500 hover:-rotate-1 ${
-                    selectedService === 'financial' ? 'text-secondary scale-115 animate-pulse' : 'text-slate-400 hover:text-secondary'
+                  className={`text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-bold cursor-pointer hover:scale-110 transition-all duration-500 hover:-rotate-1 ${
+                    selectedService === 'financial' ? 'text-secondary scale-115 animate-pulse-slow' : 'text-slate-400 hover:text-secondary'
                   }`}
                   style={{ transform: 'translateX(150px) translateY(60px)' }}
                   onClick={() => setSelectedService('financial')}
@@ -563,8 +508,8 @@ export default function Home() {
           </div>
           
           {/* Right Side - Dynamic Image Display */}
-          <div className="relative bg-gradient-to-bl from-primary/10 to-secondary/10">
-            <div className="absolute inset-0 flex items-center justify-center p-8">
+          <div className="relative bg-gradient-to-bl from-primary/10 to-secondary/10 order-first lg:order-last">
+            <div className="flex items-center justify-center p-4 sm:p-6 md:p-8 h-96 lg:h-full">
               <div className="relative w-full max-w-2xl">
                 {/* Dynamic Image based on selected service */}
                 <div className="aspect-video rounded-2xl overflow-hidden shadow-2xl transition-all duration-500">
@@ -625,111 +570,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Additional Benefits Section */}
-      <section className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-6">
-                Get Protected Effortlessly
-              </h2>
-              <p className="text-lg text-slate-600 mb-8">
-                Our protection plans are designed to make your life more secure and rewarding, covering you in all aspects of daily life.
-              </p>
-              
-              <div className="space-y-6">
-                <div className="flex items-start space-x-4">
-                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                    <Check className="w-5 h-5 text-blue-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-slate-900 mb-1">Protect Your Way</h3>
-                    <p className="text-slate-600">Use your protection plan for everyday emergencies—from medical assistance to legal support—and have peace of mind!</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start space-x-4">
-                  <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                    <Check className="w-5 h-5 text-purple-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-slate-900 mb-1">Cover Your Family</h3>
-                    <p className="text-slate-600">Comprehensive family protection including funeral cover, income benefits, and emergency support for all your loved ones.</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start space-x-4">
-                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                    <Check className="w-5 h-5 text-green-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-slate-900 mb-1">Plan for Success</h3>
-                    <p className="text-slate-600">Engage in smart financial planning and decision-making—whether it's budgeting, saving, or investing. We reward your financial wisdom!</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div className="relative">
-              <div className="aspect-square bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl p-8 text-white">
-                <div className="h-full flex flex-col justify-center items-center text-center">
-                  <Shield className="w-24 h-24 mb-6 opacity-80" />
-                  <h3 className="text-2xl font-bold mb-4">Personalized Support at Your Fingertips</h3>
-                  <p className="text-blue-100">Ready to make the most out of your protection plan? Complete our quick contact form, and an agent will reach out to explain all the incredible benefits you can unlock.</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
-      {/* Stats Section */}
-      <section className="py-16 bg-slate-900 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-center">
-            <div className="py-6">
-              <div className="text-4xl md:text-5xl font-bold mb-2">24/7</div>
-              <div className="text-lg text-slate-300">Emergency Support</div>
-            </div>
-            <div className="py-6">
-              <div className="text-4xl md:text-5xl font-bold mb-2">5</div>
-              <div className="text-lg text-slate-300">Protection Plans</div>
-            </div>
-            <div className="py-6">
-              <div className="text-4xl md:text-5xl font-bold mb-2">R350</div>
-              <div className="text-lg text-slate-300">Starting From</div>
-            </div>
-            <div className="py-6">
-              <div className="text-4xl md:text-5xl font-bold mb-2">100%</div>
-              <div className="text-lg text-slate-300">Coverage Guarantee</div>
-            </div>
-          </div>
-        </div>
-      </section>
 
-      {/* Features Section - Corporate Style */}
-      <section id="features" className="py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-20">
-            <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-6">Protection Services That Make a Difference</h2>
-            <p className="text-xl text-slate-600 max-w-4xl mx-auto leading-relaxed">
-              We deliver comprehensive lifestyle protection through innovative services designed specifically for South African families and their unique needs.
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-            {features.map((feature, index) => (
-              <div key={index} className="text-center" data-testid={`feature-${index}`}>
-                <div className="w-20 h-20 bg-gradient-to-br from-brand-500 to-brand-600 rounded-2xl flex items-center justify-center mb-8 mx-auto shadow-lg">
-                  <feature.icon className="w-10 h-10 text-white" />
-                </div>
-                <h3 className="text-2xl font-bold text-slate-900 mb-4">{feature.title}</h3>
-                <p className="text-lg text-slate-600 leading-relaxed">{feature.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* Pricing Section - Opian Style */}
       <section id="pricing" className="py-24 bg-slate-50">
@@ -760,66 +602,6 @@ export default function Home() {
             </div>
           )}
 
-          {/* Call to Action */}
-          <div className="mt-20 text-center">
-            <div className="bg-white rounded-3xl p-12 shadow-lg max-w-4xl mx-auto">
-              <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-6">
-                Join Protection Today!
-              </h2>
-              <p className="text-xl text-slate-600 mb-8 max-w-2xl mx-auto">
-                Don't miss out on comprehensive lifestyle protection! Join our community and start your journey towards a more secure lifestyle. Fill out the contact form now, and let us help you start getting protected from what life throws at you every day.
-              </p>
-              <p className="text-lg text-slate-700 font-medium mb-8">
-                With our protection plans, every situation is an opportunity for peace of mind!
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button 
-                  size="lg" 
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-4 text-lg"
-                  onClick={() => setLocation('/dashboard')}
-                >
-                  View Plans
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="lg"
-                  className="border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold px-8 py-4 text-lg"
-                  onClick={() => setLocation('/dashboard')}
-                >
-                  View Plans
-                </Button>
-              </div>
-            </div>
-          </div>
-
-          {/* Additional Benefits */}
-          <div className="mt-20">
-            <div className="bg-white rounded-3xl p-12 shadow-lg">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                    <Shield className="w-8 h-8 text-blue-600" />
-                  </div>
-                  <h3 className="text-2xl font-bold text-slate-900 mb-4">Comprehensive Coverage</h3>
-                  <p className="text-lg text-slate-600 leading-relaxed">All plans include essential protection services with varying coverage levels and benefits tailored for your needs.</p>
-                </div>
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                    <Users className="w-8 h-8 text-brand-600" />
-                  </div>
-                  <h3 className="text-2xl font-bold text-slate-900 mb-4">Family Focused</h3>
-                  <p className="text-lg text-slate-600 leading-relaxed">Protect your entire family with coverage that includes spouse and children benefits across all plans.</p>
-                </div>
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                    <Heart className="w-8 h-8 text-brand-600" />
-                  </div>
-                  <h3 className="text-2xl font-bold text-slate-900 mb-4">Instant Activation</h3>
-                  <p className="text-lg text-slate-600 leading-relaxed">Your protection starts immediately after payment, with no waiting periods or delays - just instant peace of mind.</p>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       </section>
 
