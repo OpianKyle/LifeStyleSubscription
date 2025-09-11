@@ -4,6 +4,7 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
+app.set('trust proxy', 1); // Trust Replit's proxy for secure cookie detection
 app.use(cookieParser());
 // Guard JSON parser to preserve raw body for webhook signature verification
 app.use((req, res, next) => {

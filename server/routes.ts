@@ -188,18 +188,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { email, password } = loginSchema.parse(req.body);
       const result = await AuthService.login(email, password);
       
-      // Set httpOnly cookies
+      // Detect if we're running over HTTPS (important for Replit's proxy)
+      const isSecure = req.secure || req.headers['x-forwarded-proto'] === 'https';
+      
+      // Set httpOnly cookies - use sameSite='none' for iframe compatibility
       res.cookie('accessToken', result.tokens.accessToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
+        secure: isSecure,
+        sameSite: 'none', // Required for iframe/cross-site contexts like Replit
         maxAge: 24 * 60 * 60 * 1000 // 24 hours
       });
       
       res.cookie('refreshToken', result.tokens.refreshToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
+        secure: isSecure,
+        sameSite: 'none', // Required for iframe/cross-site contexts like Replit
         maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
       });
 
@@ -243,9 +246,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(req.user);
   });
 
-  app.post('/api/auth/logout', (_req: Request, res: Response) => {
-    res.clearCookie('accessToken');
-    res.clearCookie('refreshToken');
+  app.post('/api/auth/logout', (req: Request, res: Response) => {
+    // Detect if we're running over HTTPS (important for Replit's proxy)
+    const isSecure = req.secure || req.headers['x-forwarded-proto'] === 'https';
+    
+    // Clear cookies with same options as when they were set
+    res.clearCookie('accessToken', {
+      httpOnly: true,
+      secure: isSecure,
+      sameSite: 'none'
+    });
+    res.clearCookie('refreshToken', {
+      httpOnly: true,
+      secure: isSecure,
+      sameSite: 'none'
+    });
     res.json({ message: 'Logged out successfully' });
   });
 
