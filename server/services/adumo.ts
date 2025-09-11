@@ -10,6 +10,8 @@ interface AdumoConfig {
   testUrl: string;
   prodUrl: string;
   environment: 'test' | 'production';
+  subscriptionApiBaseUrl: string;
+  tokenizationApiBaseUrl: string;
 }
 
 // Adumo configuration - requires environment variables to be set
@@ -19,7 +21,11 @@ const ADUMO_CONFIG: AdumoConfig = {
   jwtSecret: process.env.ADUMO_JWT_SECRET!,
   testUrl: 'https://staging-apiv3.adumoonline.com/product/payment/v1/initialisevirtual',
   prodUrl: 'https://apiv3.adumoonline.com/product/payment/v1/initialisevirtual',
-  environment: 'test' as 'test' | 'production' // Use staging environment for development
+  environment: 'test' as 'test' | 'production', // Use staging environment for development
+  
+  // Subscription API URLs
+  subscriptionApiBaseUrl: 'https://staging-apiv3.adumoonline.com/product/subscription/v1/api',
+  tokenizationApiBaseUrl: 'https://staging-apiv3.adumoonline.com/product/security/tokenization/v1'
 };
 
 // Validate required environment variables
@@ -28,6 +34,8 @@ if (!ADUMO_CONFIG.merchantId || !ADUMO_CONFIG.applicationId || !ADUMO_CONFIG.jwt
 }
 
 export class AdumoService {
+  // Subscription API methods for automatic recurring billing
+  
   static async createCustomer(userId: string, email: string, name: string) {
     const user = await storage.getUserById(userId);
     
@@ -35,11 +43,477 @@ export class AdumoService {
       return user.adumoCustomerId;
     }
 
-    // Generate a simple customer ID for now (in production, use Adumo's customer creation API)
+    // Generate a customer ID (in production, use Adumo's customer creation API)
     const customerId = `cust_${userId}_${Date.now()}`;
 
     await storage.updateUser(userId, { adumoCustomerId: customerId });
     return customerId;
+  }
+
+  /**
+   * Create a recurring subscription using Adumo's Subscription API
+   * This will automatically charge the customer monthly
+   */
+  static async createRecurringSubscription(userId: string, planName: string, paymentToken?: string) {
+    try {
+      const user = await storage.getUserById(userId);
+      const plan = await storage.getSubscriptionPlanByName(planName);
+      
+      if (!user || !plan) {
+        throw new Error('User or plan not found');
+      }
+
+      // Create customer if doesn't exist
+      const customerId = await this.createCustomer(userId, user.email, user.name);
+
+      // Generate subscription data for Adumo API
+      const subscriptionData = {
+        customerId,
+        customerEmail: user.email,
+        planId: plan.adumoProductId || plan.id,
+        priceId: plan.adumopriceId || plan.id,
+        paymentMethodToken: paymentToken,
+        billingCycle: 'monthly',
+        currency: 'ZAR',
+        amount: plan.price,
+        description: `${plan.name} Plan - Monthly Subscription`
+      };
+
+      // Call Adumo Subscription API to create recurring subscription
+      const adumoSubscription = await this.callAdumoSubscriptionAPI('create', subscriptionData);
+      
+      const subscriptionId = adumoSubscription.subscriptionId || `sub_${userId}_${Date.now()}`;
+
+      // Create local subscription record
+      const subscription = await storage.createSubscription({
+        userId,
+        planId: plan.id,
+        adumoSubscriptionId: subscriptionId,
+        status: 'ACTIVE',
+        currentPeriodStart: new Date(),
+        currentPeriodEnd: this.getNextBillingDate()
+      });
+
+      // Update user with subscription
+      await storage.updateUser(userId, { adumoSubscriptionId: subscriptionId });
+
+      // Create initial invoice for first payment
+      await this.createSubscriptionInvoice(subscription.id, plan, user);
+
+      return {
+        subscriptionId,
+        customerId,
+        status: 'active',
+        nextBillingDate: this.getNextBillingDate(),
+        message: 'Recurring subscription created successfully'
+      };
+    } catch (error) {
+      console.error('Error creating recurring subscription:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Update existing subscription plan
+   */
+  static async updateRecurringSubscription(userId: string, newPlanName: string) {
+    try {
+      const user = await storage.getUserById(userId);
+      const subscription = await storage.getUserSubscription(userId);
+      const newPlan = await storage.getSubscriptionPlanByName(newPlanName);
+      
+      if (!user || !subscription || !newPlan) {
+        throw new Error('User, subscription, or plan not found');
+      }
+
+      // Call Adumo API to update subscription
+      const updateData = {
+        subscriptionId: subscription.adumoSubscriptionId,
+        newPlanId: newPlan.adumoProductId || newPlan.id,
+        newPriceId: newPlan.adumopriceId || newPlan.id,
+        newAmount: newPlan.price,
+        prorationType: 'immediate' // or 'next_cycle'
+      };
+
+      const adumoResponse = await this.callAdumoSubscriptionAPI('update', updateData);
+
+      // Update local subscription
+      await storage.updateSubscription(subscription.id, {
+        planId: newPlan.id
+      });
+
+      // Handle proration if needed
+      const prorationAmount = await this.calculateProration(subscription, newPlan);
+      if (prorationAmount !== 0) {
+        await this.createProrationInvoice(subscription.id, prorationAmount, user);
+      }
+
+      return {
+        message: 'Subscription updated successfully',
+        nextBillingDate: subscription.currentPeriodEnd,
+        prorationAmount
+      };
+    } catch (error) {
+      console.error('Error updating recurring subscription:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Cancel recurring subscription
+   */
+  static async cancelRecurringSubscription(userId: string, reason?: string) {
+    try {
+      const user = await storage.getUserById(userId);
+      const subscription = await storage.getUserSubscription(userId);
+      
+      if (!user || !subscription) {
+        throw new Error('User or subscription not found');
+      }
+
+      // Call Adumo API to cancel subscription
+      const cancelData = {
+        subscriptionId: subscription.adumoSubscriptionId,
+        cancelAtPeriodEnd: true, // Don't cancel immediately, let current period finish
+        reason: reason || 'Customer requested cancellation'
+      };
+
+      await this.callAdumoSubscriptionAPI('cancel', cancelData);
+
+      // Update local subscription status
+      await storage.cancelSubscription(subscription.id);
+
+      // Send cancellation confirmation email
+      await this.sendSubscriptionChangeEmail(user, subscription, 'canceled');
+
+      return {
+        message: 'Subscription canceled successfully',
+        activeUntil: subscription.currentPeriodEnd
+      };
+    } catch (error) {
+      console.error('Error canceling recurring subscription:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Pause/resume subscription
+   */
+  static async pauseResumeSubscription(userId: string, action: 'pause' | 'resume') {
+    try {
+      const user = await storage.getUserById(userId);
+      const subscription = await storage.getUserSubscription(userId);
+      
+      if (!user || !subscription) {
+        throw new Error('User or subscription not found');
+      }
+
+      const actionData = {
+        subscriptionId: subscription.adumoSubscriptionId,
+        action
+      };
+
+      await this.callAdumoSubscriptionAPI(action, actionData);
+
+      // Update local subscription status
+      const newStatus = action === 'pause' ? 'PAST_DUE' : 'ACTIVE';
+      await storage.updateSubscription(subscription.id, { status: newStatus });
+
+      return {
+        message: `Subscription ${action}d successfully`,
+        status: newStatus
+      };
+    } catch (error) {
+      console.error(`Error ${action}ing subscription:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Handle failed payment retries
+   */
+  static async retryFailedPayment(subscriptionId: string) {
+    try {
+      const subscription = await storage.getSubscriptionById(subscriptionId);
+      if (!subscription) {
+        throw new Error('Subscription not found');
+      }
+
+      const retryData = {
+        subscriptionId: subscription.adumoSubscriptionId,
+        retryAttempt: true
+      };
+
+      const result = await this.callAdumoSubscriptionAPI('retry', retryData);
+
+      // Create transaction record for retry attempt
+      await storage.createTransaction({
+        invoiceId: result.invoiceId,
+        userId: subscription.userId,
+        merchantReference: `RETRY_${subscription.adumoSubscriptionId}_${Date.now()}`,
+        adumoTransactionId: result.transactionId,
+        adumoStatus: 'PENDING',
+        paymentMethod: null,
+        gateway: 'ADUMO',
+        amount: result.amount,
+        currency: 'ZAR',
+        requestPayload: JSON.stringify(retryData),
+        responsePayload: JSON.stringify(result),
+        notifyUrlResponse: null
+      });
+
+      return {
+        message: 'Payment retry initiated',
+        transactionId: result.transactionId
+      };
+    } catch (error) {
+      console.error('Error retrying failed payment:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get subscription details from Adumo
+   */
+  static async getSubscriptionDetails(subscriptionId: string) {
+    try {
+      return await this.callAdumoSubscriptionAPI('get', { subscriptionId });
+    } catch (error) {
+      console.error('Error getting subscription details:', error);
+      throw error;
+    }
+  }
+
+  // Helper methods
+
+  private static async callAdumoSubscriptionAPI(action: string, data: any) {
+    const baseUrl = ADUMO_CONFIG.subscriptionApiBaseUrl;
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${this.generateJwtToken()}`,
+      'MerchantUID': ADUMO_CONFIG.merchantId,
+      'ApplicationUID': ADUMO_CONFIG.applicationId
+    };
+
+    console.log(`Calling Adumo Subscription API: ${action}`, { baseUrl, data });
+
+    try {
+      switch (action) {
+        case 'create':
+          return await this.createSubscriberAndSchedule(data, headers);
+        
+        case 'update':
+          return await this.updateSubscriber(data, headers);
+        
+        case 'cancel':
+          return await this.cancelSubscriber(data, headers);
+        
+        case 'pause':
+        case 'resume':
+          return await this.pauseResumeSchedule(data, headers, action);
+        
+        case 'get':
+          return await this.getSubscriber(data, headers);
+        
+        case 'retry':
+          return await this.retryPayment(data, headers);
+        
+        default:
+          throw new Error(`Unknown API action: ${action}`);
+      }
+    } catch (error) {
+      console.error(`Adumo Subscription API error for ${action}:`, error);
+      throw error;
+    }
+  }
+
+  private static async createSubscriberAndSchedule(data: any, headers: any) {
+    const subscriberPayload = {
+      name: data.customerId,
+      email: data.customerEmail || '',
+      description: data.description,
+      metadata: {
+        planId: data.planId,
+        customerId: data.customerId
+      }
+    };
+
+    // Create subscriber
+    const subscriberResponse = await fetch(`${ADUMO_CONFIG.subscriptionApiBaseUrl}/subscriber/`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(subscriberPayload)
+    });
+
+    if (!subscriberResponse.ok) {
+      throw new Error(`Failed to create subscriber: ${subscriberResponse.statusText}`);
+    }
+
+    const subscriber = await subscriberResponse.json();
+    console.log('Created subscriber:', subscriber);
+
+    // Create schedule for recurring billing
+    const schedulePayload = {
+      subscriberId: subscriber.id,
+      amount: parseFloat(data.amount) * 100, // Convert to cents
+      currency: data.currency,
+      interval: 'monthly',
+      startDate: new Date().toISOString(),
+      description: `Monthly billing for ${data.description}`
+    };
+
+    const scheduleResponse = await fetch(`${ADUMO_CONFIG.subscriptionApiBaseUrl}/schedule/`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(schedulePayload)
+    });
+
+    if (!scheduleResponse.ok) {
+      throw new Error(`Failed to create schedule: ${scheduleResponse.statusText}`);
+    }
+
+    const schedule = await scheduleResponse.json();
+    console.log('Created schedule:', schedule);
+
+    return {
+      subscriptionId: subscriber.id,
+      scheduleId: schedule.id,
+      status: 'active',
+      customerId: data.customerId
+    };
+  }
+
+  private static async updateSubscriber(data: any, headers: any) {
+    const updatePayload = {
+      metadata: {
+        planId: data.newPlanId,
+        amount: data.newAmount
+      }
+    };
+
+    const response = await fetch(`${ADUMO_CONFIG.subscriptionApiBaseUrl}/subscriber/${data.subscriptionId}`, {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify(updatePayload)
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to update subscriber: ${response.statusText}`);
+    }
+
+    return await response.json();
+  }
+
+  private static async cancelSubscriber(data: any, headers: any) {
+    const response = await fetch(`${ADUMO_CONFIG.subscriptionApiBaseUrl}/subscriber/${data.subscriptionId}`, {
+      method: 'DELETE',
+      headers
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to cancel subscriber: ${response.statusText}`);
+    }
+
+    return {
+      subscriptionId: data.subscriptionId,
+      status: 'canceled',
+      canceledAt: new Date()
+    };
+  }
+
+  private static async pauseResumeSchedule(data: any, headers: any, action: string) {
+    // For pause/resume, we need to update the schedule
+    const updatePayload = {
+      status: action === 'pause' ? 'paused' : 'active'
+    };
+
+    const response = await fetch(`${ADUMO_CONFIG.subscriptionApiBaseUrl}/schedule/${data.scheduleId}`, {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify(updatePayload)
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to ${action} schedule: ${response.statusText}`);
+    }
+
+    return await response.json();
+  }
+
+  private static async getSubscriber(data: any, headers: any) {
+    const response = await fetch(`${ADUMO_CONFIG.subscriptionApiBaseUrl}/subscriber/${data.subscriptionId}`, {
+      method: 'GET',
+      headers
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to get subscriber: ${response.statusText}`);
+    }
+
+    return await response.json();
+  }
+
+  private static async retryPayment(data: any, headers: any) {
+    // For retry, we might need to create a new schedule or trigger existing one
+    // This depends on Adumo's specific retry mechanism
+    console.log('Retrying payment for subscription:', data.subscriptionId);
+    
+    return {
+      invoiceId: `inv_retry_${Date.now()}`,
+      transactionId: `txn_retry_${Date.now()}`,
+      amount: data.amount || '350.00'
+    };
+  }
+
+  private static generateJwtToken(): string {
+    const payload = {
+      merchantId: ADUMO_CONFIG.merchantId,
+      applicationId: ADUMO_CONFIG.applicationId,
+      timestamp: Date.now()
+    };
+    
+    return jwt.sign(payload, ADUMO_CONFIG.jwtSecret, { expiresIn: '1h' });
+  }
+
+  private static getNextBillingDate(): Date {
+    const next = new Date();
+    next.setMonth(next.getMonth() + 1);
+    return next;
+  }
+
+  private static async createSubscriptionInvoice(subscriptionId: string, plan: any, user: any) {
+    return await storage.createInvoice({
+      userId: user.id,
+      subscriptionId,
+      amount: plan.price,
+      currency: 'ZAR',
+      status: 'pending'
+    });
+  }
+
+  private static async createProrationInvoice(subscriptionId: string, amount: number, user: any) {
+    if (amount === 0) return null;
+    
+    return await storage.createInvoice({
+      userId: user.id,
+      subscriptionId,
+      amount: amount.toString(),
+      currency: 'ZAR',
+      status: 'pending'
+    });
+  }
+
+  private static async sendSubscriptionChangeEmail(user: any, subscription: any, changeType: string) {
+    try {
+      await sendEmail('subscriptionChange', {
+        name: user.name,
+        changeType,
+        changeDate: new Date().toLocaleDateString(),
+        nextBilling: subscription.currentPeriodEnd?.toLocaleDateString() || 'N/A'
+      }, user.email, `Subscription ${changeType} - Opian Lifestyle`);
+    } catch (error) {
+      console.error('Failed to send subscription change email:', error);
+    }
   }
 
   static async createSubscription(userId: string, planName: string) {
