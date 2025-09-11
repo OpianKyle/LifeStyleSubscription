@@ -823,12 +823,12 @@ export class AdumoService {
   static async processPaymentWebhook(payload: any) {
     // Handle Adumo webhook notifications according to Virtual payment response
     try {
-      // Adumo Virtual sends different response parameters
-      const { TransactionReference: reference, Status: status, Amount: amount, TransactionID: transaction_id, MerchantReference: merchantReference } = payload;
+      // Adumo webhook sends these field names per their documentation
+      const { transactionId: transaction_id, status, amount, merchantReference } = payload;
       
-      if (status === 'successful' || status === 'Successful') {
+      if (status === 'AUTHORIZED' || status === 'SETTLED') {
         // Find existing transaction by merchant reference to avoid duplicates
-        const existingTransaction = await storage.getTransactionByMerchantReference(merchantReference || `OPIAN_${reference.split('_')[1]?.substring(0, 8)}_${Date.now()}`);
+        const existingTransaction = await storage.getTransactionByMerchantReference(merchantReference);
         
         if (!existingTransaction) {
           console.error('No existing transaction found for merchant reference:', merchantReference);
@@ -905,47 +905,63 @@ export class AdumoService {
     }
   }
 
-  static verifyWebhookSignature(req: any): boolean {
+  static verifyWebhookSignature(req: any): { isValid: boolean; payload: any | null } {
     try {
-      const webhookSecret = process.env.ADUMO_WEBHOOK_SECRET;
-      
-      if (!webhookSecret) {
-        console.error('ADUMO_WEBHOOK_SECRET not configured');
-        return false;
+      // Validate that req.body is a Buffer (from express.raw())
+      if (!Buffer.isBuffer(req.body)) {
+        console.error('Webhook body is not a Buffer - middleware configuration issue');
+        return { isValid: false, payload: null };
       }
 
-      // Get signature from headers (try common header names)
-      const signature = req.headers['x-signature'] || 
-                       req.headers['x-adumo-signature'] || 
-                       req.headers['signature'];
+      // Parse the payload from Buffer to get the JWT token
+      let payload;
+      try {
+        const bodyString = req.body.toString('utf8');
+        console.log('📦 Webhook raw body length:', req.body.length, 'bytes');
+        console.log('📝 Webhook body preview:', bodyString.substring(0, 200) + (bodyString.length > 200 ? '...' : ''));
+        
+        payload = JSON.parse(bodyString);
+      } catch (parseError) {
+        console.error('❌ Failed to parse webhook JSON:', parseError);
+        console.error('📄 Raw body:', req.body.toString('utf8'));
+        return { isValid: false, payload: null };
+      }
       
-      if (!signature) {
-        console.error('No signature header found in webhook request');
-        return false;
+      // Log the payload structure for debugging
+      console.log('🔍 Webhook payload structure:', {
+        hasToken: !!payload.token,
+        hasTransactionId: !!payload.transactionId,
+        hasStatus: !!payload.status,
+        hasAmount: !!payload.amount,
+        hasMerchantReference: !!payload.merchantReference,
+        keys: Object.keys(payload)
+      });
+
+      const token = payload.token;
+      
+      if (!token) {
+        console.error('❌ No JWT token found in webhook payload');
+        console.error('📋 Available fields:', Object.keys(payload));
+        return { isValid: false, payload };
       }
 
-      // Get raw payload
-      const payload = req.body.toString();
-      
-      // Generate expected signature using HMAC SHA-256
-      const hmac = crypto.createHmac('sha256', webhookSecret);
-      const expectedSignature = hmac.update(payload, 'utf8').digest('hex');
-      
-      // Remove 'sha256=' prefix if present
-      const receivedSignature = signature.replace(/^sha256=/i, '');
-      
-      // Use timing-safe comparison to prevent timing attacks
-      const expectedBuffer = Buffer.from(expectedSignature, 'hex');
-      const receivedBuffer = Buffer.from(receivedSignature, 'hex');
-      
-      if (expectedBuffer.length !== receivedBuffer.length) {
-        return false;
+      // Verify the JWT token using our existing JWT secret
+      try {
+        const decoded = jwt.verify(token, ADUMO_CONFIG.jwtSecret);
+        console.log('✅ Webhook JWT verified successfully:', { 
+          transactionId: payload.transactionId, 
+          status: payload.status,
+          amount: payload.amount,
+          merchantReference: payload.merchantReference
+        });
+        return { isValid: true, payload };
+      } catch (jwtError) {
+        console.error('❌ Invalid webhook JWT token:', jwtError);
+        return { isValid: false, payload };
       }
-      
-      return crypto.timingSafeEqual(expectedBuffer, receivedBuffer);
     } catch (error) {
-      console.error('Error verifying webhook signature:', error);
-      return false;
+      console.error('💥 Error verifying webhook signature:', error);
+      return { isValid: false, payload: null };
     }
   }
 
@@ -1036,8 +1052,7 @@ export class AdumoService {
       
       const response = await fetch(subscriptionUrl, {
         method: 'GET',
-        headers,
-        timeout: 10000 // 10 second timeout
+        headers
       });
 
       return {

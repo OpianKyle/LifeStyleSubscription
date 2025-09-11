@@ -649,21 +649,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Adumo webhook
   // Webhook endpoint with raw body parsing for signature verification
   app.post('/api/webhooks/adumo', express.raw({ type: 'application/json' }), async (req: Request, res: Response) => {
+    console.log('🔔 Adumo webhook received from IP:', req.ip);
+    console.log('📋 Request headers:', {
+      'content-type': req.headers['content-type'],
+      'content-length': req.headers['content-length'],
+      'user-agent': req.headers['user-agent']
+    });
+
     try {
-      // Verify webhook authenticity first
-      const isValid = AdumoService.verifyWebhookSignature(req);
-      if (!isValid) {
-        console.error('Invalid webhook signature from:', req.ip);
+      // Verify webhook authenticity and parse payload in one step
+      const verificationResult = AdumoService.verifyWebhookSignature(req);
+      
+      if (!verificationResult.isValid) {
+        console.error('❌ Invalid webhook signature from:', req.ip);
         return res.status(401).json({ message: 'Unauthorized - Invalid signature' });
       }
 
-      // Parse the verified payload
-      const payload = JSON.parse(req.body.toString());
-      await AdumoService.processPaymentWebhook(payload);
-      res.json({ received: true });
+      if (!verificationResult.payload) {
+        console.error('❌ No payload found after verification');
+        return res.status(400).json({ message: 'No payload found' });
+      }
+
+      console.log('✅ Webhook signature verified, processing payment...');
+      
+      // Process the verified and parsed payload (no double parsing!)
+      await AdumoService.processPaymentWebhook(verificationResult.payload);
+      
+      console.log('🎉 Webhook processed successfully');
+      res.json({ received: true, status: 'processed' });
     } catch (error: any) {
-      console.error('Adumo webhook error:', error.message);
-      res.status(400).json({ message: `Webhook Error: ${error.message}` });
+      console.error('💥 Adumo webhook error:', error);
+      console.error('📊 Error stack:', error.stack);
+      res.status(400).json({ 
+        message: `Webhook Error: ${error.message}`,
+        error: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      });
     }
   });
 
