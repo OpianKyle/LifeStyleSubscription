@@ -620,41 +620,74 @@ export class AdumoService {
   }
 
   static generatePaymentData(plan: any, user: any) {
-    // Generate JWT token for authentication
+    // Prepare payment form data first to get values for JWT
+    const reference = `sub_${user.id}_${Date.now()}`;
+    const merchantReference = `OPIAN_${user.id.substring(0, 8)}_${Date.now()}`;
+    const amount = (parseFloat(plan.price) * 100).toString(); // Convert to cents
+    const domain = process.env.REPLIT_DEV_DOMAIN || '7de1544e-5ef2-4cc0-bb6e-d725e8da7429-00-22dkncf6rlzz8.picard.replit.dev';
+    const notificationURL = `https://${domain}/api/webhooks/adumo`;
+    
+    // Generate JWT token with required Adumo fields
+    const issuedAt = Math.floor(Date.now() / 1000);
+    const expiresAt = issuedAt + 3600; // 1 hour from now
+    
     const payload = {
+      // Standard JWT claims
+      iss: ADUMO_CONFIG.merchantId, // issuer
+      sub: ADUMO_CONFIG.applicationId, // subject (application)
+      aud: 'https://staging-apiv3.adumoonline.com', // audience
+      iat: issuedAt, // issued at
+      exp: expiresAt, // expires at
+      
+      // Required Adumo validation fields
+      mref: merchantReference, // Merchant Reference
+      amount: amount, // Amount in cents
+      auid: ADUMO_CONFIG.applicationId, // Application UID
+      cuid: ADUMO_CONFIG.merchantId, // Merchant UID
+      notificationURL: notificationURL, // Webhook URL
+      
+      // Additional fields for compatibility
       merchantId: ADUMO_CONFIG.merchantId,
       applicationId: ADUMO_CONFIG.applicationId,
       timestamp: Date.now()
     };
     
-    const token = jwt.sign(payload, ADUMO_CONFIG.jwtSecret, { expiresIn: '1h' });
+    console.log('🔐 Generating JWT with required Adumo fields:', JSON.stringify(payload, null, 2));
     
-    // Prepare payment form data according to Adumo Virtual specifications
-    const reference = `sub_${user.id}_${Date.now()}`;
-    const merchantReference = `OPIAN_${user.id.substring(0, 8)}_${Date.now()}`;
-    const amount = (parseFloat(plan.price) * 100).toString(); // Convert to cents
+    const token = jwt.sign(payload, ADUMO_CONFIG.jwtSecret, { 
+      algorithm: 'HS256',
+      header: {
+        alg: 'HS256',
+        typ: 'JWT'
+      }
+    });
+    
+    const formData = {
+      MerchantID: ADUMO_CONFIG.merchantId,
+      ApplicationID: ADUMO_CONFIG.applicationId,
+      TransactionReference: reference,
+      MerchantReference: merchantReference,
+      Amount: amount,
+      CurrencyCode: 'ZAR',
+      Description: `${plan.name} Plan - Monthly Subscription`,
+      CustomerFirstName: user.name.split(' ')[0] || user.name,
+      CustomerLastName: user.name.split(' ').slice(1).join(' ') || '',
+      CustomerEmail: user.email,
+      ReturnURL: `https://${domain}/dashboard?payment=success&ref=${reference}`,
+      CancelURL: `https://${domain}/choose-plan?payment=canceled`,
+      WebhookURL: `https://${domain}/api/webhooks/adumo`,
+      Token: token
+    };
+    
+    console.log('📝 Adumo form data being sent:', JSON.stringify(formData, null, 2));
+    console.log('🎯 JWT Token being sent:', token);
     
     return {
       // Form POST URL
       url: ADUMO_CONFIG.environment === 'production' ? ADUMO_CONFIG.prodUrl : ADUMO_CONFIG.testUrl,
       
       // Required form parameters for Adumo Virtual
-      formData: {
-        MerchantID: ADUMO_CONFIG.merchantId,
-        ApplicationID: ADUMO_CONFIG.applicationId,
-        TransactionReference: reference,
-        MerchantReference: merchantReference,
-        Amount: amount,
-        CurrencyCode: 'ZAR',
-        Description: `${plan.name} Plan - Monthly Subscription`,
-        CustomerFirstName: user.name.split(' ')[0] || user.name,
-        CustomerLastName: user.name.split(' ').slice(1).join(' ') || '',
-        CustomerEmail: user.email,
-        ReturnURL: `https://${process.env.REPLIT_DEV_DOMAIN || '7de1544e-5ef2-4cc0-bb6e-d725e8da7429-00-22dkncf6rlzz8.picard.replit.dev'}/dashboard?payment=success&ref=${reference}`,
-        CancelURL: `https://${process.env.REPLIT_DEV_DOMAIN || '7de1544e-5ef2-4cc0-bb6e-d725e8da7429-00-22dkncf6rlzz8.picard.replit.dev'}/choose-plan?payment=canceled`,
-        WebhookURL: `https://${process.env.REPLIT_DEV_DOMAIN || '7de1544e-5ef2-4cc0-bb6e-d725e8da7429-00-22dkncf6rlzz8.picard.replit.dev'}/api/webhooks/adumo`,
-        Token: token
-      },
+      formData,
       
       reference,
       merchantReference,
