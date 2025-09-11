@@ -312,11 +312,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const existingPlan = await storage.getSubscriptionPlanById(existingSubscription.planId);
         if (existingPlan?.name === plan.name) {
           const user = await storage.getUserById(req.user.id);
+          
+          // Check if subscription is incomplete and needs payment
+          if (existingSubscription.status === 'INCOMPLETE') {
+            const paymentData = AdumoService.generatePaymentData(plan, user);
+            return res.json({
+              message: 'Subscription exists but payment is incomplete',
+              subscription: existingSubscription,
+              subscriptionId: existingSubscription.adumoSubscriptionId,
+              requiresPayment: true,
+              paymentData: paymentData
+            });
+          }
+          
           return res.json({
-            message: 'Subscription already exists for this plan',
+            message: 'Subscription already exists for this plan - redirecting to dashboard',
             subscription: existingSubscription,
             subscriptionId: existingSubscription.adumoSubscriptionId,
-            paymentData: AdumoService.generatePaymentData(plan, user)
+            requiresPayment: false
           });
         }
         // Update existing subscription to new plan
@@ -351,13 +364,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get the subscription that was created by AdumoService
       const subscription = await storage.getUserSubscription(req.user.id);
       
-      res.json({
-        message: adumoResult.message || 'Subscription created successfully',
+      console.log('🚀 AdumoResult from service:', JSON.stringify(adumoResult, null, 2));
+      console.log('🔍 requiresPayment check:', 'requiresPayment' in adumoResult, (adumoResult as any).requiresPayment);
+      console.log('🔍 paymentData check:', 'paymentData' in adumoResult, (adumoResult as any).paymentData);
+      
+      const response = {
+        message: (adumoResult as any).message || 'Subscription created successfully',
         subscription: subscription,
-        subscriptionId: adumoResult.subscriptionId,
-        requiresPayment: 'requiresPayment' in adumoResult ? adumoResult.requiresPayment : false,
-        paymentData: 'paymentData' in adumoResult ? adumoResult.paymentData : undefined
-      });
+        subscriptionId: (adumoResult as any).subscriptionId,
+        requiresPayment: 'requiresPayment' in adumoResult ? (adumoResult as any).requiresPayment : false,
+        paymentData: 'paymentData' in adumoResult ? (adumoResult as any).paymentData : undefined
+      };
+      
+      console.log('📤 Final response being sent:', JSON.stringify(response, null, 2));
+      
+      res.json(response);
     } catch (error: any) {
       res.status(400).json({ message: error.message });
     }
