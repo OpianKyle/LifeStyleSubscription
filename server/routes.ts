@@ -352,9 +352,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const subscription = await storage.getUserSubscription(req.user.id);
       
       res.json({
-        message: 'Subscription created successfully',
+        message: adumoResult.message || 'Subscription created successfully',
         subscription: subscription,
         subscriptionId: adumoResult.subscriptionId,
+        requiresPayment: 'requiresPayment' in adumoResult ? adumoResult.requiresPayment : false,
         paymentData: 'paymentData' in adumoResult ? adumoResult.paymentData : undefined
       });
     } catch (error: any) {

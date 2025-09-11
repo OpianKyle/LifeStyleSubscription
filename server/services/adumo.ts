@@ -645,14 +645,14 @@ export class AdumoService {
         TransactionReference: reference,
         MerchantReference: merchantReference,
         Amount: amount,
-        Currency: 'ZAR',
+        CurrencyCode: 'ZAR',
         Description: `${plan.name} Plan - Monthly Subscription`,
         CustomerFirstName: user.name.split(' ')[0] || user.name,
         CustomerLastName: user.name.split(' ').slice(1).join(' ') || '',
         CustomerEmail: user.email,
-        ReturnURL: `${process.env.FRONTEND_URL || 'http://localhost:5000'}/dashboard?payment=success&ref=${reference}`,
-        CancelURL: `${process.env.FRONTEND_URL || 'http://localhost:5000'}/choose-plan?payment=canceled`,
-        WebhookURL: `${process.env.FRONTEND_URL || 'http://localhost:5000'}/api/webhooks/adumo`,
+        ReturnURL: `https://${process.env.REPLIT_DEV_DOMAIN || '7de1544e-5ef2-4cc0-bb6e-d725e8da7429-00-22dkncf6rlzz8.picard.replit.dev'}/dashboard?payment=success&ref=${reference}`,
+        CancelURL: `https://${process.env.REPLIT_DEV_DOMAIN || '7de1544e-5ef2-4cc0-bb6e-d725e8da7429-00-22dkncf6rlzz8.picard.replit.dev'}/choose-plan?payment=canceled`,
+        WebhookURL: `https://${process.env.REPLIT_DEV_DOMAIN || '7de1544e-5ef2-4cc0-bb6e-d725e8da7429-00-22dkncf6rlzz8.picard.replit.dev'}/api/webhooks/adumo`,
         Token: token
       },
       
@@ -671,7 +671,27 @@ export class AdumoService {
       throw new Error('User, subscription, or plan not found');
     }
 
-    // Update subscription plan
+    // Check if current subscription is incomplete - treat as new subscription
+    if (currentSubscription.status === 'INCOMPLETE') {
+      console.log('User has incomplete subscription, creating new payment flow');
+      // Update the existing subscription with new plan
+      await storage.updateSubscription(currentSubscription.id, {
+        planId: newPlan.id
+      });
+      
+      // Generate payment data for the new plan
+      const paymentData = this.generatePaymentData(newPlan, user);
+      
+      return {
+        subscriptionId: currentSubscription.adumoSubscriptionId,
+        customerId: user.adumoCustomerId || '',
+        paymentData,
+        requiresPayment: true,
+        message: 'Subscription updated - payment required to activate'
+      };
+    }
+
+    // Update subscription plan for active subscriptions
     await storage.updateSubscription(currentSubscription.id, {
       planId: newPlan.id
     });
@@ -688,26 +708,41 @@ export class AdumoService {
         status: 'pending'
       });
 
+      // Generate payment data for the prorated amount
+      const paymentData = this.generatePaymentData({ ...newPlan, price: proratedAmount.toString() }, user);
+
       // Create transaction for the upgrade charge
       await storage.createTransaction({
         invoiceId: invoice.id,
         userId,
-        merchantReference: `OPIAN_UPGRADE_${userId.substring(0, 8)}_${Date.now()}`,
+        merchantReference: paymentData.merchantReference,
         adumoTransactionId: null,
         adumoStatus: 'PENDING',
         paymentMethod: null,
         gateway: 'ADUMO',
         amount: proratedAmount.toString(),
         currency: 'ZAR',
-        requestPayload: null,
+        requestPayload: JSON.stringify(paymentData),
         responsePayload: null,
         notifyUrlResponse: null
       });
+
+      return {
+        subscriptionId: currentSubscription.adumoSubscriptionId,
+        customerId: user.adumoCustomerId || '',
+        paymentData,
+        requiresPayment: true,
+        message: 'Subscription updated - additional payment required for upgrade',
+        proratedAmount
+      };
     }
 
     return { 
-      message: 'Subscription updated successfully',
-      proratedAmount: proratedAmount > 0 ? proratedAmount : 0
+      subscriptionId: currentSubscription.adumoSubscriptionId,
+      customerId: user.adumoCustomerId || '',
+      requiresPayment: false,
+      message: 'Subscription updated successfully - no additional payment required',
+      proratedAmount: 0
     };
   }
 
