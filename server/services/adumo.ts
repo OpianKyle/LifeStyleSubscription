@@ -209,13 +209,28 @@ export class AdumoService {
     const proratedAmount = await this.calculateProration(currentSubscription, newPlan);
     
     if (proratedAmount > 0) {
-      await storage.createInvoice({
+      const invoice = await storage.createInvoice({
         userId,
         subscriptionId: currentSubscription.id,
-        adumoInvoiceId: `inv_upgrade_${userId}_${Date.now()}`,
         amount: proratedAmount.toString(),
         currency: 'ZAR',
         status: 'pending'
+      });
+
+      // Create transaction for the upgrade charge
+      await storage.createTransaction({
+        invoiceId: invoice.id,
+        userId,
+        merchantReference: `OPIAN_UPGRADE_${userId.substring(0, 8)}_${Date.now()}`,
+        adumoTransactionId: null,
+        adumoStatus: 'PENDING',
+        paymentMethod: null,
+        gateway: 'ADUMO',
+        amount: proratedAmount.toString(),
+        currency: 'ZAR',
+        requestPayload: null,
+        responsePayload: null,
+        notifyUrlResponse: null
       });
     }
 
@@ -304,7 +319,7 @@ export class AdumoService {
           merchantReference: `OPIAN_${userId.substring(0, 8)}_${Date.now()}`,
           adumoTransactionId: transaction_id,
           adumoStatus: 'SUCCESS',
-          paymentMethod: payment_method || null,
+          paymentMethod: webhookData.payment_method || null,
           gateway: 'ADUMO',
           amount: (amount / 100).toString(),
           currency: 'ZAR',
@@ -312,10 +327,10 @@ export class AdumoService {
           responsePayload: JSON.stringify({
             transaction_id,
             amount,
-            payment_method,
+            payment_method: webhookData.payment_method || null,
             result: 'SUCCESS'
           }),
-          notifyUrlResponse: JSON.stringify(req.body)
+          notifyUrlResponse: JSON.stringify(webhookData)
         });
 
         // Send payment confirmation email
