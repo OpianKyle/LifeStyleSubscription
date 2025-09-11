@@ -1,0 +1,199 @@
+🔑 What Adumo needs (from docs)
+
+Adumo transaction forms typically include fields like:
+
+MerchantReference (your unique ID per transaction)
+
+Amount, Currency
+
+ReturnUrl, CancelUrl, NotifyUrl (for callbacks)
+
+Customer info (name, email, phone)
+
+Transaction result fields (Adumo reference, status, auth code, etc.)
+
+✅ Improvements to Your Schema
+1. Users Table (users)
+
+Already has adumo_customer_id — good.
+
+Add:
+
+ALTER TABLE users
+  ADD COLUMN phone_number VARCHAR(20) DEFAULT NULL,
+  ADD COLUMN billing_address TEXT DEFAULT NULL;
+
+
+👉 Adumo often requires phone & billing details for payment forms.
+
+2. Subscriptions Table (subscriptions)
+
+Already has adumo_subscription_id.
+
+Keep Stripe columns if you plan to support both. Otherwise, you can drop them to simplify.
+
+No required changes unless you need to track recurring Adumo tokens.
+
+3. Invoices Table (invoices)
+
+This is where most changes are needed. You already added adumo_invoice_id, which is good. Add:
+
+ALTER TABLE invoices
+  ADD COLUMN merchant_reference VARCHAR(255) DEFAULT NULL,
+  ADD COLUMN adumo_transaction_id VARCHAR(255) DEFAULT NULL,
+  ADD COLUMN payment_method VARCHAR(50) DEFAULT NULL,
+  ADD COLUMN adumo_status VARCHAR(50) DEFAULT NULL,
+  ADD COLUMN notify_url_response TEXT DEFAULT NULL;
+
+
+merchant_reference → what you generate (OPIAN_userId_timestamp)
+
+adumo_transaction_id → the ID returned by Adumo after processing
+
+payment_method → card, EFT, wallet, etc.
+
+adumo_status → SUCCESS, FAILED, PENDING
+
+notify_url_response → log the raw webhook for auditing
+
+4. General Changes
+
+Consider creating a new transactions table instead of bloating invoices if you want granular logs per payment attempt.
+
+If not, extending invoices as above should work.
+
+❌ What You Can Remove (Optional)
+
+If you are fully migrating away from Stripe:
+
+Drop stripe_customer_id, stripe_subscription_id, stripe_invoice_id, stripe_product_id, stripe_price_id.
+
+If you want dual support (Stripe + Adumo), keep them.
+
+🚀 Summary of Key Adds
+
+users → add phone_number, billing_address.
+
+invoices → add merchant_reference, adumo_transaction_id, payment_method, adumo_status, notify_url_response.
+
+Optional: new transactions table if you want cleaner separation.
+
+👉 Do you want me to design a new transactions table (recommended best practice), or just extend your existing invoices table with these Adumo fields?
+
+You said:
+Do you want me to design a new transactions table (recommended best practice
+ChatGPT said:
+
+Yes ✅ — I recommend a dedicated transactions table for Adumo (and any other gateway later).
+
+Here’s why:
+
+Your current invoices table = billing-level record (what the user owes).
+
+A transactions table = payment attempt(s) against that invoice (what Adumo processed).
+
+One invoice can have many transactions (e.g. retries, failures, partial payments).
+
+Keeps your schema clean instead of stuffing gateway-specific fields into invoices.
+
+📐 Proposed transactions Table
+CREATE TABLE transactions (
+  id VARCHAR(36) NOT NULL DEFAULT uuid(),
+  invoice_id VARCHAR(36) NOT NULL,
+  user_id VARCHAR(36) NOT NULL,
+
+  -- Core Adumo fields
+  merchant_reference VARCHAR(255) NOT NULL,
+  adumo_transaction_id VARCHAR(255) DEFAULT NULL,
+  adumo_status ENUM('PENDING','SUCCESS','FAILED') NOT NULL DEFAULT 'PENDING',
+  payment_method VARCHAR(50) DEFAULT NULL,
+
+  -- Financials
+  amount DECIMAL(10,2) NOT NULL,
+  currency VARCHAR(3) NOT NULL DEFAULT 'ZAR',
+
+  -- Optional logging
+  request_payload JSON DEFAULT NULL,
+  response_payload JSON DEFAULT NULL,
+  notify_url_response JSON DEFAULT NULL,
+
+  -- Audit
+  created_at TIMESTAMP NOT NULL DEFAULT current_timestamp(),
+  updated_at TIMESTAMP NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+
+  PRIMARY KEY (id),
+  KEY invoice_id (invoice_id),
+  KEY user_id (user_id),
+  CONSTRAINT transactions_ibfk_1 FOREIGN KEY (invoice_id) REFERENCES invoices (id),
+  CONSTRAINT transactions_ibfk_2 FOREIGN KEY (user_id) REFERENCES users (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+🔑 Benefits
+
+invoices remains your financial obligation record.
+
+transactions stores all Adumo interactions (success, fail, retry).
+
+Easy reconciliation: join on invoice_id + merchant_reference.
+
+Supports multi-gateway future (you can add gateway ENUM('STRIPE','ADUMO',...)).
+
+👉 Do you want me to write a migration script that:
+
+Creates this transactions table.
+
+Adjusts invoices so it no longer needs adumo_invoice_id / merchant_reference inside it (they’ll live in transactions).
+
+You said:
+yes please
+ChatGPT said:
+
+Perfect 🚀
+Here’s a safe migration script for your database that introduces the new transactions table and cleans up invoices so it isn’t overloaded with Adumo-specific fields.
+
+🔄 Migration Script
+-- 1. Create new transactions table
+CREATE TABLE transactions (
+  id VARCHAR(36) NOT NULL DEFAULT uuid(),
+  invoice_id VARCHAR(36) NOT NULL,
+  user_id VARCHAR(36) NOT NULL,
+
+  -- Core Adumo fields
+  merchant_reference VARCHAR(255) NOT NULL,
+  adumo_transaction_id VARCHAR(255) DEFAULT NULL,
+  adumo_status ENUM('PENDING','SUCCESS','FAILED') NOT NULL DEFAULT 'PENDING',
+  payment_method VARCHAR(50) DEFAULT NULL,
+
+  -- Financials
+  amount DECIMAL(10,2) NOT NULL,
+  currency VARCHAR(3) NOT NULL DEFAULT 'ZAR',
+
+  -- Optional logging
+  request_payload JSON DEFAULT NULL,
+  response_payload JSON DEFAULT NULL,
+  notify_url_response JSON DEFAULT NULL,
+
+  -- Audit
+  created_at TIMESTAMP NOT NULL DEFAULT current_timestamp(),
+  updated_at TIMESTAMP NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+
+  PRIMARY KEY (id),
+  KEY invoice_id (invoice_id),
+  KEY user_id (user_id),
+  CONSTRAINT transactions_ibfk_1 FOREIGN KEY (invoice_id) REFERENCES invoices (id),
+  CONSTRAINT transactions_ibfk_2 FOREIGN KEY (user_id) REFERENCES users (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- 2. Clean up invoices table
+-- Remove gateway-specific Adumo ID (it now belongs in transactions)
+ALTER TABLE invoices
+  DROP COLUMN adumo_invoice_id;
+
+-- Optional: if you are fully dropping Stripe, also remove these:
+-- ALTER TABLE invoices DROP COLUMN stripe_invoice_id;
+
+
+-- 3. (Optional) Add gateway field for flexibility
+ALTER TABLE transactions
+  ADD COLUMN gateway ENUM('ADUMO','STRIPE','OTHER') NOT NULL DEFAULT 'ADUMO';

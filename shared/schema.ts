@@ -18,6 +18,8 @@ export const userRoleEnum = mysqlEnum('role', ['USER', 'ADMIN']);
 export const subscriptionStatusEnum = mysqlEnum('status', ['ACTIVE', 'CANCELED', 'PAST_DUE', 'INCOMPLETE']);
 export const planNameEnum = mysqlEnum('name', ['OPPORTUNITY', 'MOMENTUM', 'PROSPER', 'PRESTIGE', 'PINNACLE']);
 export const familyRelationEnum = mysqlEnum('relation', ['SPOUSE', 'CHILD', 'PARENT', 'EXTENDED_FAMILY']);
+export const transactionStatusEnum = mysqlEnum('transaction_status', ['PENDING', 'SUCCESS', 'FAILED']);
+export const gatewayEnum = mysqlEnum('gateway', ['ADUMO', 'STRIPE', 'OTHER']);
 
 // Users table
 export const users = mysqlTable("users", {
@@ -32,6 +34,8 @@ export const users = mysqlTable("users", {
   passwordResetExpires: timestamp("password_reset_expires"),
   adumoCustomerId: varchar("adumo_customer_id", { length: 255 }),
   adumoSubscriptionId: varchar("adumo_subscription_id", { length: 255 }),
+  phoneNumber: varchar("phone_number", { length: 20 }),
+  billingAddress: text("billing_address"),
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP`).notNull(),
 });
@@ -66,18 +70,44 @@ export const subscriptions = mysqlTable("subscriptions", {
   updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP`).notNull(),
 });
 
-// Invoices table
+// Invoices table - simplified, gateway-agnostic
 export const invoices = mysqlTable("invoices", {
   id: varchar("id", { length: 36 }).primaryKey().default(sql`(UUID())`),
   userId: varchar("user_id", { length: 36 }).references(() => users.id).notNull(),
   subscriptionId: varchar("subscription_id", { length: 36 }).references(() => subscriptions.id),
-  adumoInvoiceId: varchar("adumo_invoice_id", { length: 255 }).unique(),
   amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
   currency: varchar("currency", { length: 3 }).default('ZAR').notNull(),
   status: varchar("status", { length: 20 }).notNull(),
   paidAt: timestamp("paid_at"),
   dueDate: timestamp("due_date"),
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
+// Transactions table - tracks all payment attempts for any gateway
+export const transactions = mysqlTable("transactions", {
+  id: varchar("id", { length: 36 }).primaryKey().default(sql`(UUID())`),
+  invoiceId: varchar("invoice_id", { length: 36 }).references(() => invoices.id).notNull(),
+  userId: varchar("user_id", { length: 36 }).references(() => users.id).notNull(),
+  
+  // Core gateway fields
+  merchantReference: varchar("merchant_reference", { length: 255 }).notNull(),
+  adumoTransactionId: varchar("adumo_transaction_id", { length: 255 }),
+  adumoStatus: transactionStatusEnum.default('PENDING').notNull(),
+  paymentMethod: varchar("payment_method", { length: 50 }),
+  gateway: gatewayEnum.default('ADUMO').notNull(),
+  
+  // Financials
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  currency: varchar("currency", { length: 3 }).default('ZAR').notNull(),
+  
+  // Optional logging for audit trail
+  requestPayload: text("request_payload"),
+  responsePayload: text("response_payload"),
+  notifyUrlResponse: text("notify_url_response"),
+  
+  // Audit
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP`).notNull(),
 });
 
 // Extended cover table for additional family members
@@ -101,6 +131,7 @@ export const extendedCover = mysqlTable("extended_cover", {
 export const usersRelations = relations(users, ({ many }) => ({
   subscriptions: many(subscriptions),
   invoices: many(invoices),
+  transactions: many(transactions),
   extendedCover: many(extendedCover),
 }));
 
@@ -114,9 +145,15 @@ export const subscriptionsRelations = relations(subscriptions, ({ one, many }) =
   invoices: many(invoices),
 }));
 
-export const invoicesRelations = relations(invoices, ({ one }) => ({
+export const invoicesRelations = relations(invoices, ({ one, many }) => ({
   user: one(users, { fields: [invoices.userId], references: [users.id] }),
   subscription: one(subscriptions, { fields: [invoices.subscriptionId], references: [subscriptions.id] }),
+  transactions: many(transactions),
+}));
+
+export const transactionsRelations = relations(transactions, ({ one }) => ({
+  user: one(users, { fields: [transactions.userId], references: [users.id] }),
+  invoice: one(invoices, { fields: [transactions.invoiceId], references: [invoices.id] }),
 }));
 
 export const extendedCoverRelations = relations(extendedCover, ({ one }) => ({
@@ -156,6 +193,12 @@ export const insertExtendedCoverSchema = createInsertSchema(extendedCover).omit(
   updatedAt: true,
 });
 
+export const insertTransactionSchema = createInsertSchema(transactions).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type SubscriptionPlan = typeof subscriptionPlans.$inferSelect;
@@ -164,5 +207,7 @@ export type Subscription = typeof subscriptions.$inferSelect;
 export type InsertSubscription = z.infer<typeof insertSubscriptionSchema>;
 export type Invoice = typeof invoices.$inferSelect;
 export type InsertInvoice = z.infer<typeof insertInvoiceSchema>;
+export type Transaction = typeof transactions.$inferSelect;
+export type InsertTransaction = z.infer<typeof insertTransactionSchema>;
 export type ExtendedCover = typeof extendedCover.$inferSelect;
 export type InsertExtendedCover = z.infer<typeof insertExtendedCoverSchema>;
