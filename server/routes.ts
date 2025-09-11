@@ -558,9 +558,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Adumo webhook
-  app.post('/api/webhooks/adumo', express.json(), async (req: Request, res: Response) => {
+  // Webhook endpoint with raw body parsing for signature verification
+  app.post('/api/webhooks/adumo', express.raw({ type: 'application/json' }), async (req: Request, res: Response) => {
     try {
-      await AdumoService.processPaymentWebhook(req.body);
+      // Verify webhook authenticity first
+      const isValid = AdumoService.verifyWebhookSignature(req);
+      if (!isValid) {
+        console.error('Invalid webhook signature from:', req.ip);
+        return res.status(401).json({ message: 'Unauthorized - Invalid signature' });
+      }
+
+      // Parse the verified payload
+      const payload = JSON.parse(req.body.toString());
+      await AdumoService.processPaymentWebhook(payload);
       res.json({ received: true });
     } catch (error: any) {
       console.error('Adumo webhook error:', error.message);

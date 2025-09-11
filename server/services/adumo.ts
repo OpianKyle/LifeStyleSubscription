@@ -292,6 +292,12 @@ export class AdumoService {
           return;
         }
 
+        // SECURITY: Check if transaction is already processed to prevent replay attacks
+        if (existingTransaction.adumoStatus === 'SUCCESS') {
+          console.warn('Transaction already processed, ignoring duplicate webhook:', merchantReference);
+          return;
+        }
+
         // Get related invoice and subscription
         const invoice = await storage.getInvoiceById(existingTransaction.invoiceId);
         const user = await storage.getUserById(existingTransaction.userId);
@@ -299,6 +305,15 @@ export class AdumoService {
 
         if (!invoice || !user || !subscription) {
           console.error('Missing required data for webhook processing');
+          return;
+        }
+
+        // SECURITY: Validate amount matches expected invoice amount
+        const expectedAmountCents = Math.round(parseFloat(invoice.amount) * 100);
+        const receivedAmountCents = parseInt(amount);
+        
+        if (expectedAmountCents !== receivedAmountCents) {
+          console.error(`Amount mismatch: expected ${expectedAmountCents} cents, received ${receivedAmountCents} cents`);
           return;
         }
 
@@ -344,6 +359,51 @@ export class AdumoService {
     } catch (error) {
       console.error('Error processing Adumo webhook:', error);
       throw error;
+    }
+  }
+
+  static verifyWebhookSignature(req: any): boolean {
+    try {
+      const crypto = require('crypto');
+      const webhookSecret = process.env.ADUMO_WEBHOOK_SECRET;
+      
+      if (!webhookSecret) {
+        console.error('ADUMO_WEBHOOK_SECRET not configured');
+        return false;
+      }
+
+      // Get signature from headers (try common header names)
+      const signature = req.headers['x-signature'] || 
+                       req.headers['x-adumo-signature'] || 
+                       req.headers['signature'];
+      
+      if (!signature) {
+        console.error('No signature header found in webhook request');
+        return false;
+      }
+
+      // Get raw payload
+      const payload = req.body.toString();
+      
+      // Generate expected signature using HMAC SHA-256
+      const hmac = crypto.createHmac('sha256', webhookSecret);
+      const expectedSignature = hmac.update(payload, 'utf8').digest('hex');
+      
+      // Remove 'sha256=' prefix if present
+      const receivedSignature = signature.replace(/^sha256=/i, '');
+      
+      // Use timing-safe comparison to prevent timing attacks
+      const expectedBuffer = Buffer.from(expectedSignature, 'hex');
+      const receivedBuffer = Buffer.from(receivedSignature, 'hex');
+      
+      if (expectedBuffer.length !== receivedBuffer.length) {
+        return false;
+      }
+      
+      return crypto.timingSafeEqual(expectedBuffer, receivedBuffer);
+    } catch (error) {
+      console.error('Error verifying webhook signature:', error);
+      return false;
     }
   }
 }
