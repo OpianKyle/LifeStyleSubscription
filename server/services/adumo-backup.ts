@@ -202,7 +202,7 @@ export class AdumoService {
     
     // Prepare payment form data according to Adumo Virtual specifications
     const reference = `sub_${user.id}_${Date.now()}`;
-    const amount = (parseFloat(plan.price) * 100).toString(); // Convert to cents
+    const amount = parseFloat(plan.price).toFixed(2); // Keep as decimal string per Adumo API docs
     
     return {
       // Form POST URL

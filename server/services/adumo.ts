@@ -356,7 +356,7 @@ export class AdumoService {
     // Create schedule for recurring billing
     const schedulePayload = {
       subscriberId: subscriber.id,
-      amount: parseFloat(data.amount) * 100, // Convert to cents
+      amount: parseFloat(data.amount).toFixed(2), // Keep as decimal string
       currency: data.currency,
       interval: 'monthly',
       startDate: new Date().toISOString(),
@@ -624,7 +624,7 @@ export class AdumoService {
     // Prepare payment form data first to get values for JWT
     const reference = `sub_${user.id}_${Date.now()}`;
     const merchantReference = `OPIAN_${user.id.substring(0, 8)}_${Date.now()}`;
-    const amount = (parseFloat(plan.price) * 100).toString(); // Convert to cents
+    const amount = parseFloat(plan.price).toFixed(2); // Keep as decimal string per Adumo API docs
     const domain = process.env.REPLIT_DEV_DOMAIN || '7de1544e-5ef2-4cc0-bb6e-d725e8da7429-00-22dkncf6rlzz8.picard.replit.dev';
     const notificationURL = `https://${domain}/api/webhooks/adumo`;
     
@@ -642,7 +642,7 @@ export class AdumoService {
       
       // Required Adumo validation fields
       mref: merchantReference, // Merchant Reference
-      amount: amount, // Amount in cents
+      amount: amount, // Amount as decimal string (e.g., "550.00")
       auid: ADUMO_CONFIG.applicationId, // Application UID
       cuid: ADUMO_CONFIG.merchantId, // Merchant UID
       notificationURL: notificationURL, // Webhook URL
@@ -852,11 +852,11 @@ export class AdumoService {
         }
 
         // SECURITY: Validate amount matches expected invoice amount
-        const expectedAmountCents = Math.round(parseFloat(invoice.amount) * 100);
-        const receivedAmountCents = parseInt(amount);
+        const expectedAmount = parseFloat(invoice.amount).toFixed(2);
+        const receivedAmount = parseFloat(amount).toFixed(2);
         
-        if (expectedAmountCents !== receivedAmountCents) {
-          console.error(`Amount mismatch: expected ${expectedAmountCents} cents, received ${receivedAmountCents} cents`);
+        if (expectedAmount !== receivedAmount) {
+          console.error(`Amount mismatch: expected ${expectedAmount}, received ${receivedAmount}`);
           return;
         }
 
