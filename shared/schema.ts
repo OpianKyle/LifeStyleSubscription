@@ -19,7 +19,7 @@ export const userRoleEnum = mysqlEnum('role', ['USER', 'ADMIN']);
 export const subscriptionStatusEnum = mysqlEnum('status', ['ACTIVE', 'CANCELED', 'PAST_DUE', 'INCOMPLETE']);
 export const planNameEnum = mysqlEnum('name', ['OPPORTUNITY', 'MOMENTUM', 'PROSPER', 'PRESTIGE', 'PINNACLE']);
 export const familyRelationEnum = mysqlEnum('relation', ['SPOUSE', 'CHILD', 'PARENT', 'EXTENDED_FAMILY']);
-export const transactionStatusEnum = mysqlEnum('transaction_status', ['PENDING', 'SUCCESS', 'FAILED']);
+export const transactionStatusEnum = mysqlEnum('transaction_status', ['PENDING', 'SUCCESS', 'FAILED', 'CANCELED', 'REFUNDED']);
 export const gatewayEnum = mysqlEnum('gateway', ['ADUMO', 'STRIPE', 'OTHER']);
 
 // Users table
@@ -71,17 +71,21 @@ export const subscriptions = mysqlTable("subscriptions", {
   updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP`).notNull(),
 });
 
-// Invoices table - simplified, gateway-agnostic
+// Invoices table - tracks payments from Adumo subscriptions
 export const invoices = mysqlTable("invoices", {
   id: varchar("id", { length: 36 }).primaryKey().default(sql`(UUID())`),
   userId: varchar("user_id", { length: 36 }).references(() => users.id).notNull(),
   subscriptionId: varchar("subscription_id", { length: 36 }).references(() => subscriptions.id),
   amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
   currency: varchar("currency", { length: 3 }).default('ZAR').notNull(),
-  status: varchar("status", { length: 20 }).notNull(),
+  status: varchar("status", { length: 20 }).notNull(), // 'pending', 'paid', 'failed'
   paidAt: timestamp("paid_at"),
   dueDate: timestamp("due_date"),
+  adumoPaymentId: varchar("adumo_payment_id", { length: 255 }),
+  adumoWebhookId: varchar("adumo_webhook_id", { length: 255 }),
+  failureReason: text("failure_reason"),
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP`).notNull(),
 });
 
 // Transactions table - tracks all payment attempts for any gateway
@@ -160,6 +164,7 @@ export const transactionsRelations = relations(transactions, ({ one }) => ({
   user: one(users, { fields: [transactions.userId], references: [users.id] }),
   invoice: one(invoices, { fields: [transactions.invoiceId], references: [invoices.id] }),
 }));
+
 
 export const extendedCoverRelations = relations(extendedCover, ({ one }) => ({
   user: one(users, { fields: [extendedCover.userId], references: [users.id] }),

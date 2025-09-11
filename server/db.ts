@@ -123,15 +123,41 @@ async function createTablesIfNotExist(connection: mysql.PoolConnection) {
       id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
       user_id VARCHAR(36) NOT NULL,
       subscription_id VARCHAR(36),
-      adumo_invoice_id VARCHAR(255) UNIQUE,
       amount DECIMAL(10, 2) NOT NULL,
       currency VARCHAR(3) DEFAULT 'ZAR' NOT NULL,
       status VARCHAR(20) NOT NULL,
       paid_at TIMESTAMP NULL,
       due_date TIMESTAMP NULL,
+      adumo_payment_id VARCHAR(255),
+      adumo_webhook_id VARCHAR(255),
+      failure_reason TEXT,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
       FOREIGN KEY (user_id) REFERENCES users(id),
       FOREIGN KEY (subscription_id) REFERENCES subscriptions(id)
+    );
+    
+    -- Transactions table
+    CREATE TABLE IF NOT EXISTS transactions (
+      id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
+      invoice_id VARCHAR(36) NOT NULL,
+      user_id VARCHAR(36) NOT NULL,
+      merchant_reference VARCHAR(255) NOT NULL UNIQUE,
+      adumo_transaction_id VARCHAR(255) UNIQUE,
+      adumo_status ENUM('PENDING', 'SUCCESS', 'FAILED', 'CANCELED', 'REFUNDED') DEFAULT 'PENDING' NOT NULL,
+      payment_method VARCHAR(50),
+      gateway ENUM('ADUMO', 'STRIPE', 'OTHER') DEFAULT 'ADUMO' NOT NULL,
+      amount DECIMAL(10, 2) NOT NULL,
+      currency VARCHAR(3) DEFAULT 'ZAR' NOT NULL,
+      request_payload TEXT,
+      response_payload TEXT,
+      notify_url_response TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
+      FOREIGN KEY (invoice_id) REFERENCES invoices(id),
+      FOREIGN KEY (user_id) REFERENCES users(id),
+      INDEX idx_transactions_invoice_id (invoice_id),
+      INDEX idx_transactions_user_id (user_id)
     );
     
     -- Extended cover table
