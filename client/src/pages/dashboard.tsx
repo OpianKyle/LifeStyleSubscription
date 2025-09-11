@@ -54,6 +54,7 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import ExtendedCoverSection from "@/components/dashboard/extended-cover-section";
+import Chatbot from "@/components/chat/chatbot";
 
 function DashboardContent() {
   const [, setLocation] = useLocation();
@@ -63,6 +64,32 @@ function DashboardContent() {
   const queryClient = useQueryClient();
   const [activeSection, setActiveSection] = useState(hasActiveSubscription ? 'overview' : 'pricing');
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
+
+  // Handle payment success redirect
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const paymentStatus = urlParams.get('payment');
+    const ref = urlParams.get('ref');
+    
+    if (paymentStatus === 'success' && ref) {
+      // Clear URL parameters
+      window.history.replaceState({}, '', '/dashboard');
+      
+      // Show success message and refresh subscription data
+      toast({
+        title: "Payment Successful! 🎉",
+        description: "Your subscription has been activated. Welcome to Opian Lifestyle!",
+      });
+      
+      // Refresh subscription data
+      queryClient.invalidateQueries({ queryKey: ["/api/subscriptions/current"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/invoices"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
+      
+      // Set active section to overview for new subscribers
+      setActiveSection('overview');
+    }
+  }, [toast, queryClient]);
 
   // Redirect to home if not authenticated
   useEffect(() => {
@@ -1168,6 +1195,7 @@ function DashboardContent() {
           </main>
         </SidebarInset>
       </div>
+      <Chatbot />
     </SidebarProvider>
   );
 }

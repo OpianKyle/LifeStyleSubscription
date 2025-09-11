@@ -4,6 +4,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { AuthService } from "./services/auth";
 import { AdumoService } from "./services/adumo";
+import { getChatbotResponse } from "./openai";
 import { z } from "zod";
 import nodemailer from 'nodemailer';
 
@@ -553,6 +554,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ stats });
     } catch (error: any) {
       res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Chatbot endpoint
+  app.post('/api/chatbot', async (req: Request, res: Response) => {
+    try {
+      const { message } = req.body;
+      
+      if (!message || typeof message !== 'string') {
+        return res.status(400).json({ error: 'Message is required and must be a string' });
+      }
+
+      const response = await getChatbotResponse(message);
+      res.json(response);
+    } catch (error: any) {
+      console.error('Chatbot error:', error);
+      res.status(500).json({ 
+        error: 'Sorry, I\'m experiencing technical difficulties. Please try again later.',
+        response: 'I apologize, but I\'m having trouble processing your request right now. For immediate assistance with Opian Lifestyle services, please contact our support team directly.'
+      });
     }
   });
 
