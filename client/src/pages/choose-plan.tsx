@@ -53,6 +53,30 @@ export default function ChoosePlan() {
       return response.json();
     },
     onSuccess: (data) => {
+      // Check if payment is required (Adumo redirect)
+      if (data.requiresPayment && data.paymentData) {
+        const { url, formData } = data.paymentData;
+        
+        // Create and submit a form to redirect to Adumo
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = url;
+        
+        // Add all form data as hidden inputs
+        Object.entries(formData).forEach(([key, value]) => {
+          const input = document.createElement('input');
+          input.type = 'hidden';
+          input.name = key;
+          input.value = value as string;
+          form.appendChild(input);
+        });
+        
+        document.body.appendChild(form);
+        form.submit();
+        return; // Don't proceed to dashboard redirect
+      }
+      
+      // Handle normal subscription without payment redirect
       queryClient.invalidateQueries({ queryKey: ["/api/subscriptions/current"] });
       toast({
         title: "Plan Updated Successfully",

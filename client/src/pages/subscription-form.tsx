@@ -194,6 +194,30 @@ export default function SubscriptionForm() {
       return apiRequest('POST', '/api/subscriptions/create-full', subscriptionData);
     },
     onSuccess: (result: any) => {
+      // Check if payment is required (Adumo redirect)
+      if (result.requiresPayment && result.paymentData) {
+        const { url, formData } = result.paymentData;
+        
+        // Create and submit a form to redirect to Adumo
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = url;
+        
+        // Add all form data as hidden inputs
+        Object.entries(formData).forEach(([key, value]) => {
+          const input = document.createElement('input');
+          input.type = 'hidden';
+          input.name = key;
+          input.value = value as string;
+          form.appendChild(input);
+        });
+        
+        document.body.appendChild(form);
+        form.submit();
+        return; // Don't proceed to dashboard redirect
+      }
+      
+      // Handle normal subscription without payment redirect
       if (result.message && result.message.includes('already exists')) {
         toast({
           title: "Already Subscribed",
