@@ -198,6 +198,8 @@ export default function SubscriptionForm() {
       if (result.requiresPayment && result.paymentData) {
         const { url, formData } = result.paymentData;
         
+        console.log('🚀 Redirecting to Adumo with data:', { url, formData });
+        
         // Create and submit a form to redirect to Adumo
         const form = document.createElement('form');
         form.method = 'POST';
