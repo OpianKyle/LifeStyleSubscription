@@ -90,8 +90,8 @@ export const transactions = mysqlTable("transactions", {
   userId: varchar("user_id", { length: 36 }).references(() => users.id).notNull(),
   
   // Core gateway fields
-  merchantReference: varchar("merchant_reference", { length: 255 }).notNull(),
-  adumoTransactionId: varchar("adumo_transaction_id", { length: 255 }),
+  merchantReference: varchar("merchant_reference", { length: 255 }).notNull().unique(),
+  adumoTransactionId: varchar("adumo_transaction_id", { length: 255 }).unique(),
   adumoStatus: transactionStatusEnum.default('PENDING').notNull(),
   paymentMethod: varchar("payment_method", { length: 50 }),
   gateway: gatewayEnum.default('ADUMO').notNull(),
@@ -108,7 +108,11 @@ export const transactions = mysqlTable("transactions", {
   // Audit
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP`).notNull(),
-});
+}, (table) => ({
+  // Index for performance on common queries
+  invoiceIdIdx: index("idx_transactions_invoice_id").on(table.invoiceId),
+  userIdIdx: index("idx_transactions_user_id").on(table.userId),
+}));
 
 // Extended cover table for additional family members
 export const extendedCover = mysqlTable("extended_cover", {
