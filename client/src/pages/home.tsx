@@ -425,129 +425,141 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Interactive Services Section */}
-      <section className="py-16 md:py-24 bg-gradient-to-br from-slate-50 to-white relative overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          
-          {/* Section Title */}
-          <div className="text-center mb-12 md:mb-20">
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900 mb-6">
-              Explore Our Protection Services
-            </h2>
-            <p className="text-lg md:text-xl text-slate-600 max-w-3xl mx-auto">
-              Click on any service below to learn more about how we protect you and your family in every aspect of life.
-            </p>
-          </div>
-
-          {/* Interactive Headings - Responsive Stack */}
-          <div className="mb-12 md:mb-16">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
-              
+      {/* Curved Heading Section */}
+      <section className="min-h-screen bg-gradient-to-br from-slate-50 to-white relative overflow-hidden">
+        <div className="grid grid-cols-1 lg:grid-cols-2 min-h-screen">
+          {/* Left Side - Curved Headings */}
+          <div className="flex items-center justify-center relative px-4 sm:px-6 md:px-8 lg:px-16 py-8 lg:py-0">
+            <div className="space-y-8 sm:space-y-10 md:space-y-12 relative z-10 w-full">
+              {/* Curved path for headings */}
               <div className="relative animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-                <h3 
-                  className={`text-xl sm:text-2xl md:text-3xl font-bold cursor-pointer hover:scale-105 transition-all duration-500 text-center p-4 rounded-xl border-2 ${
-                    selectedService === 'medical' 
-                      ? 'text-primary border-primary bg-primary/5 scale-105 animate-pulse-slow shadow-lg' 
-                      : 'text-slate-600 border-slate-200 hover:text-primary hover:border-primary/50 hover:bg-primary/5'
+                <h2 
+                  className={`text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-bold cursor-pointer hover:scale-110 transition-all duration-500 hover:rotate-1 ${
+                    selectedService === 'medical' ? 'text-primary scale-115 animate-pulse-slow' : 'text-slate-400 hover:text-primary'
                   }`}
+                  style={{ transform: 'translateX(0px) translateY(0px)' }}
                   onClick={() => setSelectedService('medical')}
                 >
                   Medical Care
-                </h3>
+                </h2>
               </div>
               
               <div className="relative animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-                <h3 
-                  className={`text-xl sm:text-2xl md:text-3xl font-bold cursor-pointer hover:scale-105 transition-all duration-500 text-center p-4 rounded-xl border-2 ${
-                    selectedService === 'legal'
-                      ? 'text-secondary border-secondary bg-secondary/5 scale-105 animate-pulse-slow shadow-lg'
-                      : 'text-slate-600 border-slate-200 hover:text-secondary hover:border-secondary/50 hover:bg-secondary/5'
+                <h2 
+                  className={`text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-bold cursor-pointer hover:scale-110 transition-all duration-500 hover:-rotate-1 ${
+                    selectedService === 'legal' ? 'text-secondary scale-115 animate-pulse-slow' : 'text-slate-400 hover:text-secondary'
                   }`}
+                  style={{ transform: 'translateX(20px) translateY(10px)' }}
                   onClick={() => setSelectedService('legal')}
                 >
                   Legal Support
-                </h3>
+                </h2>
               </div>
               
               <div className="relative animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
-                <h3 
-                  className={`text-xl sm:text-2xl md:text-3xl font-bold cursor-pointer hover:scale-105 transition-all duration-500 text-center p-4 rounded-xl border-2 ${
-                    selectedService === 'family'
-                      ? 'text-primary border-primary bg-primary/5 scale-105 animate-pulse-slow shadow-lg'
-                      : 'text-slate-600 border-slate-200 hover:text-primary hover:border-primary/50 hover:bg-primary/5'
+                <h2 
+                  className={`text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-bold cursor-pointer hover:scale-110 transition-all duration-500 hover:rotate-1 ${
+                    selectedService === 'family' ? 'text-primary scale-115 animate-pulse-slow' : 'text-slate-400 hover:text-primary'
                   }`}
+                  style={{ transform: 'translateX(40px) translateY(20px)' }}
                   onClick={() => setSelectedService('family')}
                 >
                   Family Protection
-                </h3>
+                </h2>
               </div>
               
               <div className="relative animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
-                <h3 
-                  className={`text-xl sm:text-2xl md:text-3xl font-bold cursor-pointer hover:scale-105 transition-all duration-500 text-center p-4 rounded-xl border-2 ${
-                    selectedService === 'financial'
-                      ? 'text-secondary border-secondary bg-secondary/5 scale-105 animate-pulse-slow shadow-lg'
-                      : 'text-slate-600 border-slate-200 hover:text-secondary hover:border-secondary/50 hover:bg-secondary/5'
+                <h2 
+                  className={`text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-bold cursor-pointer hover:scale-110 transition-all duration-500 hover:-rotate-1 ${
+                    selectedService === 'financial' ? 'text-secondary scale-115 animate-pulse-slow' : 'text-slate-400 hover:text-secondary'
                   }`}
+                  style={{ transform: 'translateX(60px) translateY(30px)' }}
                   onClick={() => setSelectedService('financial')}
                 >
                   Financial Planning
-                </h3>
+                </h2>
               </div>
+            </div>
+            
+            {/* Curved line decoration */}
+            <div className="absolute inset-0 pointer-events-none">
+              <svg 
+                className="w-full h-full" 
+                viewBox="0 0 600 800" 
+                fill="none" 
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path 
+                  d="M100 150 Q300 200 350 350 Q400 500 450 650" 
+                  stroke="url(#gradient)" 
+                  strokeWidth="3" 
+                  fill="none"
+                  opacity="0.3"
+                />
+                <defs>
+                  <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="hsl(210, 100%, 50%)" />
+                    <stop offset="50%" stopColor="hsl(142, 76%, 36%)" />
+                    <stop offset="100%" stopColor="hsl(210, 100%, 50%)" />
+                  </linearGradient>
+                </defs>
+              </svg>
             </div>
           </div>
           
-          {/* Dynamic Image and Content Display */}
-          <div className="bg-white rounded-3xl shadow-xl overflow-hidden">
-            <div className="grid lg:grid-cols-2 gap-0">
-              
-              {/* Image Section */}
-              <div className="relative h-64 sm:h-80 lg:h-96">
-                <img 
-                  src={services[selectedService as keyof typeof services].image} 
-                  alt={services[selectedService as keyof typeof services].title} 
-                  className="w-full h-full object-cover transition-all duration-500"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
-              </div>
-              
-              {/* Content Section */}
-              <div className="p-6 sm:p-8 lg:p-12 flex flex-col justify-center">
-                <div className="mb-6">
-                  <h3 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 mb-4">
+          {/* Right Side - Dynamic Image Display */}
+          <div className="relative bg-gradient-to-bl from-primary/10 to-secondary/10 order-first lg:order-last">
+            <div className="flex items-center justify-center p-4 sm:p-6 md:p-8 h-96 lg:h-full">
+              <div className="relative w-full max-w-2xl">
+                {/* Dynamic Image based on selected service */}
+                <div className="aspect-video rounded-2xl overflow-hidden shadow-2xl transition-all duration-500">
+                  <img 
+                    src={services[selectedService as keyof typeof services].image} 
+                    alt={services[selectedService as keyof typeof services].title} 
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                
+                {/* Dynamic content card - positioned to not overlap */}
+                <div className="mt-6 lg:absolute lg:-bottom-8 lg:left-0 lg:right-0 bg-white rounded-xl p-4 lg:p-6 shadow-lg border border-primary/20 lg:mx-4">
+                  <h3 className="text-xl lg:text-2xl font-bold text-slate-900 mb-3">
                     {services[selectedService as keyof typeof services].title}
                   </h3>
-                  <p className="text-lg text-slate-600 leading-relaxed">
+                  <p className="text-slate-600 mb-4 text-sm lg:text-base">
                     {services[selectedService as keyof typeof services].subtitle}
                   </p>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
+                    {services[selectedService as keyof typeof services].features.map((feature, index) => (
+                      <div key={index} className="flex items-center space-x-2">
+                        <div className="w-4 h-4 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
+                          <Check className="w-3 h-3 text-white" />
+                        </div>
+                        <span className="text-sm text-slate-700">{feature}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
                 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {services[selectedService as keyof typeof services].features.map((feature, index) => (
-                    <div key={index} className="flex items-center space-x-3">
-                      <div className="w-5 h-5 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
-                        <Check className="w-3 h-3 text-white" />
-                      </div>
-                      <span className="text-slate-700 font-medium">{feature}</span>
+                {/* Floating indicator cards - adjusted positioning */}
+                <div className="hidden lg:block absolute -top-4 -left-4 bg-white rounded-xl p-3 shadow-lg border border-primary/20">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                      <Phone className="w-4 h-4 text-white" />
                     </div>
-                  ))}
-                </div>
-                
-                {/* Service Benefits */}
-                <div className="mt-8 pt-8 border-t border-slate-200">
-                  <div className="grid grid-cols-2 gap-6">
-                    <div className="text-center">
-                      <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-3">
-                        <Phone className="w-6 h-6 text-primary" />
-                      </div>
-                      <h4 className="font-semibold text-slate-900 text-sm">24/7 Support</h4>
+                    <div>
+                      <h4 className="font-semibold text-slate-900 text-xs">24/7 Support</h4>
                       <p className="text-xs text-slate-600">Always available</p>
                     </div>
-                    <div className="text-center">
-                      <div className="w-12 h-12 bg-secondary/10 rounded-xl flex items-center justify-center mx-auto mb-3">
-                        <Shield className="w-6 h-6 text-secondary" />
-                      </div>
-                      <h4 className="font-semibold text-slate-900 text-sm">Protected</h4>
+                  </div>
+                </div>
+                
+                <div className="hidden lg:block absolute -top-4 -right-4 bg-white rounded-xl p-3 shadow-lg border border-secondary/20">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-8 h-8 bg-secondary rounded-lg flex items-center justify-center">
+                      <Shield className="w-4 h-4 text-white" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-slate-900 text-xs">Protected</h4>
                       <p className="text-xs text-slate-600">Complete coverage</p>
                     </div>
                   </div>
