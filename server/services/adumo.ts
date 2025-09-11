@@ -19,7 +19,7 @@ const ADUMO_CONFIG: AdumoConfig = {
   jwtSecret: process.env.ADUMO_JWT_SECRET!,
   testUrl: 'https://staging-apiv3.adumoonline.com/product/payment/v1/initialisevirtual',
   prodUrl: 'https://apiv3.adumoonline.com/product/payment/v1/initialisevirtual',
-  environment: (process.env.NODE_ENV === 'production' ? 'production' : 'test') as 'test' | 'production'
+  environment: 'test' as 'test' | 'production' // Use staging environment for development
 };
 
 // Validate required environment variables
