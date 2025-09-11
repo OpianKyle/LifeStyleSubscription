@@ -83,7 +83,7 @@ export class AdumoService {
     // Create customer if doesn't exist
     const customerId = await this.createCustomer(userId, user.email, user.name);
 
-    // For development, create a subscription without actual payment processing
+    // Create pending subscription - will be activated after payment confirmation
     const now = new Date();
     const nextMonth = new Date();
     nextMonth.setMonth(nextMonth.getMonth() + 1);
@@ -97,7 +97,7 @@ export class AdumoService {
       userId,
       planId: plan.id,
       adumoSubscriptionId: subscriptionId,
-      status: 'ACTIVE' as const,
+      status: 'INCOMPLETE' as const, // SECURITY FIX: Set to INCOMPLETE until payment confirmed
       currentPeriodStart: now,
       currentPeriodEnd: nextMonth
     };
@@ -107,23 +107,23 @@ export class AdumoService {
     // Update user with subscription ID
     await storage.updateUser(userId, { adumoSubscriptionId: subscriptionId });
 
-    // Create initial invoice
+    // Create pending invoice - will be marked paid after Adumo confirmation
     const invoice = await storage.createInvoice({
       userId,
       subscriptionId: subscription.id,
       amount: plan.price,
       currency: 'ZAR',
-      status: 'paid',
-      paidAt: now
+      status: 'pending', // SECURITY FIX: Set to pending until payment confirmed
+      paidAt: null // SECURITY FIX: No payment date until actually paid
     });
 
-    // Create transaction record for payment tracking
+    // Create pending transaction record for payment tracking
     await storage.createTransaction({
       invoiceId: invoice.id,
       userId,
       merchantReference: paymentData.merchantReference,
       adumoTransactionId: null, // Will be updated when payment is processed
-      adumoStatus: 'SUCCESS',
+      adumoStatus: 'PENDING', // SECURITY FIX: Set to PENDING until Adumo confirms
       paymentMethod: null,
       gateway: 'ADUMO',
       amount: plan.price,
@@ -133,16 +133,8 @@ export class AdumoService {
       notifyUrlResponse: null
     });
 
-    // Send welcome email
-    try {
-      await sendEmail('welcome', {
-        name: user.name,
-        planName: plan.name,
-        loginUrl: `${process.env.FRONTEND_URL || 'http://localhost:5000'}/auth`
-      }, user.email, `Welcome to Opian Lifestyle - ${plan.name} Plan`);
-    } catch (emailError) {
-      console.error('Failed to send welcome email:', emailError);
-    }
+    // DO NOT send welcome email yet - wait for payment confirmation
+    // Welcome email will be sent in webhook handler after successful payment
 
     return {
       subscriptionId,
@@ -289,46 +281,32 @@ export class AdumoService {
     // Handle Adumo webhook notifications according to Virtual payment response
     try {
       // Adumo Virtual sends different response parameters
-      const { TransactionReference: reference, Status: status, Amount: amount, TransactionID: transaction_id } = payload;
+      const { TransactionReference: reference, Status: status, Amount: amount, TransactionID: transaction_id, MerchantReference: merchantReference } = payload;
       
       if (status === 'successful' || status === 'Successful') {
-        // Extract user ID from reference
-        const userIdMatch = reference.match(/sub_(.+?)_/);
-        if (!userIdMatch) return;
+        // Find existing transaction by merchant reference to avoid duplicates
+        const existingTransaction = await storage.getTransactionByMerchantReference(merchantReference || `OPIAN_${reference.split('_')[1]?.substring(0, 8)}_${Date.now()}`);
+        
+        if (!existingTransaction) {
+          console.error('No existing transaction found for merchant reference:', merchantReference);
+          return;
+        }
 
-        const userId = userIdMatch[1];
-        const user = await storage.getUserById(userId);
-        const subscription = await storage.getUserSubscription(userId);
+        // Get related invoice and subscription
+        const invoice = await storage.getInvoiceById(existingTransaction.invoiceId);
+        const user = await storage.getUserById(existingTransaction.userId);
+        const subscription = await storage.getUserSubscription(existingTransaction.userId);
 
-        if (!user || !subscription) return;
+        if (!invoice || !user || !subscription) {
+          console.error('Missing required data for webhook processing');
+          return;
+        }
 
-        // Update subscription status and create invoice
-        await storage.updateSubscription(subscription.id, {
-          status: 'ACTIVE'
-        });
-
-        // Create invoice for this payment
-        const invoice = await storage.createInvoice({
-          userId,
-          subscriptionId: subscription.id,
-          amount: (amount / 100).toString(),
-          currency: 'ZAR',
-          status: 'paid',
-          paidAt: new Date()
-        });
-
-        // Create transaction record for this payment
-        await storage.createTransaction({
-          invoiceId: invoice.id,
-          userId,
-          merchantReference: `OPIAN_${userId.substring(0, 8)}_${Date.now()}`,
+        // Update existing transaction with payment confirmation
+        await storage.updateTransaction(existingTransaction.id, {
           adumoTransactionId: transaction_id,
           adumoStatus: 'SUCCESS',
           paymentMethod: payload.PaymentMethod || null,
-          gateway: 'ADUMO',
-          amount: (amount / 100).toString(),
-          currency: 'ZAR',
-          requestPayload: null,
           responsePayload: JSON.stringify({
             transaction_id,
             amount,
@@ -338,16 +316,29 @@ export class AdumoService {
           notifyUrlResponse: JSON.stringify(payload)
         });
 
-        // Send payment confirmation email
+        // Update existing invoice to paid status
+        await storage.updateInvoice(invoice.id, {
+          status: 'paid',
+          paidAt: new Date()
+        });
+
+        // Activate the subscription
+        await storage.updateSubscription(subscription.id, {
+          status: 'ACTIVE'
+        });
+
+        // Send welcome email now that payment is confirmed
         const plan = await storage.getSubscriptionPlanById(subscription.planId);
         if (plan) {
-          await sendEmail('paymentReceipt', {
-            name: user.name,
-            planName: plan.name,
-            amount: `R${(amount / 100).toFixed(2)}`,
-            date: new Date().toLocaleDateString(),
-            transactionId: transaction_id
-          }, user.email, 'Payment receipt for your Opian Lifestyle subscription');
+          try {
+            await sendEmail('welcome', {
+              name: user.name,
+              planName: plan.name,
+              loginUrl: `${process.env.FRONTEND_URL || 'http://localhost:5000'}/auth`
+            }, user.email, `Welcome to Opian Lifestyle - ${plan.name} Plan`);
+          } catch (emailError) {
+            console.error('Failed to send welcome email:', emailError);
+          }
         }
       }
     } catch (error) {

@@ -46,7 +46,9 @@ export interface IStorage {
   
   // Invoice operations
   createInvoice(invoice: InsertInvoice): Promise<Invoice>;
+  getInvoiceById(id: string): Promise<Invoice | undefined>;
   getUserInvoices(userId: string): Promise<Invoice[]>;
+  updateInvoice(id: string, invoice: Partial<Invoice>): Promise<Invoice | undefined>;
   
   // Transaction operations
   createTransaction(transaction: InsertTransaction): Promise<Transaction>;
@@ -321,12 +323,37 @@ export class DatabaseStorage implements IStorage {
     return newInvoice!;
   }
 
+  async getInvoiceById(id: string): Promise<Invoice | undefined> {
+    const [invoice] = await db
+      .select()
+      .from(invoices)
+      .where(eq(invoices.id, id));
+    return invoice;
+  }
+
   async getUserInvoices(userId: string): Promise<Invoice[]> {
     return await db
       .select()
       .from(invoices)
       .where(eq(invoices.userId, userId))
       .orderBy(desc(invoices.createdAt));
+  }
+
+  async updateInvoice(id: string, invoice: Partial<Invoice>): Promise<Invoice | undefined> {
+    await db
+      .update(invoices)
+      .set({ 
+        ...invoice
+        // Note: Invoice table doesn't have updatedAt field
+      })
+      .where(eq(invoices.id, id));
+    
+    // Get the updated invoice
+    const [updatedInvoice] = await db
+      .select()
+      .from(invoices)
+      .where(eq(invoices.id, id));
+    return updatedInvoice;
   }
 
   // Transaction operations
