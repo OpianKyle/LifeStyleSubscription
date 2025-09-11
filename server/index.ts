@@ -5,7 +5,13 @@ import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
 app.use(cookieParser());
-app.use(express.json());
+// Guard JSON parser to preserve raw body for webhook signature verification
+app.use((req, res, next) => {
+  if (req.path === '/api/webhooks/adumo') {
+    return next();
+  }
+  return express.json()(req, res, next);
+});
 app.use(express.urlencoded({ extended: false }));
 
 app.use((req, res, next) => {
