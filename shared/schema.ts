@@ -7,7 +7,8 @@ import {
   decimal, 
   timestamp, 
   boolean,
-  mysqlEnum
+  mysqlEnum,
+  index
 } from "drizzle-orm/mysql-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";

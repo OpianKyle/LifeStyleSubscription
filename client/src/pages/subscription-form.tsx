@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useLocation, useRoute } from 'wouter';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
@@ -7,7 +7,6 @@ import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { 
   Select, 
@@ -26,10 +25,10 @@ import {
 } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
-import { ArrowLeft, Plus, Trash2, Calculator } from 'lucide-react';
+import { ArrowLeft, Calculator } from 'lucide-react';
 import Navbar from '@/components/layout/navbar';
 
-// Form validation schema
+// Form validation schema - cleaned up without banking fields
 const subscriptionFormSchema = z.object({
   // Main Member Details
   title: z.string().min(1, 'Title is required'),
@@ -65,31 +64,12 @@ const subscriptionFormSchema = z.object({
   salaryFrequency: z.enum(['MONTHLY', 'FORTNIGHTLY', 'WEEKLY']),
   salaryPaymentDay: z.number().min(1).max(31),
   
-  // Banking Details
-  accountHolder: z.string().min(1, 'Account holder name is required'),
-  bankName: z.string().min(1, 'Bank name is required'),
-  accountType: z.enum(['CURRENT', 'SAVINGS']),
-  policyNumber: z.string().optional(),
-  accountNumber: z.string().min(8, 'Account number is required'),
-  branchNumber: z.string().min(6, 'Branch number is required'),
-  firstDeductionDate: z.string().min(1, 'First deduction date is required'),
-  debitAmountAuthorised: z.number().min(0),
-  
   // Terms and Conditions
   acceptTerms: z.boolean().refine(val => val === true, 'You must accept terms and conditions'),
   acceptPrivacy: z.boolean().refine(val => val === true, 'You must accept privacy policy'),
 });
 
 type SubscriptionFormData = z.infer<typeof subscriptionFormSchema>;
-
-interface ExtendedMember {
-  id: string;
-  firstName: string;
-  surname: string;
-  idNumber: string;
-  relation: string;
-  coverAmount: number;
-}
 
 // Age calculation from SA ID
 function calculateAgeFromId(idNumber: string): number | null {
@@ -113,65 +93,11 @@ function calculateAgeFromId(idNumber: string): number | null {
   return age >= 0 && age <= 120 ? age : null;
 }
 
-// Premium calculation
-function calculatePremium(age: number, relation: string, coverAmount: number): number {
-  const coverPer1000 = coverAmount / 1000;
-  
-  if (relation === 'SPOUSE') {
-    if (age >= 18 && age <= 45) return coverPer1000 * 2.55;
-    if (age >= 46 && age <= 50) return coverPer1000 * 2.95;
-    if (age >= 51 && age <= 60) return coverPer1000 * 3.55;
-    if (age >= 61 && age <= 70) return coverPer1000 * 3.55;
-  }
-  
-  if (relation === 'CHILD') {
-    if (age >= 0 && age <= 5) return coverPer1000 * 1.95;
-    if (age >= 6 && age <= 13) return coverPer1000 * 2.05;
-    if (age >= 14 && age <= 20) return coverPer1000 * 2.25;
-  }
-  
-  if (relation === 'PARENT') {
-    if (age >= 18 && age <= 25) return coverPer1000 * 2.48;
-    if (age >= 26 && age <= 30) return coverPer1000 * 3.88;
-    if (age >= 31 && age <= 35) return coverPer1000 * 4.72;
-    if (age >= 36 && age <= 40) return coverPer1000 * 5.48;
-    if (age >= 41 && age <= 45) return coverPer1000 * 5.64;
-    if (age >= 46 && age <= 50) return coverPer1000 * 6.44;
-    if (age >= 51 && age <= 55) return coverPer1000 * 6.44;
-    if (age >= 56 && age <= 60) return coverPer1000 * 8.94;
-    if (age >= 61 && age <= 65) return coverPer1000 * 13.12;
-    if (age >= 66 && age <= 70) return coverPer1000 * 20.08;
-    if (age >= 71 && age <= 75) return coverPer1000 * 21.84;
-  }
-  
-  if (relation === 'EXTENDED_FAMILY') {
-    if (age >= 18 && age <= 45) return coverPer1000 * 2.55;
-    if (age >= 46 && age <= 55) return coverPer1000 * 3.55;
-    if (age >= 56 && age <= 64) return coverPer1000 * 4.55;
-  }
-  
-  return coverPer1000 * 2.55;
-}
-
-// Available cover amounts based on age
-function getAvailableCoverAmounts(age: number | null): number[] {
-  if (!age) return [10000, 15000, 20000, 25000, 30000];
-  
-  if (age < 50) {
-    return [10000, 15000, 20000, 25000, 30000, 40000, 50000, 60000, 70000, 80000, 90000, 100000];
-  } else {
-    return [10000, 15000, 20000, 25000, 30000];
-  }
-}
-
 export default function SubscriptionForm() {
   const [, setLocation] = useLocation();
   const [match, params] = useRoute('/subscription-form/:planId');
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  
-  const [extendedMembers, setExtendedMembers] = useState<ExtendedMember[]>([]);
-  const [showQuote, setShowQuote] = useState(false);
 
   const form = useForm<SubscriptionFormData>({
     resolver: zodResolver(subscriptionFormSchema),
@@ -210,54 +136,12 @@ export default function SubscriptionForm() {
     }
   }, [watchedPartnerIdNumber, form]);
 
-  // Update debit amount when quote changes
-  useEffect(() => {
-    const currentQuote = calculateQuote();
-    form.setValue('debitAmountAuthorised', currentQuote.totalPrice);
-  }, [extendedMembers, selectedPlan, form]);
-
-  // Add extended member
-  const addExtendedMember = () => {
-    const newMember: ExtendedMember = {
-      id: `temp-${Date.now()}`,
-      firstName: '',
-      surname: '',
-      idNumber: '',
-      relation: '',
-      coverAmount: 10000,
-    };
-    setExtendedMembers([...extendedMembers, newMember]);
-  };
-
-  // Remove extended member
-  const removeExtendedMember = (id: string) => {
-    setExtendedMembers(extendedMembers.filter(m => m.id !== id));
-  };
-
-  // Update extended member
-  const updateExtendedMember = (id: string, field: string, value: any) => {
-    setExtendedMembers(members =>
-      members.map(member =>
-        member.id === id ? { ...member, [field]: value } : member
-      )
-    );
-  };
-
-  // Calculate total quote
+  // Simplified quote calculation - only plan price
   const calculateQuote = () => {
     const planPrice = parseFloat(selectedPlan?.price) || 0;
-    const extendedTotal = extendedMembers.reduce((total, member) => {
-      const age = calculateAgeFromId(member.idNumber);
-      if (age && member.relation && member.coverAmount) {
-        return total + calculatePremium(age, member.relation, member.coverAmount);
-      }
-      return total;
-    }, 0);
-    
     return {
       planPrice,
-      extendedTotal,
-      totalPrice: planPrice + extendedTotal
+      totalPrice: planPrice
     };
   };
 
@@ -266,7 +150,7 @@ export default function SubscriptionForm() {
     mutationFn: async (data: SubscriptionFormData) => {
       const quote = calculateQuote();
       
-      // Create subscription with all data
+      // Create subscription with simplified data
       const subscriptionData = {
         planId: params?.planId,
         mainMemberDetails: {
@@ -303,20 +187,8 @@ export default function SubscriptionForm() {
           salaryFrequency: data.salaryFrequency,
           salaryPaymentDay: data.salaryPaymentDay,
         },
-        bankingDetails: {
-          accountHolder: data.accountHolder,
-          bankName: data.bankName,
-          accountType: data.accountType,
-          policyNumber: data.policyNumber,
-          accountNumber: data.accountNumber,
-          branchNumber: data.branchNumber,
-          firstDeductionDate: data.firstDeductionDate,
-          debitAmountAuthorised: data.debitAmountAuthorised,
-        },
-        extendedMembers,
         totalAmount: quote.totalPrice,
         planAmount: quote.planPrice,
-        extendedAmount: quote.extendedTotal,
       };
 
       return apiRequest('POST', '/api/subscriptions/create-full', subscriptionData);
@@ -809,7 +681,7 @@ export default function SubscriptionForm() {
                     name="appointmentDate"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Appointment Date</FormLabel>
+                        <FormLabel>Appointment Date (if applicable)</FormLabel>
                         <FormControl>
                           <Input {...field} type="date" data-testid="input-appointmentDate" />
                         </FormControl>
@@ -819,21 +691,34 @@ export default function SubscriptionForm() {
                   />
                 </div>
 
+                <FormField
+                  control={form.control}
+                  name="basicSalary"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Basic Salary (R)</FormLabel>
+                      <FormControl>
+                        <Input 
+                          {...field} 
+                          type="number" 
+                          onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                          data-testid="input-basicSalary"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
-                    name="basicSalary"
+                    name="employerName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Basic Salary (before deductions)</FormLabel>
+                        <FormLabel>Employer Name</FormLabel>
                         <FormControl>
-                          <Input 
-                            {...field} 
-                            type="number" 
-                            placeholder="0.00"
-                            onChange={(e) => field.onChange(Number(e.target.value))}
-                            data-testid="input-basicSalary"
-                          />
+                          <Input {...field} data-testid="input-employerName" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -842,39 +727,28 @@ export default function SubscriptionForm() {
                   
                   <FormField
                     control={form.control}
-                    name="salaryPaymentDay"
+                    name="employmentSector"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Salary Payment Day</FormLabel>
+                        <FormLabel>Employment Sector</FormLabel>
                         <FormControl>
-                          <Input 
-                            {...field} 
-                            type="number" 
-                            min="1" 
-                            max="31"
-                            onChange={(e) => field.onChange(Number(e.target.value))}
-                            data-testid="input-salaryPaymentDay"
-                          />
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <SelectTrigger data-testid="select-employmentSector">
+                              <SelectValue placeholder="Select sector" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="GOVERNMENT">Government</SelectItem>
+                              <SelectItem value="SEMI_GOVERNMENT">Semi-Government</SelectItem>
+                              <SelectItem value="PRIVATE">Private</SelectItem>
+                              <SelectItem value="INFORMAL">Informal</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
                 </div>
-
-                <FormField
-                  control={form.control}
-                  name="employerName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Name and Address of Employer</FormLabel>
-                      <FormControl>
-                        <Input {...field} data-testid="input-employerName" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
 
                 <FormField
                   control={form.control}
@@ -891,30 +765,6 @@ export default function SubscriptionForm() {
                 />
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="employmentSector"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Employment Sector</FormLabel>
-                        <FormControl>
-                          <Select onValueChange={field.onChange} value={field.value}>
-                            <SelectTrigger data-testid="select-employmentSector">
-                              <SelectValue placeholder="Select sector" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="GOVERNMENT">Government</SelectItem>
-                              <SelectItem value="SEMI_GOVERNMENT">Semi-Government</SelectItem>
-                              <SelectItem value="PRIVATE">Private Sector</SelectItem>
-                              <SelectItem value="INFORMAL">Informal Sector</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
                   <FormField
                     control={form.control}
                     name="salaryFrequency"
@@ -937,144 +787,21 @@ export default function SubscriptionForm() {
                       </FormItem>
                     )}
                   />
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Banking Details */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-xl text-blue-800 bg-blue-100 p-3 rounded">
-                  BANKING DETAILS
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="accountHolder"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Account Holder</FormLabel>
-                        <FormControl>
-                          <Input {...field} data-testid="input-accountHolder" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
                   
                   <FormField
                     control={form.control}
-                    name="bankName"
+                    name="salaryPaymentDay"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Bank / Building Society</FormLabel>
-                        <FormControl>
-                          <Input {...field} data-testid="input-bankName" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="accountType"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Account Type</FormLabel>
-                        <FormControl>
-                          <Select onValueChange={field.onChange} value={field.value}>
-                            <SelectTrigger data-testid="select-accountType">
-                              <SelectValue placeholder="Select account type" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="CURRENT">Current</SelectItem>
-                              <SelectItem value="SAVINGS">Savings</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="policyNumber"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Policy Number</FormLabel>
-                        <FormControl>
-                          <Input {...field} data-testid="input-policyNumber" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="accountNumber"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Account Number</FormLabel>
-                        <FormControl>
-                          <Input {...field} data-testid="input-accountNumber" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="branchNumber"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Branch Number</FormLabel>
-                        <FormControl>
-                          <Input {...field} data-testid="input-branchNumber" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="firstDeductionDate"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Date of First Deduction</FormLabel>
-                        <FormControl>
-                          <Input {...field} type="date" data-testid="input-firstDeductionDate" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="debitAmountAuthorised"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Debit Amount Authorised</FormLabel>
+                        <FormLabel>Salary Payment Day</FormLabel>
                         <FormControl>
                           <Input 
                             {...field} 
                             type="number" 
-                            readOnly
-                            className="bg-gray-100"
-                            data-testid="input-debitAmountAuthorised"
+                            min="1" 
+                            max="31"
+                            onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
+                            data-testid="input-salaryPaymentDay"
                           />
                         </FormControl>
                         <FormMessage />
@@ -1082,150 +809,6 @@ export default function SubscriptionForm() {
                     )}
                   />
                 </div>
-              </CardContent>
-            </Card>
-
-            {/* Extended Members */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-xl text-blue-800 bg-blue-100 p-3 rounded flex justify-between items-center">
-                  EXTENDED FAMILY MEMBERS
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={addExtendedMember}
-                    data-testid="button-add-member"
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Member
-                  </Button>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {extendedMembers.length === 0 ? (
-                  <p className="text-gray-500 text-center py-8">
-                    No extended family members added. Click "Add Member" to include additional coverage.
-                  </p>
-                ) : (
-                  <div className="space-y-4">
-                    {extendedMembers.map((member, index) => (
-                      <Card key={member.id} className="border border-gray-200">
-                        <CardContent className="p-4">
-                          <div className="flex justify-between items-center mb-4">
-                            <h4 className="font-medium">Member {index + 1}</h4>
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={() => removeExtendedMember(member.id)}
-                              data-testid={`button-remove-member-${member.id}`}
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
-                          
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                              <Label>First Name</Label>
-                              <Input
-                                value={member.firstName}
-                                onChange={(e) => updateExtendedMember(member.id, 'firstName', e.target.value)}
-                                data-testid={`input-member-firstName-${member.id}`}
-                              />
-                            </div>
-                            
-                            <div>
-                              <Label>Surname</Label>
-                              <Input
-                                value={member.surname}
-                                onChange={(e) => updateExtendedMember(member.id, 'surname', e.target.value)}
-                                data-testid={`input-member-surname-${member.id}`}
-                              />
-                            </div>
-                          </div>
-                          
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-                            <div>
-                              <Label>ID Number</Label>
-                              <Input
-                                value={member.idNumber}
-                                onChange={(e) => updateExtendedMember(member.id, 'idNumber', e.target.value)}
-                                maxLength={13}
-                                placeholder="13-digit ID"
-                                data-testid={`input-member-idNumber-${member.id}`}
-                              />
-                            </div>
-                            
-                            <div>
-                              <Label>Age</Label>
-                              <Input
-                                value={calculateAgeFromId(member.idNumber) || ''}
-                                readOnly
-                                className="bg-gray-100"
-                                data-testid={`input-member-age-${member.id}`}
-                              />
-                            </div>
-                            
-                            <div>
-                              <Label>Relationship</Label>
-                              <Select
-                                value={member.relation}
-                                onValueChange={(value) => updateExtendedMember(member.id, 'relation', value)}
-                              >
-                                <SelectTrigger data-testid={`select-member-relation-${member.id}`}>
-                                  <SelectValue placeholder="Select relationship" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="SPOUSE">Spouse/Partner</SelectItem>
-                                  <SelectItem value="CHILD">Child</SelectItem>
-                                  <SelectItem value="PARENT">Parent</SelectItem>
-                                  <SelectItem value="EXTENDED_FAMILY">Extended Family</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                          </div>
-                          
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                            <div>
-                              <Label>Cover Amount</Label>
-                              <Select
-                                value={member.coverAmount.toString()}
-                                onValueChange={(value) => updateExtendedMember(member.id, 'coverAmount', Number(value))}
-                              >
-                                <SelectTrigger data-testid={`select-member-coverAmount-${member.id}`}>
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {getAvailableCoverAmounts(calculateAgeFromId(member.idNumber)).map((amount) => (
-                                    <SelectItem key={amount} value={amount.toString()}>
-                                      R{amount.toLocaleString()}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            
-                            <div>
-                              <Label>Monthly Premium</Label>
-                              <Input
-                                value={(() => {
-                                  const age = calculateAgeFromId(member.idNumber);
-                                  if (!age || !member.relation || !member.coverAmount) return 'R0.00';
-                                  const premium = calculatePremium(age, member.relation, member.coverAmount);
-                                  return `R${premium.toFixed(2)}`;
-                                })()}
-                                readOnly
-                                className="bg-gray-100"
-                                data-testid={`input-member-premium-${member.id}`}
-                              />
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                )}
               </CardContent>
             </Card>
 
@@ -1243,13 +826,6 @@ export default function SubscriptionForm() {
                     <span className="font-medium">{selectedPlan.name} Plan:</span>
                     <span className="font-medium">R{quote.planPrice.toFixed(2)}</span>
                   </div>
-                  
-                  {quote.extendedTotal > 0 && (
-                    <div className="flex justify-between">
-                      <span className="font-medium">Extended Members:</span>
-                      <span className="font-medium">R{quote.extendedTotal.toFixed(2)}</span>
-                    </div>
-                  )}
                   
                   <div className="border-t pt-3">
                     <div className="flex justify-between text-lg font-bold">
@@ -1359,39 +935,6 @@ export default function SubscriptionForm() {
                       <p className="text-sm text-gray-500">{selectedPlan.description}</p>
                     </div>
 
-                    {/* Extended Coverage */}
-                    {extendedMembers.length > 0 && (
-                      <div className="border-b pb-4">
-                        <h4 className="font-medium text-gray-700 mb-3">Extended Coverage</h4>
-                        <div className="space-y-2">
-                          {extendedMembers.map((member) => {
-                            const age = calculateAgeFromId(member.idNumber);
-                            const premium = age && member.relation && member.coverAmount 
-                              ? calculatePremium(age, member.relation, member.coverAmount)
-                              : 0;
-                            
-                            return (
-                              <div key={member.id} className="flex justify-between items-center text-sm">
-                                <div>
-                                  <span className="text-gray-600">
-                                    {member.firstName || 'New'} {member.surname || 'Member'}
-                                  </span>
-                                  {member.relation && (
-                                    <span className="text-xs text-gray-500 block">
-                                      {member.relation} • R{member.coverAmount?.toLocaleString() || '0'} cover
-                                    </span>
-                                  )}
-                                </div>
-                                <span className="font-medium text-gray-700">
-                                  R{premium.toFixed(2)}
-                                </span>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )}
-
                     {/* Total */}
                     <div className="bg-blue-50 p-4 rounded-lg">
                       <div className="flex justify-between items-center">
@@ -1403,20 +946,6 @@ export default function SubscriptionForm() {
                       <p className="text-sm text-gray-600 mt-1">
                         Billed monthly • Cancel anytime
                       </p>
-                    </div>
-
-                    {/* Breakdown Summary */}
-                    <div className="text-xs text-gray-500 space-y-1">
-                      <div className="flex justify-between">
-                        <span>Base plan:</span>
-                        <span>R{quote.planPrice.toFixed(2)}</span>
-                      </div>
-                      {quote.extendedTotal > 0 && (
-                        <div className="flex justify-between">
-                          <span>Extended coverage:</span>
-                          <span>R{quote.extendedTotal.toFixed(2)}</span>
-                        </div>
-                      )}
                     </div>
                   </div>
                 </CardContent>
