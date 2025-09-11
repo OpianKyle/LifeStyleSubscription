@@ -842,7 +842,9 @@ export class AdumoService {
       });
       
       // Use JWT result field as primary success indicator (0 = success, negative = failure)
-      if (result === 0 && (status === 'AUTHORIZED' || status === 'AUTHORISED' || status === 'SETTLED')) {
+      // Handle both string and number formats from Adumo
+      const resultValue = typeof result === 'string' ? parseInt(result) : result;
+      if (resultValue === 0 && (status === 'AUTHORIZED' || status === 'AUTHORISED' || status === 'SETTLED')) {
         // Find existing transaction by merchant reference to avoid duplicates
         const existingTransaction = await storage.getTransactionByMerchantReference(merchantReference);
         
@@ -993,7 +995,9 @@ export class AdumoService {
         }
         
         // Check result field for success (0 = success, negative = failure)
-        if (decoded.result !== 0) {
+        // Handle both string and number formats from Adumo
+        const resultValue = typeof decoded.result === 'string' ? parseInt(decoded.result) : decoded.result;
+        if (resultValue !== 0) {
           console.log('⚠️ Payment failed according to JWT result field:', decoded.result);
         }
         
