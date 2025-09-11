@@ -16,7 +16,7 @@ import { relations } from "drizzle-orm";
 
 // Enums
 export const userRoleEnum = mysqlEnum('role', ['USER', 'ADMIN']);
-export const subscriptionStatusEnum = mysqlEnum('status', ['ACTIVE', 'CANCELED', 'PAST_DUE', 'INCOMPLETE']);
+export const subscriptionStatusEnum = mysqlEnum('status', ['ACTIVE', 'CANCELED', 'PAST_DUE', 'INCOMPLETE', 'PAUSED']);
 export const planNameEnum = mysqlEnum('name', ['OPPORTUNITY', 'MOMENTUM', 'PROSPER', 'PRESTIGE', 'PINNACLE']);
 export const familyRelationEnum = mysqlEnum('relation', ['SPOUSE', 'CHILD', 'PARENT', 'EXTENDED_FAMILY']);
 export const transactionStatusEnum = mysqlEnum('adumo_status', ['PENDING', 'SUCCESS', 'FAILED', 'CANCELED', 'REFUNDED']);

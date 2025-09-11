@@ -71,7 +71,7 @@ export class AdumoService {
         customerId,
         customerEmail: user.email,
         planId: plan.adumoProductId || plan.id,
-        priceId: plan.adumopriceId || plan.id,
+        priceId: plan.adumoPriceId || plan.id,
         paymentMethodToken: paymentToken,
         billingCycle: 'monthly',
         currency: 'ZAR',
@@ -130,7 +130,7 @@ export class AdumoService {
       const updateData = {
         subscriptionId: subscription.adumoSubscriptionId,
         newPlanId: newPlan.adumoProductId || newPlan.id,
-        newPriceId: newPlan.adumopriceId || newPlan.id,
+        newPriceId: newPlan.adumoPriceId || newPlan.id,
         newAmount: newPlan.price,
         prorationType: 'immediate' // or 'next_cycle'
       };
@@ -215,8 +215,8 @@ export class AdumoService {
 
       await this.callAdumoSubscriptionAPI(action, actionData);
 
-      // Update local subscription status
-      const newStatus = action === 'pause' ? 'PAST_DUE' : 'ACTIVE';
+      // Update local subscription status  
+      const newStatus = action === 'pause' ? 'PAUSED' : 'ACTIVE';
       await storage.updateSubscription(subscription.id, { status: newStatus });
 
       return {
@@ -295,7 +295,7 @@ export class AdumoService {
       'ApplicationUID': ADUMO_CONFIG.applicationId
     };
 
-    console.log(`Calling Adumo Subscription API: ${action}`, { baseUrl, data });
+    console.log(`Calling Adumo Subscription API: ${action}`, { baseUrl, dataKeys: Object.keys(data) });
 
     try {
       switch (action) {
@@ -350,7 +350,7 @@ export class AdumoService {
     }
 
     const subscriber = await subscriberResponse.json();
-    console.log('Created subscriber:', subscriber);
+    console.log('Created subscriber:', { id: subscriber.id, status: subscriber.status });
 
     // Create schedule for recurring billing
     const schedulePayload = {
@@ -373,7 +373,7 @@ export class AdumoService {
     }
 
     const schedule = await scheduleResponse.json();
-    console.log('Created schedule:', schedule);
+    console.log('Created schedule:', { id: schedule.id, status: schedule.status });
 
     return {
       subscriptionId: subscriber.id,
