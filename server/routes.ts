@@ -3,7 +3,7 @@ import express from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { AuthService } from "./services/auth";
-import { AdumoService } from "./services/adumo";
+import { AdumoService } from "./services/adumo-backup";
 import { z } from "zod";
 import nodemailer from 'nodemailer';
 
