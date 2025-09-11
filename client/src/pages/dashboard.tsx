@@ -42,7 +42,8 @@ import {
   Check,
   ChevronLeft,
   ChevronRight,
-  UserPlus
+  UserPlus,
+  Activity
 } from "lucide-react";
 import PlanCard from "@/components/pricing/plan-card";
 import {
@@ -92,6 +93,11 @@ function DashboardContent() {
 
   const { data: invoicesData, isLoading: invoicesLoading } = useQuery({
     queryKey: ["/api/invoices"],
+    enabled: isAuthenticated,
+  });
+
+  const { data: transactionsData, isLoading: transactionsLoading } = useQuery({
+    queryKey: ["/api/transactions"],
     enabled: isAuthenticated,
   });
 
@@ -272,6 +278,13 @@ function DashboardContent() {
       icon: FileText,
       id: "invoices",
       onClick: () => setActiveSection('invoices'),
+      requiresSubscription: true
+    },
+    {
+      title: "Transaction History",
+      icon: Activity,
+      id: "transactions",
+      onClick: () => setActiveSection('transactions'),
       requiresSubscription: true
     },
     {
@@ -795,6 +808,114 @@ function DashboardContent() {
                           onClick={() => setLocation('/pricing')}
                           size="lg"
                           className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700"
+                        >
+                          Start Subscription
+                        </Button>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {activeSection === 'transactions' && (
+              <div className="space-y-8">
+                {/* Transaction History Welcome Section */}
+                <div className="relative overflow-hidden rounded-2xl p-8">
+                  {/* Stained Glass Background */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-teal-200/90 via-cyan-100/70 to-blue-200/85"></div>
+                  <div className="absolute inset-0 bg-gradient-to-tl from-emerald-200/60 via-transparent to-teal-200/50"></div>
+                  <div className="absolute inset-0 bg-gradient-to-r from-cyan-100/60 via-transparent to-indigo-100/55"></div>
+                  <div className="absolute inset-0 bg-gradient-to-tr from-teal-100/40 via-transparent to-cyan-100/45"></div>
+                  
+                  {/* Glass overlay */}
+                  <div className="absolute inset-0 backdrop-blur-sm bg-white/15 border border-white/40"></div>
+                  
+                  {/* Content */}
+                  <div className="relative z-10">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h2 className="text-2xl font-bold mb-2 text-slate-800">Transaction History</h2>
+                        <p className="text-slate-600 text-lg">
+                          {(transactionsData as any)?.transactions?.length > 0 ? 
+                            `${(transactionsData as any)?.transactions?.length} payment transaction${(transactionsData as any)?.transactions?.length > 1 ? 's' : ''} recorded` : 
+                            'No payment transactions yet'
+                          }
+                        </p>
+                      </div>
+                      <div className="hidden md:block">
+                        <div className="w-20 h-20 bg-gradient-to-br from-white/50 to-teal-100/40 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/50 shadow-lg">
+                          <Activity className="w-10 h-10 text-teal-600" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <Card className="border-2 border-teal-200 bg-gradient-to-br from-teal-50 to-cyan-50">
+                  <CardHeader>
+                    <CardTitle className="text-teal-900">Payment Transactions</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {transactionsLoading ? (
+                      <div className="flex items-center justify-center py-8">
+                        <div className="animate-spin h-8 w-8 border-4 border-teal-500 border-t-transparent rounded-full" />
+                      </div>
+                    ) : (transactionsData as any)?.transactions?.length > 0 ? (
+                      <div className="space-y-4">
+                        {(transactionsData as any)?.transactions?.map((transaction: any) => (
+                          <div key={transaction.id} className="bg-white/50 rounded-lg p-4 border border-white/30">
+                            <div className="flex items-center justify-between">
+                              <div className="flex-1">
+                                <div className="flex items-center space-x-3 mb-2">
+                                  <p className="font-semibold text-teal-900 text-lg">R{parseFloat(transaction.amount).toFixed(2)}</p>
+                                  <Badge className={transaction.adumoStatus === 'SUCCESS' ? 'bg-emerald-500 hover:bg-emerald-500 text-white' : 
+                                                   transaction.adumoStatus === 'PENDING' ? 'bg-amber-500 hover:bg-amber-500 text-white' :
+                                                   'bg-red-500 hover:bg-red-500 text-white'}>
+                                    {transaction.adumoStatus}
+                                  </Badge>
+                                  <span className="text-xs px-2 py-1 bg-teal-100 text-teal-700 rounded">
+                                    {transaction.gateway}
+                                  </span>
+                                </div>
+                                <div className="grid md:grid-cols-3 gap-4 text-sm text-teal-700">
+                                  <div>
+                                    <span className="font-medium">Date:</span> {new Date(transaction.createdAt).toLocaleDateString('en-ZA', { 
+                                      year: 'numeric', 
+                                      month: 'short', 
+                                      day: 'numeric',
+                                      hour: '2-digit',
+                                      minute: '2-digit'
+                                    })}
+                                  </div>
+                                  <div>
+                                    <span className="font-medium">Reference:</span> {transaction.merchantReference}
+                                  </div>
+                                  <div>
+                                    <span className="font-medium">Payment Method:</span> {transaction.paymentMethod || 'Card'}
+                                  </div>
+                                </div>
+                                {transaction.adumoTransactionId && (
+                                  <div className="mt-2 text-xs text-teal-600">
+                                    Transaction ID: {transaction.adumoTransactionId}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-12">
+                        <div className="w-20 h-20 bg-gradient-to-br from-teal-500 to-teal-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                          <Activity className="w-10 h-10 text-white" />
+                        </div>
+                        <h3 className="text-2xl font-bold text-slate-900 mb-4">No Transactions Yet</h3>
+                        <p className="text-slate-600 mb-8 max-w-md mx-auto">Your payment transactions will appear here once you start making payments</p>
+                        <Button 
+                          onClick={() => setLocation('/pricing')}
+                          size="lg"
+                          className="bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700"
                         >
                           Start Subscription
                         </Button>

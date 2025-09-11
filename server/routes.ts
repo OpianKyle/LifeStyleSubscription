@@ -479,6 +479,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Transaction routes
+  app.get('/api/transactions', authenticateToken, async (req: any, res: Response) => {
+    try {
+      const userId = req.user.id;
+      const transactions = await storage.getTransactionsByUserId(userId);
+      
+      res.json({ 
+        transactions: transactions.map(transaction => ({
+          id: transaction.id,
+          invoiceId: transaction.invoiceId,
+          merchantReference: transaction.merchantReference,
+          adumoTransactionId: transaction.adumoTransactionId,
+          adumoStatus: transaction.adumoStatus,
+          paymentMethod: transaction.paymentMethod,
+          gateway: transaction.gateway,
+          amount: transaction.amount,
+          currency: transaction.currency,
+          createdAt: transaction.createdAt,
+          updatedAt: transaction.updatedAt
+        }))
+      });
+    } catch (error: any) {
+      console.error('Error fetching user transactions:', error);
+      res.status(500).json({ message: 'Failed to fetch transactions' });
+    }
+  });
+
   // Admin routes
   app.get('/api/admin/users', authenticateToken, requireAdmin, async (_req: Request, res: Response) => {
     try {
