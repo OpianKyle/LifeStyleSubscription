@@ -102,15 +102,30 @@ export class AdumoService {
     // Update user with subscription ID
     await storage.updateUser(userId, { adumoSubscriptionId: subscriptionId });
 
-    // Create initial invoice with merchant reference in description
-    await storage.createInvoice({
+    // Create initial invoice
+    const invoice = await storage.createInvoice({
       userId,
       subscriptionId: subscription.id,
-      adumoInvoiceId: `inv_${userId}_${Date.now()}`,
       amount: plan.price,
       currency: 'ZAR',
       status: 'paid',
       paidAt: now
+    });
+
+    // Create transaction record for payment tracking
+    await storage.createTransaction({
+      invoiceId: invoice.id,
+      userId,
+      merchantReference: paymentData.merchantReference,
+      adumoTransactionId: null, // Will be updated when payment is processed
+      adumoStatus: 'SUCCESS',
+      paymentMethod: null,
+      gateway: 'ADUMO',
+      amount: plan.price,
+      currency: 'ZAR',
+      requestPayload: JSON.stringify(paymentData),
+      responsePayload: null,
+      notifyUrlResponse: null
     });
 
     // Send welcome email
@@ -272,14 +287,35 @@ export class AdumoService {
           status: 'ACTIVE'
         });
 
-        await storage.createInvoice({
+        // Create invoice for this payment
+        const invoice = await storage.createInvoice({
           userId,
           subscriptionId: subscription.id,
-          adumoInvoiceId: transaction_id,
           amount: (amount / 100).toString(),
           currency: 'ZAR',
           status: 'paid',
           paidAt: new Date()
+        });
+
+        // Create transaction record for this payment
+        await storage.createTransaction({
+          invoiceId: invoice.id,
+          userId,
+          merchantReference: `OPIAN_${userId.substring(0, 8)}_${Date.now()}`,
+          adumoTransactionId: transaction_id,
+          adumoStatus: 'SUCCESS',
+          paymentMethod: payment_method || null,
+          gateway: 'ADUMO',
+          amount: (amount / 100).toString(),
+          currency: 'ZAR',
+          requestPayload: null,
+          responsePayload: JSON.stringify({
+            transaction_id,
+            amount,
+            payment_method,
+            result: 'SUCCESS'
+          }),
+          notifyUrlResponse: JSON.stringify(req.body)
         });
 
         // Send payment confirmation email
