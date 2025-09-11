@@ -364,10 +364,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get the subscription that was created by AdumoService
       const subscription = await storage.getUserSubscription(req.user.id);
       
-      console.log('🚀 AdumoResult from service:', JSON.stringify(adumoResult, null, 2));
-      console.log('🔍 requiresPayment check:', 'requiresPayment' in adumoResult, (adumoResult as any).requiresPayment);
-      console.log('🔍 paymentData check:', 'paymentData' in adumoResult, (adumoResult as any).paymentData);
-      
       const response = {
         message: (adumoResult as any).message || 'Subscription created successfully',
         subscription: subscription,
@@ -375,8 +371,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         requiresPayment: 'requiresPayment' in adumoResult ? (adumoResult as any).requiresPayment : false,
         paymentData: 'paymentData' in adumoResult ? (adumoResult as any).paymentData : undefined
       };
-      
-      console.log('📤 Final response being sent:', JSON.stringify(response, null, 2));
       
       res.json(response);
     } catch (error: any) {

@@ -640,8 +640,8 @@ export class AdumoService {
       
       // Required form parameters for Adumo Virtual
       formData: {
-        MerchantUID: ADUMO_CONFIG.merchantId,
-        ApplicationUID: ADUMO_CONFIG.applicationId,
+        MerchantID: ADUMO_CONFIG.merchantId,
+        ApplicationID: ADUMO_CONFIG.applicationId,
         TransactionReference: reference,
         MerchantReference: merchantReference,
         Amount: amount,

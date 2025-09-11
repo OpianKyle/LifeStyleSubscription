@@ -194,10 +194,6 @@ export default function SubscriptionForm() {
       return apiRequest('POST', '/api/subscriptions/create-full', subscriptionData);
     },
     onSuccess: (result: any) => {
-      console.log('🚀 Subscription creation result:', result);
-      console.log('🔍 requiresPayment:', result.requiresPayment);
-      console.log('🔍 paymentData:', result.paymentData);
-      
       // Check if payment is required (Adumo redirect)
       if (result.requiresPayment && result.paymentData) {
         const { url, formData } = result.paymentData;
