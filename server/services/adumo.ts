@@ -823,17 +823,40 @@ export class AdumoService {
   static async processPaymentWebhook(payload: any) {
     // Handle Adumo webhook notifications according to Virtual payment response
     try {
-      // Adumo webhook sends these field names per their documentation
-      const { transactionId: transaction_id, status, amount, merchantReference } = payload;
+      // Extract data from both payload and decoded JWT according to Adumo specs
+      const { transactionId: transaction_id, status } = payload;
       
-      if (status === 'AUTHORIZED' || status === 'SETTLED') {
+      if (!payload.jwtDecoded) {
+        console.error('❌ No decoded JWT data available for processing');
+        return;
+      }
+      
+      const { mref: merchantReference, amount, result } = payload.jwtDecoded;
+      
+      console.log('🔍 Processing payment webhook with JWT validation:', {
+        transactionId: transaction_id,
+        merchantReference,
+        status,
+        result,
+        amount
+      });
+      
+      // Use JWT result field as primary success indicator (0 = success, negative = failure)
+      if (result === 0 && (status === 'AUTHORIZED' || status === 'AUTHORISED' || status === 'SETTLED')) {
         // Find existing transaction by merchant reference to avoid duplicates
         const existingTransaction = await storage.getTransactionByMerchantReference(merchantReference);
         
         if (!existingTransaction) {
-          console.error('No existing transaction found for merchant reference:', merchantReference);
+          console.error('❌ No existing transaction found for merchant reference:', merchantReference);
           return;
         }
+        
+        console.log('✅ Found existing transaction:', {
+          id: existingTransaction.id,
+          merchantReference: existingTransaction.merchantReference,
+          currentStatus: existingTransaction.adumoStatus,
+          amount: existingTransaction.amount
+        });
 
         // SECURITY: Check if transaction is already processed to prevent replay attacks
         if (existingTransaction.adumoStatus === 'SUCCESS') {
@@ -947,13 +970,45 @@ export class AdumoService {
 
       // Verify the JWT token using our existing JWT secret
       try {
-        const decoded = jwt.verify(token, ADUMO_CONFIG.jwtSecret);
-        console.log('✅ Webhook JWT verified successfully:', { 
-          transactionId: payload.transactionId, 
+        const decoded = jwt.verify(token, ADUMO_CONFIG.jwtSecret) as any;
+        
+        // Validate required JWT fields according to Adumo specifications
+        const requiredFields = ['mref', 'amount', 'auid', 'cuid', 'result'];
+        const missingFields = requiredFields.filter(field => !decoded[field] && decoded[field] !== 0);
+        
+        if (missingFields.length > 0) {
+          console.error('❌ Missing required JWT fields:', missingFields);
+          return { isValid: false, payload };
+        }
+        
+        // Validate that JWT values match our merchant configuration
+        if (decoded.cuid !== ADUMO_CONFIG.merchantId) {
+          console.error('❌ JWT cuid does not match merchant ID:', decoded.cuid, 'vs', ADUMO_CONFIG.merchantId);
+          return { isValid: false, payload };
+        }
+        
+        if (decoded.auid !== ADUMO_CONFIG.applicationId) {
+          console.error('❌ JWT auid does not match application ID:', decoded.auid, 'vs', ADUMO_CONFIG.applicationId);
+          return { isValid: false, payload };
+        }
+        
+        // Check result field for success (0 = success, negative = failure)
+        if (decoded.result !== 0) {
+          console.log('⚠️ Payment failed according to JWT result field:', decoded.result);
+        }
+        
+        console.log('✅ Webhook JWT verified successfully with Adumo validation:', {
+          transactionId: payload.transactionId,
           status: payload.status,
-          amount: payload.amount,
-          merchantReference: payload.merchantReference
+          amount: decoded.amount,
+          merchantReference: decoded.mref,
+          result: decoded.result,
+          cuid: decoded.cuid,
+          auid: decoded.auid
         });
+        
+        // Add decoded JWT data to payload for processing
+        payload.jwtDecoded = decoded;
         return { isValid: true, payload };
       } catch (jwtError) {
         console.error('❌ Invalid webhook JWT token:', jwtError);
