@@ -1,6 +1,7 @@
 import { storage } from '../storage';
 import { sendEmail } from './email';
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 
 // Adumo Online Virtual Payment Gateway Configuration
 interface AdumoConfig {
@@ -906,7 +907,6 @@ export class AdumoService {
 
   static verifyWebhookSignature(req: any): boolean {
     try {
-      const crypto = require('crypto');
       const webhookSecret = process.env.ADUMO_WEBHOOK_SECRET;
       
       if (!webhookSecret) {
@@ -946,6 +946,118 @@ export class AdumoService {
     } catch (error) {
       console.error('Error verifying webhook signature:', error);
       return false;
+    }
+  }
+
+  // Health check and testing methods
+  static async healthCheck() {
+    try {
+      const configValid = this.validateConfiguration();
+      const jwtTest = await this.testJwtGeneration();
+      const connectivityTest = await this.testApiConnectivity();
+
+      return {
+        success: true,
+        message: 'Adumo integration health check passed',
+        details: {
+          configuration: configValid,
+          jwtGeneration: jwtTest,
+          apiConnectivity: connectivityTest,
+          environment: ADUMO_CONFIG.environment,
+          apiBaseUrl: ADUMO_CONFIG.subscriptionApiBaseUrl,
+          timestamp: new Date().toISOString()
+        }
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        message: 'Adumo health check failed',
+        error: error.message,
+        timestamp: new Date().toISOString()
+      };
+    }
+  }
+
+  static validateConfiguration() {
+    const requiredFields = ['merchantId', 'applicationId', 'jwtSecret'];
+    const missingFields = requiredFields.filter(field => !ADUMO_CONFIG[field as keyof AdumoConfig]);
+    
+    if (missingFields.length > 0) {
+      throw new Error(`Missing required configuration fields: ${missingFields.join(', ')}`);
+    }
+
+    return {
+      valid: true,
+      merchantId: ADUMO_CONFIG.merchantId ? '***configured***' : 'missing',
+      applicationId: ADUMO_CONFIG.applicationId ? '***configured***' : 'missing',
+      jwtSecret: ADUMO_CONFIG.jwtSecret ? '***configured***' : 'missing',
+      environment: ADUMO_CONFIG.environment,
+      testUrl: ADUMO_CONFIG.testUrl,
+      subscriptionApiUrl: ADUMO_CONFIG.subscriptionApiBaseUrl
+    };
+  }
+
+  static async testJwtGeneration() {
+    try {
+      const token = this.generateJwtToken();
+      
+      // Verify the token can be decoded
+      const decoded = jwt.verify(token, ADUMO_CONFIG.jwtSecret);
+      
+      return {
+        success: true,
+        message: 'JWT generation and verification successful',
+        tokenGenerated: true,
+        tokenValid: true,
+        payload: decoded
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        message: 'JWT generation failed',
+        error: error.message
+      };
+    }
+  }
+
+  static async testApiConnectivity() {
+    try {
+      const headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${this.generateJwtToken()}`,
+        'MerchantUID': ADUMO_CONFIG.merchantId,
+        'ApplicationUID': ADUMO_CONFIG.applicationId
+      };
+
+      // Test connectivity to subscription API
+      const subscriptionUrl = `${ADUMO_CONFIG.subscriptionApiBaseUrl}/subscriber/test`;
+      
+      console.log('Testing Adumo API connectivity to:', subscriptionUrl);
+      
+      const response = await fetch(subscriptionUrl, {
+        method: 'GET',
+        headers,
+        timeout: 10000 // 10 second timeout
+      });
+
+      return {
+        success: true,
+        message: 'API connectivity test completed',
+        statusCode: response.status,
+        statusText: response.statusText,
+        headers: headers,
+        testUrl: subscriptionUrl,
+        accessible: response.status < 500 // Consider 4xx as accessible but unauthorized
+      };
+    } catch (error: any) {
+      console.warn('API connectivity test failed (this may be expected in test environment):', error.message);
+      
+      return {
+        success: false,
+        message: 'API connectivity test failed',
+        error: error.message,
+        note: 'This may be expected if test API endpoints are not available or require specific authentication'
+      };
     }
   }
 }

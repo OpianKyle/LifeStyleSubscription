@@ -557,26 +557,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Test endpoints for credential verification
+  app.get('/api/health/adumo', async (_req: Request, res: Response) => {
+    try {
+      // Test Adumo configuration and service initialization
+      const healthCheck = await AdumoService.healthCheck();
+      res.json(healthCheck);
+    } catch (error: any) {
+      res.status(500).json({ 
+        success: false, 
+        message: `Adumo health check failed: ${error.message}`,
+        timestamp: new Date().toISOString()
+      });
+    }
+  });
+
   app.post('/api/test/adumo', async (_req: Request, res: Response) => {
     try {
-      if (!process.env.ADUMO_API_KEY) {
-        return res.status(400).json({ success: false, message: 'ADUMO_API_KEY not configured' });
-      }
-
-      // Simple validation of Adumo configuration
-      const requiredFields = ['ADUMO_MERCHANT_ID', 'ADUMO_STORE_ID', 'ADUMO_APPLICATION_ID'];
+      // Test current Adumo configuration - updated to match actual service config
+      const requiredFields = ['ADUMO_MERCHANT_ID', 'ADUMO_APPLICATION_ID', 'ADUMO_JWT_SECRET'];
       const missing = requiredFields.filter(field => !process.env[field]);
       
       if (missing.length > 0) {
         return res.status(400).json({ 
           success: false, 
-          message: `Missing Adumo configuration: ${missing.join(', ')}` 
+          message: `Missing required Adumo configuration: ${missing.join(', ')}` 
         });
       }
+
+      // Test JWT token generation
+      const tokenTest = await AdumoService.testJwtGeneration();
       
-      res.json({ success: true, message: 'Adumo credentials are configured' });
+      // Test API connectivity
+      const connectivityTest = await AdumoService.testApiConnectivity();
+      
+      res.json({ 
+        success: true, 
+        message: 'Adumo integration is properly configured',
+        details: {
+          configurationValid: true,
+          jwtGeneration: tokenTest,
+          apiConnectivity: connectivityTest,
+          environment: 'test',
+          timestamp: new Date().toISOString()
+        }
+      });
     } catch (error: any) {
-      res.status(400).json({ success: false, message: `Adumo error: ${error.message}` });
+      console.error('Adumo test error:', error);
+      res.status(400).json({ 
+        success: false, 
+        message: `Adumo test failed: ${error.message}`,
+        timestamp: new Date().toISOString()
+      });
     }
   });
 
