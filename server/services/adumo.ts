@@ -15,11 +15,11 @@ interface AdumoConfig {
   tokenizationApiBaseUrl: string;
 }
 
-// Adumo configuration - uses environment variables if available, defaults for development
+// Adumo configuration - uses environment variables if available, official staging defaults for testing
 const ADUMO_CONFIG: AdumoConfig = {
-  merchantId: process.env.ADUMO_MERCHANT_ID || 'dev-merchant-id',
-  applicationId: process.env.ADUMO_APPLICATION_ID || 'dev-application-id', 
-  jwtSecret: process.env.ADUMO_JWT_SECRET || 'dev-jwt-secret-key-for-local-development',
+  merchantId: process.env.ADUMO_MERCHANT_ID || '9BA5008C-08EE-4286-A349-54AF91A621B0', // Official Adumo test merchant
+  applicationId: process.env.ADUMO_APPLICATION_ID || '23ADADC0-DA2D-4DAC-A128-4845A5D71293', // 3D Secure test app
+  jwtSecret: process.env.ADUMO_JWT_SECRET || 'yglTxLCSMm7PEsfaMszAKf2LSRvM2qVW', // Official test JWT secret
   testUrl: 'https://staging-apiv3.adumoonline.com/product/payment/v1/initialisevirtual',
   prodUrl: 'https://apiv3.adumoonline.com/product/payment/v1/initialisevirtual',
   environment: 'test' as 'test' | 'production', // Use staging environment for development
@@ -32,7 +32,7 @@ const ADUMO_CONFIG: AdumoConfig = {
 // Development mode check - warn if using default values
 if (process.env.NODE_ENV === 'development') {
   if (!process.env.ADUMO_MERCHANT_ID || !process.env.ADUMO_APPLICATION_ID || !process.env.ADUMO_JWT_SECRET) {
-    console.warn('⚠️  Using development defaults for Adumo configuration. Set ADUMO_MERCHANT_ID, ADUMO_APPLICATION_ID, ADUMO_JWT_SECRET for production.');
+    console.warn('🧪 Using official Adumo staging credentials for testing. Set custom ADUMO_MERCHANT_ID, ADUMO_APPLICATION_ID, ADUMO_JWT_SECRET for your production environment.');
   }
 } else {
   // Only validate in production mode
