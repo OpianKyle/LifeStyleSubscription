@@ -29,7 +29,7 @@ export function useAuth() {
   const loginMutation = useMutation({
     mutationFn: async ({ email, password }: { email: string; password: string }) => {
       const response = await apiRequest("POST", "/api/auth/login", { email, password });
-      return response.json();
+      return response;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
@@ -39,14 +39,14 @@ export function useAuth() {
   const registerMutation = useMutation({
     mutationFn: async ({ email, password, name }: { email: string; password: string; name: string }) => {
       const response = await apiRequest("POST", "/api/auth/register", { email, password, name });
-      return response.json();
+      return response;
     },
   });
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
       const response = await apiRequest("POST", "/api/auth/logout");
-      return response.json();
+      return response;
     },
     onSuccess: () => {
       queryClient.setQueryData(["/api/auth/user"], null);
@@ -57,21 +57,21 @@ export function useAuth() {
   const verifyEmailMutation = useMutation({
     mutationFn: async (token: string) => {
       const response = await apiRequest("POST", "/api/auth/verify-email", { token });
-      return response.json();
+      return response;
     },
   });
 
   const requestPasswordResetMutation = useMutation({
     mutationFn: async (email: string) => {
       const response = await apiRequest("POST", "/api/auth/request-password-reset", { email });
-      return response.json();
+      return response;
     },
   });
 
   const resetPasswordMutation = useMutation({
     mutationFn: async ({ token, password }: { token: string; password: string }) => {
       const response = await apiRequest("POST", "/api/auth/reset-password", { token, password });
-      return response.json();
+      return response;
     },
   });
 
