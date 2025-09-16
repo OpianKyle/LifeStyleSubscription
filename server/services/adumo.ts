@@ -15,11 +15,11 @@ interface AdumoConfig {
   tokenizationApiBaseUrl: string;
 }
 
-// Adumo configuration - requires environment variables to be set
+// Adumo configuration - uses environment variables if available, defaults for development
 const ADUMO_CONFIG: AdumoConfig = {
-  merchantId: process.env.ADUMO_MERCHANT_ID!,
-  applicationId: process.env.ADUMO_APPLICATION_ID!,
-  jwtSecret: process.env.ADUMO_JWT_SECRET!,
+  merchantId: process.env.ADUMO_MERCHANT_ID || 'dev-merchant-id',
+  applicationId: process.env.ADUMO_APPLICATION_ID || 'dev-application-id', 
+  jwtSecret: process.env.ADUMO_JWT_SECRET || 'dev-jwt-secret-key-for-local-development',
   testUrl: 'https://staging-apiv3.adumoonline.com/product/payment/v1/initialisevirtual',
   prodUrl: 'https://apiv3.adumoonline.com/product/payment/v1/initialisevirtual',
   environment: 'test' as 'test' | 'production', // Use staging environment for development
@@ -29,9 +29,16 @@ const ADUMO_CONFIG: AdumoConfig = {
   tokenizationApiBaseUrl: 'https://staging-apiv3.adumoonline.com/product/security/tokenization/v1'
 };
 
-// Validate required environment variables
-if (!ADUMO_CONFIG.merchantId || !ADUMO_CONFIG.applicationId || !ADUMO_CONFIG.jwtSecret) {
-  throw new Error('Missing required Adumo environment variables: ADUMO_MERCHANT_ID, ADUMO_APPLICATION_ID, ADUMO_JWT_SECRET');
+// Development mode check - warn if using default values
+if (process.env.NODE_ENV === 'development') {
+  if (!process.env.ADUMO_MERCHANT_ID || !process.env.ADUMO_APPLICATION_ID || !process.env.ADUMO_JWT_SECRET) {
+    console.warn('⚠️  Using development defaults for Adumo configuration. Set ADUMO_MERCHANT_ID, ADUMO_APPLICATION_ID, ADUMO_JWT_SECRET for production.');
+  }
+} else {
+  // Only validate in production mode
+  if (!process.env.ADUMO_MERCHANT_ID || !process.env.ADUMO_APPLICATION_ID || !process.env.ADUMO_JWT_SECRET) {
+    throw new Error('Missing required Adumo environment variables: ADUMO_MERCHANT_ID, ADUMO_APPLICATION_ID, ADUMO_JWT_SECRET');
+  }
 }
 
 export class AdumoService {
