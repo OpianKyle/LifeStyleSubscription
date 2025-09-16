@@ -22,24 +22,28 @@ export const pool = mysql.createPool(MYSQL_CONFIG);
 
 export const db = drizzle(pool, { schema, mode: 'default' });
 
-// Test the connection and create tables if they don't exist
-pool.getConnection()
-  .then(async (connection) => {
-    console.log('Connected to MySQL database');
+// Test the connection and create tables if they don't exist (non-blocking)
+async function initializeDatabase() {
+  try {
+    const connection = await pool.getConnection();
+    console.log('✅ Connected to MySQL database');
     
     // Create tables if they don't exist
     try {
       await createTablesIfNotExist(connection);
-      console.log('Database tables verified/created');
+      console.log('✅ Database tables verified/created');
     } catch (error) {
-      console.error('Error creating tables:', error);
+      console.error('❌ Error creating tables:', error);
     }
     
     connection.release();
-  })
-  .catch((err) => {
-    console.error('MySQL connection error:', err);
-  });
+  } catch (err) {
+    console.error('❌ MySQL connection error (will retry):', err);
+  }
+}
+
+// Initialize database connection in background (non-blocking)
+initializeDatabase();
 
 // Function to create tables if they don't exist
 async function createTablesIfNotExist(connection: mysql.PoolConnection) {
