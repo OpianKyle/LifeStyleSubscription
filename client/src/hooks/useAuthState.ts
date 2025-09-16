@@ -72,6 +72,9 @@ export function useAuthState() {
       memoryAccessToken = result.tokens.accessToken;
     }
     
+    // Force a re-check of authentication state to ensure immediate UI update
+    setIsChecked(false);
+    
     return result;
   };
 

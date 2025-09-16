@@ -87,7 +87,10 @@ export default function Auth() {
             title: "Welcome back!",
             description: "You have been signed in successfully.",
           });
-          // Don't redirect here, let the useEffect handle it after auth state updates
+          // Explicit redirect after successful login to ensure navigation works
+          setTimeout(() => {
+            setLocation('/dashboard');
+          }, 100); // Small delay to allow state to update
           break;
 
         case 'register':

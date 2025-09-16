@@ -32,15 +32,23 @@ function Router() {
       <Route path="/verify-email" component={Auth} />
       <Route path="/reset-password" component={Auth} />
       
-      {/* Routes for authenticated users */}
-      {isAuthenticated && (
-        <>
-          <Route path="/dashboard" component={Dashboard} />
-          <Route path="/choose-plan" component={ChoosePlan} />
-          <Route path="/pricing" component={ChoosePlan} />
-          <Route path="/subscription-form/:planId" component={SubscriptionForm} />
-          {user?.role === 'ADMIN' && <Route path="/admin" component={Admin} />}
-        </>
+      {/* Routes for authenticated users - show these routes regardless of auth state to prevent 404s */}
+      <Route path="/dashboard">
+        {isAuthenticated ? <Dashboard /> : <Auth />}
+      </Route>
+      <Route path="/choose-plan">
+        {isAuthenticated ? <ChoosePlan /> : <Auth />}
+      </Route>
+      <Route path="/pricing">
+        {isAuthenticated ? <ChoosePlan /> : <Auth />}
+      </Route>
+      <Route path="/subscription-form/:planId">
+        {isAuthenticated ? <SubscriptionForm /> : <Auth />}
+      </Route>
+      {user?.role === 'ADMIN' && (
+        <Route path="/admin">
+          {isAuthenticated ? <Admin /> : <Auth />}
+        </Route>
       )}
       
       <Route component={NotFound} />
