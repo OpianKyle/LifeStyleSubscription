@@ -46,6 +46,7 @@ import {
   Activity
 } from "lucide-react";
 import PlanCard from "@/components/pricing/plan-card";
+import opianLogo from "@assets/opian-rewards-logo-Recovered_1755772691086.png";
 import {
   Carousel,
   CarouselContent,
@@ -334,7 +335,18 @@ function DashboardContent() {
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-slate-50">
         <Sidebar className="border-r border-slate-200">
-          <SidebarHeader className="border-b border-slate-200 p-6">
+          <SidebarHeader className="border-b border-slate-200 p-4">
+            {/* Opian Logo */}
+            <div className="flex items-center justify-center mb-4">
+              <img 
+                src={opianLogo} 
+                alt="Opian Lifestyle" 
+                className="h-12 w-auto"
+                data-testid="dashboard-logo"
+              />
+            </div>
+            
+            {/* User Info */}
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-gradient-to-br from-brand-500 to-brand-600 rounded-lg flex items-center justify-center">
                 <span className="text-white font-semibold text-sm">
@@ -384,7 +396,7 @@ function DashboardContent() {
               <SidebarGroupContent>
                 <SidebarMenu>
                   <SidebarMenuItem>
-                    <SidebarMenuButton onClick={() => setLocation('/pricing')}>
+                    <SidebarMenuButton onClick={() => setActiveSection('pricing')}>
                       <CreditCard className="w-4 h-4" />
                       <span>Change Plan</span>
                     </SidebarMenuButton>
@@ -409,24 +421,51 @@ function DashboardContent() {
 
         <SidebarInset className="flex-1">
           {/* Header */}
-          <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-2 border-b border-slate-200 bg-white px-4">
+          <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-2 border-b border-slate-200 bg-white/95 backdrop-blur-sm shadow-sm px-4">
             <SidebarTrigger />
             <Separator orientation="vertical" className="h-4" />
             <div className="flex items-center justify-between flex-1">
-              <div className="flex items-center space-x-3">
-                <h1 className="text-lg font-semibold text-slate-900">
-                  {activeSection.charAt(0).toUpperCase() + activeSection.slice(1)}
-                </h1>
+              <div className="flex items-center space-x-4">
+                <div>
+                  <h1 className="text-lg font-semibold text-slate-900">
+                    {activeSection === 'overview' && 'Dashboard Overview'}
+                    {activeSection === 'subscription' && 'My Subscription'}
+                    {activeSection === 'extended-cover' && 'Extended Cover'}
+                    {activeSection === 'invoices' && 'Billing & Invoices'}
+                    {activeSection === 'transactions' && 'Transaction History'}
+                    {activeSection === 'pricing' && 'Plans & Pricing'}
+                    {activeSection === 'settings' && 'Account Settings'}
+                  </h1>
+                  <p className="text-sm text-slate-600">
+                    {activeSection === 'overview' && 'Welcome to your protection dashboard'}
+                    {activeSection === 'subscription' && 'Manage your current plan and benefits'}
+                    {activeSection === 'extended-cover' && 'Add family members and additional coverage'}
+                    {activeSection === 'invoices' && 'View and download your billing history'}
+                    {activeSection === 'transactions' && 'Track your payment transactions'}
+                    {activeSection === 'pricing' && 'Explore and upgrade your protection plan'}
+                    {activeSection === 'settings' && 'Update your account information and preferences'}
+                  </p>
+                </div>
                 {subscription?.status === 'ACTIVE' ? (
                   <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-100">
                     <CheckCircle className="w-4 h-4 mr-1" />
-                    Active
+                    Protected
                   </Badge>
                 ) : (
                   <Badge variant="outline" className="border-amber-200 text-amber-800">
                     <AlertCircle className="w-4 h-4 mr-1" />
-                    {subscription?.status || 'No Subscription'}
+                    {subscription?.status || 'Not Protected'}
                   </Badge>
+                )}
+              </div>
+              
+              {/* Right side header actions */}
+              <div className="flex items-center space-x-3">
+                {hasActiveSubscription && (
+                  <Button variant="outline" size="sm" className="hidden md:flex">
+                    <MessageCircle className="w-4 h-4 mr-2" />
+                    Get Help
+                  </Button>
                 )}
               </div>
             </div>
@@ -712,7 +751,7 @@ function DashboardContent() {
                         
                         <div className="flex space-x-3">
                           <Button 
-                            onClick={() => setLocation('/pricing')}
+                            onClick={() => setActiveSection('pricing')}
                             className="flex-1 bg-emerald-600 hover:bg-emerald-700"
                           >
                             Change Plan
@@ -736,7 +775,7 @@ function DashboardContent() {
                         <h3 className="text-2xl font-bold text-slate-900 mb-4">No Active Subscription</h3>
                         <p className="text-slate-600 mb-8 max-w-md mx-auto">Start protecting your lifestyle today with one of our comprehensive plans</p>
                         <Button 
-                          onClick={() => setLocation('/pricing')}
+                          onClick={() => setActiveSection('pricing')}
                           size="lg"
                           className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700"
                         >
@@ -832,7 +871,7 @@ function DashboardContent() {
                         <h3 className="text-2xl font-bold text-slate-900 mb-4">No Invoices Yet</h3>
                         <p className="text-slate-600 mb-8 max-w-md mx-auto">Your billing history will appear here once you start your subscription</p>
                         <Button 
-                          onClick={() => setLocation('/pricing')}
+                          onClick={() => setActiveSection('pricing')}
                           size="lg"
                           className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700"
                         >
@@ -940,7 +979,7 @@ function DashboardContent() {
                         <h3 className="text-2xl font-bold text-slate-900 mb-4">No Transactions Yet</h3>
                         <p className="text-slate-600 mb-8 max-w-md mx-auto">Your payment transactions will appear here once you start making payments</p>
                         <Button 
-                          onClick={() => setLocation('/pricing')}
+                          onClick={() => setActiveSection('pricing')}
                           size="lg"
                           className="bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700"
                         >
