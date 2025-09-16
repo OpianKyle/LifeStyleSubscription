@@ -42,8 +42,8 @@ localPort = 5000
 externalPort = 80
 
 [[ports]]
-localPort = 38899
-externalPort = 3000
+localPort = 40501
+externalPort = 3001
 
 [agent]
 integrations = ["javascript_stripe:1.0.0", "javascript_openai:1.0.0"]
