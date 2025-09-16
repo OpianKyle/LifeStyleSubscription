@@ -190,20 +190,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const result = await AuthService.login(email, password);
       
       // Detect if we're running over HTTPS (important for Replit's proxy)
-      const isSecure = req.secure || req.headers['x-forwarded-proto'] === 'https';
+      // Force secure cookies in Replit environment to handle proxy correctly
+      const isReplit = !!process.env.REPL_ID;
+      const isSecure = isReplit || req.secure || req.headers['x-forwarded-proto'] === 'https';
       
-      // Set httpOnly cookies - use sameSite='none' for iframe compatibility
-      res.cookie('accessToken', result.tokens.accessToken, {
+      // Set httpOnly cookies - use sameSite='none' + partitioned for iframe compatibility
+      const cookieOptions = {
         httpOnly: true,
         secure: isSecure,
-        sameSite: 'none', // Required for iframe/cross-site contexts like Replit
+        sameSite: isSecure ? 'none' : 'lax', // Use 'none' only when secure
+        ...(isSecure && { partitioned: true }), // Add partitioned for third-party cookies in Replit
+      } as const;
+      
+      res.cookie('accessToken', result.tokens.accessToken, {
+        ...cookieOptions,
         maxAge: 24 * 60 * 60 * 1000 // 24 hours
       });
       
       res.cookie('refreshToken', result.tokens.refreshToken, {
-        httpOnly: true,
-        secure: isSecure,
-        sameSite: 'none', // Required for iframe/cross-site contexts like Replit
+        ...cookieOptions,
         maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
       });
 
@@ -249,19 +254,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/auth/logout', (req: Request, res: Response) => {
     // Detect if we're running over HTTPS (important for Replit's proxy)
-    const isSecure = req.secure || req.headers['x-forwarded-proto'] === 'https';
+    // Force secure cookies in Replit environment to handle proxy correctly
+    const isReplit = !!process.env.REPL_ID;
+    const isSecure = isReplit || req.secure || req.headers['x-forwarded-proto'] === 'https';
     
     // Clear cookies with same options as when they were set
-    res.clearCookie('accessToken', {
+    const cookieOptions = {
       httpOnly: true,
       secure: isSecure,
-      sameSite: 'none'
-    });
-    res.clearCookie('refreshToken', {
-      httpOnly: true,
-      secure: isSecure,
-      sameSite: 'none'
-    });
+      sameSite: isSecure ? 'none' : 'lax',
+      ...(isSecure && { partitioned: true }), // Add partitioned for third-party cookies in Replit
+    } as const;
+    
+    res.clearCookie('accessToken', cookieOptions);
+    res.clearCookie('refreshToken', cookieOptions);
     res.json({ message: 'Logged out successfully' });
   });
 

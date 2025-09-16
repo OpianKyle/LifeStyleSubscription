@@ -1,6 +1,14 @@
 import { useState, useEffect } from 'react';
 import { User } from '@shared/schema';
 
+// In-memory token storage for Replit iframe compatibility
+let memoryAccessToken: string | null = null;
+
+// Export function to access memory token from other modules
+export function getMemoryAccessToken(): string | null {
+  return memoryAccessToken;
+}
+
 export function useAuthState() {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -11,8 +19,15 @@ export function useAuthState() {
 
     const checkAuth = async () => {
       try {
+        // Try with cookies first, then with Authorization header if available
+        const headers: Record<string, string> = {};
+        if (memoryAccessToken) {
+          headers.Authorization = `Bearer ${memoryAccessToken}`;
+        }
+        
         const res = await fetch('/api/auth/user', {
           credentials: 'include',
+          headers,
         });
         
         if (res.ok) {
@@ -20,10 +35,13 @@ export function useAuthState() {
           setUser(userData);
         } else {
           setUser(null);
+          // Clear invalid token
+          memoryAccessToken = null;
         }
       } catch (error) {
         console.log('Auth check failed:', error);
         setUser(null);
+        memoryAccessToken = null;
       } finally {
         setIsLoading(false);
         setIsChecked(true);
@@ -48,6 +66,12 @@ export function useAuthState() {
 
     const result = await res.json();
     setUser(result.user);
+    
+    // Store access token in memory for Authorization header fallback
+    if (result.tokens?.accessToken) {
+      memoryAccessToken = result.tokens.accessToken;
+    }
+    
     return result;
   };
 
@@ -68,11 +92,19 @@ export function useAuthState() {
   };
 
   const logout = async () => {
+    const headers: Record<string, string> = {};
+    if (memoryAccessToken) {
+      headers.Authorization = `Bearer ${memoryAccessToken}`;
+    }
+    
     await fetch('/api/auth/logout', {
       method: 'POST',
       credentials: 'include',
+      headers,
     });
+    
     setUser(null);
+    memoryAccessToken = null; // Clear memory token
   };
 
   return {
