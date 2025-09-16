@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
-import { useAuthState } from "@/hooks/useAuthState";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -21,7 +21,7 @@ export default function Auth() {
     login, 
     register,
     isAuthenticated
-  } = useAuthState();
+  } = useAuth();
 
   const [mode, setMode] = useState<AuthMode>('login');
   const [formData, setFormData] = useState({
@@ -82,15 +82,12 @@ export default function Auth() {
     try {
       switch (mode) {
         case 'login':
-          await login(formData.email, formData.password);
+          await login({ email: formData.email, password: formData.password });
           toast({
             title: "Welcome back!",
             description: "You have been signed in successfully.",
           });
-          // Explicit redirect after successful login to ensure navigation works
-          setTimeout(() => {
-            setLocation('/dashboard');
-          }, 100); // Small delay to allow state to update
+          // Navigation will be handled by useEffect when isAuthenticated changes
           break;
 
         case 'register':
@@ -98,7 +95,7 @@ export default function Auth() {
             setError('Passwords do not match');
             return;
           }
-          const result = await register(formData.email, formData.password, formData.name);
+          const result = await register({ email: formData.email, password: formData.password, name: formData.name });
           setSuccess('Registration successful. Please check your email for verification.');
           setMode('login');
           toast({

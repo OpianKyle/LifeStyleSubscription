@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { useAuthState } from "@/hooks/useAuthState";
+import { useAuth } from "@/hooks/useAuth";
 import { useSubscriptionState } from "@/hooks/useSubscriptionState";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -59,7 +59,7 @@ import Chatbot from "@/components/chat/chatbot";
 
 function DashboardContent() {
   const [, setLocation] = useLocation();
-  const { user, isAuthenticated, isLoading } = useAuthState();
+  const { user, isAuthenticated, isLoading } = useAuth();
   const { hasActiveSubscription } = useSubscriptionState();
   const { toast } = useToast();
   const queryClient = useQueryClient();
