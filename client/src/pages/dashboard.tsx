@@ -4,6 +4,7 @@ import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscriptionState } from "@/hooks/useSubscriptionState";
 import { apiRequest } from "@/lib/queryClient";
+import { getMemoryAccessToken } from "@/hooks/useAuthState";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -854,6 +855,48 @@ function DashboardContent() {
                                   variant="outline" 
                                   size="sm"
                                   className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                                  onClick={async () => {
+                                    try {
+                                      const headers: Record<string, string> = {};
+                                      const token = getMemoryAccessToken();
+                                      if (token) {
+                                        headers.Authorization = `Bearer ${token}`;
+                                      }
+                                      
+                                      const response = await fetch(`/api/invoices/${invoice.id}/download`, {
+                                        credentials: 'include',
+                                        headers
+                                      });
+                                      
+                                      if (response.ok) {
+                                        const blob = await response.blob();
+                                        const url = window.URL.createObjectURL(blob);
+                                        const a = document.createElement('a');
+                                        a.style.display = 'none';
+                                        a.href = url;
+                                        a.download = `invoice-${invoice.id}.pdf`;
+                                        document.body.appendChild(a);
+                                        a.click();
+                                        window.URL.revokeObjectURL(url);
+                                        document.body.removeChild(a);
+                                        
+                                        toast({
+                                          title: "Download Complete",
+                                          description: "Invoice has been downloaded successfully.",
+                                        });
+                                      } else {
+                                        throw new Error('Failed to download invoice');
+                                      }
+                                    } catch (error) {
+                                      console.error('Error downloading invoice:', error);
+                                      toast({
+                                        title: "Download Failed",
+                                        description: "There was an error downloading the invoice. Please try again.",
+                                        variant: "destructive",
+                                      });
+                                    }
+                                  }}
+                                  data-testid={`button-download-invoice-${invoice.id}`}
                                 >
                                   <Download className="h-4 w-4 mr-1" />
                                   Download

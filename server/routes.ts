@@ -423,6 +423,97 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get('/api/invoices/:id/download', authenticateToken, async (req: any, res: Response) => {
+    try {
+      const { id } = req.params;
+      const invoice = await storage.getInvoiceById(id);
+      
+      if (!invoice || invoice.userId !== req.user.id) {
+        return res.status(404).json({ message: 'Invoice not found' });
+      }
+
+      const user = await storage.getUserById(req.user.id);
+      let subscription = null;
+      
+      if (invoice.subscriptionId) {
+        subscription = await storage.getUserSubscription(req.user.id);
+      }
+
+      const PDFDocument = require('pdfkit');
+      const doc = new PDFDocument();
+      
+      // Set response headers for PDF download
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="invoice-${invoice.id}.pdf"`);
+      
+      // Pipe the PDF document to the response
+      doc.pipe(res);
+
+      // Generate PDF content
+      // Header
+      doc.fontSize(20).text('OPIAN LIFESTYLE PROTECTION', 50, 50);
+      doc.fontSize(14).text('Invoice', 50, 80);
+      
+      // Invoice details
+      const formatDate = (date: any) => {
+        try {
+          return date ? new Date(date).toLocaleDateString('en-ZA') : 'N/A';
+        } catch (error) {
+          return 'Invalid Date';
+        }
+      };
+      
+      doc.fontSize(12)
+         .text(`Invoice ID: ${invoice.id}`, 50, 120)
+         .text(`Date: ${formatDate(invoice.createdAt)}`, 50, 140)
+         .text(`Due Date: ${formatDate(invoice.dueDate)}`, 50, 160)
+         .text(`Status: ${invoice.status.toUpperCase()}`, 50, 180);
+
+      // Customer details
+      doc.text('Bill To:', 50, 220)
+         .text(user.name, 50, 240)
+         .text(user.email, 50, 260);
+
+      // Invoice items
+      doc.text('Description', 50, 320)
+         .text('Amount', 400, 320);
+         
+      doc.moveTo(50, 340).lineTo(550, 340).stroke();
+      
+      let description = 'Subscription Payment';
+      if (subscription) {
+        description = `${subscription.plan.name} Plan - Monthly Subscription`;
+      }
+      
+      doc.text(description, 50, 360)
+         .text(`R${parseFloat(invoice.amount).toFixed(2)}`, 400, 360);
+
+      // Total
+      doc.moveTo(50, 400).lineTo(550, 400).stroke();
+      doc.fontSize(14)
+         .text('Total:', 350, 420)
+         .text(`R${parseFloat(invoice.amount).toFixed(2)}`, 400, 420);
+
+      // Payment info
+      if (invoice.status === 'paid' && invoice.paidAt) {
+        doc.fontSize(12)
+           .text(`Paid on: ${formatDate(invoice.paidAt)}`, 50, 480)
+           .text(`Payment Method: Credit Card`, 50, 500);
+      }
+
+      // Footer
+      doc.fontSize(10)
+         .text('Thank you for choosing Opian Lifestyle Protection!', 50, 600)
+         .text('For support, contact us at support@opianlifestyle.co.za', 50, 620);
+
+      // Finalize the PDF
+      doc.end();
+    } catch (error: any) {
+      console.error('Error generating invoice PDF:', error);
+      res.status(500).json({ message: 'Error generating invoice PDF' });
+    }
+  });
+
   // Manual email verification route (temporary workaround)
   app.post('/api/auth/manual-verify', async (req: Request, res: Response) => {
     try {
