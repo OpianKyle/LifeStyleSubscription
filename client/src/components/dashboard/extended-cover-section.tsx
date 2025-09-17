@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAuthState } from '@/hooks/useAuthState';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -112,12 +113,14 @@ const relationLabels = {
 
 export default function ExtendedCoverSection() {
   const { toast } = useToast();
+  const { isAuthenticated, user } = useAuthState();
   const queryClient = useQueryClient();
   const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
 
   const { data: coversData, isLoading } = useQuery({
     queryKey: ["/api/extended-cover"],
+    enabled: isAuthenticated && user,
   });
 
   // Update family members when data changes

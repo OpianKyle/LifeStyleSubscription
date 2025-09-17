@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuthState } from "@/hooks/useAuthState";
 import { useSubscriptionState } from "@/hooks/useSubscriptionState";
 import { apiRequest } from "@/lib/queryClient";
 import { getMemoryAccessToken } from "@/hooks/useAuthState";
@@ -60,7 +60,7 @@ import Chatbot from "@/components/chat/chatbot";
 
 function DashboardContent() {
   const [, setLocation] = useLocation();
-  const { user, isAuthenticated, isLoading } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuthState();
   const { hasActiveSubscription } = useSubscriptionState();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -117,22 +117,22 @@ function DashboardContent() {
 
   const { data: subscriptionData, isLoading: subscriptionLoading } = useQuery({
     queryKey: ["/api/subscriptions/current"],
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && user,
   });
 
   const { data: invoicesData, isLoading: invoicesLoading } = useQuery({
     queryKey: ["/api/invoices"],
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && user,
   });
 
   const { data: transactionsData, isLoading: transactionsLoading } = useQuery({
     queryKey: ["/api/transactions"],
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && user,
   });
 
   const { data: plansData, isLoading: plansLoading } = useQuery({
     queryKey: ["/api/plans"],
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && user,
   });
 
   const cancelSubscriptionMutation = useMutation({

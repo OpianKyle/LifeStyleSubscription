@@ -43,12 +43,12 @@ export default function Admin() {
 
   const { data: usersData, isLoading: usersLoading } = useQuery({
     queryKey: ["/api/admin/users"],
-    enabled: isAuthenticated && user?.role === 'ADMIN',
+    enabled: isAuthenticated && user?.role === 'ADMIN' && !isLoading,
   });
 
   const { data: statsData, isLoading: statsLoading } = useQuery({
     queryKey: ["/api/admin/stats"],
-    enabled: isAuthenticated && user?.role === 'ADMIN',
+    enabled: isAuthenticated && user?.role === 'ADMIN' && !isLoading,
   });
 
   if (isLoading || usersLoading || statsLoading) {

@@ -1,12 +1,36 @@
 import { useState, useEffect } from 'react';
 import { User } from '@shared/schema';
 
-// In-memory token storage for Replit iframe compatibility
+// Token storage for Replit iframe compatibility
+// Use localStorage with memory fallback for cross-session persistence
 let memoryAccessToken: string | null = null;
 
-// Export function to access memory token from other modules
+// Safe localStorage access with fallback
+function getStoredToken(): string | null {
+  try {
+    return localStorage.getItem('opian_access_token');
+  } catch (e) {
+    console.warn('localStorage not available, using memory storage');
+    return memoryAccessToken;
+  }
+}
+
+function setStoredToken(token: string | null): void {
+  try {
+    if (token) {
+      localStorage.setItem('opian_access_token', token);
+    } else {
+      localStorage.removeItem('opian_access_token');
+    }
+  } catch (e) {
+    console.warn('localStorage not available, using memory storage');
+  }
+  memoryAccessToken = token;
+}
+
+// Export function to access token from other modules
 export function getMemoryAccessToken(): string | null {
-  return memoryAccessToken;
+  return getStoredToken();
 }
 
 export function useAuthState() {
@@ -21,8 +45,9 @@ export function useAuthState() {
       try {
         // Try with cookies first, then with Authorization header if available
         const headers: Record<string, string> = {};
-        if (memoryAccessToken) {
-          headers.Authorization = `Bearer ${memoryAccessToken}`;
+        const storedToken = getStoredToken();
+        if (storedToken) {
+          headers.Authorization = `Bearer ${storedToken}`;
         }
         
         const res = await fetch('/api/auth/user', {
@@ -36,12 +61,12 @@ export function useAuthState() {
         } else {
           setUser(null);
           // Clear invalid token
-          memoryAccessToken = null;
+          setStoredToken(null);
         }
       } catch (error) {
         console.log('Auth check failed:', error);
         setUser(null);
-        memoryAccessToken = null;
+        setStoredToken(null);
       } finally {
         setIsLoading(false);
         setIsChecked(true);
@@ -67,9 +92,9 @@ export function useAuthState() {
     const result = await res.json();
     setUser(result.user);
     
-    // Store access token in memory for Authorization header fallback
+    // Store access token with localStorage persistence for iframe compatibility
     if (result.tokens?.accessToken) {
-      memoryAccessToken = result.tokens.accessToken;
+      setStoredToken(result.tokens.accessToken);
     }
     
     // Force a re-check of authentication state to ensure immediate UI update
@@ -96,18 +121,31 @@ export function useAuthState() {
 
   const logout = async () => {
     const headers: Record<string, string> = {};
-    if (memoryAccessToken) {
-      headers.Authorization = `Bearer ${memoryAccessToken}`;
+    const currentToken = getStoredToken();
+    if (currentToken) {
+      headers.Authorization = `Bearer ${currentToken}`;
     }
     
-    await fetch('/api/auth/logout', {
-      method: 'POST',
-      credentials: 'include',
-      headers,
-    });
+    try {
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+        headers,
+      });
+    } catch (error) {
+      console.error('Logout API call failed:', error);
+    }
     
+    // Clear all authentication state thoroughly
     setUser(null);
-    memoryAccessToken = null; // Clear memory token
+    setStoredToken(null); // Clear stored token
+    setIsChecked(false); // Allow re-authentication check  
+    setIsLoading(true); // Set loading to true to prevent flash of content
+    
+    // Force a complete state reset by triggering auth check
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 100);
   };
 
   return {

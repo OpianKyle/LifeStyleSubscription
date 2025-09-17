@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
+import { useQueryClient } from "@tanstack/react-query";
 import { useAuthState } from "@/hooks/useAuthState";
 import { useSubscriptionState } from "@/hooks/useSubscriptionState";
 import { Button } from "@/components/ui/button";
@@ -13,9 +14,10 @@ import { User, LogOut, Settings, Shield } from "lucide-react";
 import opianLogo from "@assets/opian-rewards-logo-Recovered_1755772691086.png";
 
 export default function Navbar() {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const { isAuthenticated, user, logout } = useAuthState();
   const { hasActiveSubscription } = useSubscriptionState();
+  const queryClient = useQueryClient();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
@@ -32,8 +34,17 @@ export default function Navbar() {
   const handleLogout = async () => {
     try {
       await logout();
+      
+      // Clear all React Query cache to prevent old data persistence
+      queryClient.clear();
+      
+      // Force redirect to auth page
+      setLocation('/auth');
     } catch (error) {
       console.error('Logout failed:', error);
+      // Even if logout fails, clear cache and redirect
+      queryClient.clear();
+      setLocation('/auth');
     }
   };
 

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuthState } from "@/hooks/useAuthState";
 import { Button } from "@/components/ui/button";
 import { 
   Dialog, 
@@ -25,11 +25,8 @@ export default function AuthModal({ open, onOpenChange, defaultMode = 'login' }:
   const { toast } = useToast();
   const { 
     login, 
-    register, 
-    requestPasswordReset,
-    isLoginPending,
-    isRegisterPending 
-  } = useAuth();
+    register
+  } = useAuthState();
 
   const [mode, setMode] = useState<AuthMode>(defaultMode);
   const [formData, setFormData] = useState({
@@ -49,7 +46,7 @@ export default function AuthModal({ open, onOpenChange, defaultMode = 'login' }:
     try {
       switch (mode) {
         case 'login':
-          await login({ email: formData.email, password: formData.password });
+          await login(formData.email, formData.password);
           toast({
             title: "Welcome back!",
             description: "You have been signed in successfully.",
@@ -62,11 +59,7 @@ export default function AuthModal({ open, onOpenChange, defaultMode = 'login' }:
             setError('Passwords do not match');
             return;
           }
-          const result = await register({ 
-            email: formData.email, 
-            password: formData.password, 
-            name: formData.name 
-          });
+          const result = await register(formData.email, formData.password, formData.name);
           setSuccess(result.message);
           setMode('login');
           toast({
@@ -76,11 +69,11 @@ export default function AuthModal({ open, onOpenChange, defaultMode = 'login' }:
           break;
 
         case 'forgot-password':
-          await requestPasswordReset(formData.email);
-          setSuccess('Password reset email sent. Please check your inbox.');
+          // TODO: Implement password reset functionality
+          setSuccess('Password reset functionality will be available soon.');
           toast({
-            title: "Reset Email Sent",
-            description: "Please check your email for reset instructions.",
+            title: "Coming Soon",
+            description: "Password reset functionality will be available soon.",
           });
           break;
       }

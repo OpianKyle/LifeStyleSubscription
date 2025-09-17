@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuthState } from "@/hooks/useAuthState";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -21,7 +21,7 @@ export default function Auth() {
     login, 
     register,
     isAuthenticated
-  } = useAuth();
+  } = useAuthState();
 
   const [mode, setMode] = useState<AuthMode>('login');
   const [formData, setFormData] = useState({
@@ -82,7 +82,7 @@ export default function Auth() {
     try {
       switch (mode) {
         case 'login':
-          await login({ email: formData.email, password: formData.password });
+          await login(formData.email, formData.password);
           toast({
             title: "Welcome back!",
             description: "You have been signed in successfully.",
@@ -95,7 +95,7 @@ export default function Auth() {
             setError('Passwords do not match');
             return;
           }
-          const result = await register({ email: formData.email, password: formData.password, name: formData.name });
+          const result = await register(formData.email, formData.password, formData.name);
           setSuccess('Registration successful. Please check your email for verification.');
           setMode('login');
           toast({

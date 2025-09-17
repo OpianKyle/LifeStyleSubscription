@@ -1,11 +1,40 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 import { getMemoryAccessToken } from "@/hooks/useAuthState";
 
+// Flag to prevent infinite loops during token handling
+let isHandlingAuth = false;
+
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
     const text = (await res.text()) || res.statusText;
     throw new Error(`${res.status}: ${text}`);
   }
+}
+
+// Handle 401 errors by clearing tokens and redirecting to auth
+function handleUnauthorized(): void {
+  if (isHandlingAuth) return;
+  
+  isHandlingAuth = true;
+  
+  try {
+    // Clear invalid tokens from localStorage
+    localStorage.removeItem('opian_access_token');
+  } catch (e) {
+    // Ignore localStorage errors
+  }
+  
+  // Only redirect if not already on auth page to prevent loops
+  const currentPath = window.location.pathname;
+  if (!currentPath.includes('/auth') && !currentPath.includes('/verify-email')) {
+    // Use replace to avoid back button issues
+    window.location.replace('/auth');
+  }
+  
+  // Reset flag after a delay
+  setTimeout(() => {
+    isHandlingAuth = false;
+  }, 1000);
 }
 
 export async function apiRequest(
@@ -15,10 +44,10 @@ export async function apiRequest(
 ): Promise<any> {
   const headers: Record<string, string> = data ? { "Content-Type": "application/json" } : {};
   
-  // Add Authorization header if memory token is available
-  const memoryToken = getMemoryAccessToken();
-  if (memoryToken) {
-    headers.Authorization = `Bearer ${memoryToken}`;
+  // Add Authorization header if token is available
+  const token = getMemoryAccessToken();
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
   }
   
   const res = await fetch(url, {
@@ -27,6 +56,12 @@ export async function apiRequest(
     body: data ? JSON.stringify(data) : undefined,
     credentials: "include",
   });
+
+  // Handle 401 errors by clearing tokens and redirecting
+  if (res.status === 401) {
+    handleUnauthorized();
+    throw new Error('401: Authentication required');
+  }
 
   await throwIfResNotOk(res);
   return await res.json();
@@ -40,10 +75,10 @@ export const getQueryFn: <T>(options: {
   async ({ queryKey }) => {
     const headers: Record<string, string> = {};
     
-    // Add Authorization header if memory token is available
-    const memoryToken = getMemoryAccessToken();
-    if (memoryToken) {
-      headers.Authorization = `Bearer ${memoryToken}`;
+    // Add Authorization header if token is available
+    const token = getMemoryAccessToken();
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
     }
     
     const res = await fetch(queryKey.join("/") as string, {
@@ -51,8 +86,15 @@ export const getQueryFn: <T>(options: {
       headers,
     });
 
-    if (unauthorizedBehavior === "returnNull" && res.status === 401) {
-      return null;
+    // Handle 401 errors based on behavior
+    if (res.status === 401) {
+      if (unauthorizedBehavior === "returnNull") {
+        handleUnauthorized();
+        return null;
+      }
+      
+      handleUnauthorized();
+      throw new Error('401: Authentication required');
     }
 
     await throwIfResNotOk(res);

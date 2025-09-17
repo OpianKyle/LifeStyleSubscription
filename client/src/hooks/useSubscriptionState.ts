@@ -2,11 +2,11 @@ import { useQuery } from '@tanstack/react-query';
 import { useAuthState } from './useAuthState';
 
 export function useSubscriptionState() {
-  const { isAuthenticated } = useAuthState();
+  const { isAuthenticated, user, isLoading: authLoading } = useAuthState();
 
   const { data: subscriptionData, isLoading } = useQuery({
     queryKey: ["/api/subscriptions/current"],
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && user && !authLoading,
     retry: false,
     refetchOnWindowFocus: false,
   });
