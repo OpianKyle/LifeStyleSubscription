@@ -632,7 +632,10 @@ export class AdumoService {
     const reference = `sub_${user.id}_${Date.now()}`;
     const merchantReference = `OPIAN_${user.id.substring(0, 8)}_${Date.now()}`;
     const amount = parseFloat(plan.price).toFixed(2); // Keep as decimal string per Adumo API docs
-    const domain = process.env.REPLIT_DEV_DOMAIN || '7de1544e-5ef2-4cc0-bb6e-d725e8da7429-00-22dkncf6rlzz8.picard.replit.dev';
+    const domain = process.env.REPLIT_DEV_DOMAIN;
+    if (!domain) {
+      throw new Error('REPLIT_DEV_DOMAIN environment variable is required for webhook configuration');
+    }
     const notificationURL = `https://${domain}/api/webhooks/adumo`;
     
     // Generate JWT token with required Adumo fields
@@ -660,7 +663,9 @@ export class AdumoService {
       timestamp: Date.now()
     };
     
-    console.log('🔐 Generating JWT with required Adumo fields:', JSON.stringify(payload, null, 2));
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🔐 Generating JWT with required Adumo fields:', JSON.stringify(payload, null, 2));
+    }
     
     const token = jwt.sign(payload, ADUMO_CONFIG.jwtSecret, { 
       algorithm: 'HS256',
@@ -687,8 +692,10 @@ export class AdumoService {
       Token: token
     };
     
-    console.log('📝 Adumo form data being sent:', JSON.stringify(formData, null, 2));
-    console.log('🎯 JWT Token being sent:', token);
+    if (process.env.NODE_ENV === 'development') {
+      console.log('📝 Adumo form data being sent:', JSON.stringify(formData, null, 2));
+      console.log('🎯 JWT Token being sent:', token);
+    }
     
     return {
       // Form POST URL
