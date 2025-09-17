@@ -7,6 +7,7 @@ import { AdumoService } from "./services/adumo";
 import { getChatbotResponse } from "./openai";
 import { z } from "zod";
 import nodemailer from 'nodemailer';
+import PDFDocument from 'pdfkit';
 
 // Authentication middleware
 const authenticateToken = async (req: any, res: Response, next: NextFunction) => {
@@ -433,13 +434,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const user = await storage.getUserById(req.user.id);
-      let subscription = null;
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
       
+      let subscription = null;
       if (invoice.subscriptionId) {
         subscription = await storage.getUserSubscription(req.user.id);
       }
 
-      const PDFDocument = require('pdfkit');
       const doc = new PDFDocument();
       
       // Set response headers for PDF download
