@@ -60,7 +60,7 @@ import Chatbot from "@/components/chat/chatbot";
 
 function DashboardContent() {
   const [, setLocation] = useLocation();
-  const { user, isAuthenticated, isLoading } = useAuthState();
+  const { user, isAuthenticated, isLoading, logout } = useAuthState();
   const { hasActiveSubscription } = useSubscriptionState();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -117,22 +117,22 @@ function DashboardContent() {
 
   const { data: subscriptionData, isLoading: subscriptionLoading } = useQuery({
     queryKey: ["/api/subscriptions/current"],
-    enabled: isAuthenticated && user,
+    enabled: isAuthenticated && !!user,
   });
 
   const { data: invoicesData, isLoading: invoicesLoading } = useQuery({
     queryKey: ["/api/invoices"],
-    enabled: isAuthenticated && user,
+    enabled: isAuthenticated && !!user,
   });
 
   const { data: transactionsData, isLoading: transactionsLoading } = useQuery({
     queryKey: ["/api/transactions"],
-    enabled: isAuthenticated && user,
+    enabled: isAuthenticated && !!user,
   });
 
   const { data: plansData, isLoading: plansLoading } = useQuery({
     queryKey: ["/api/plans"],
-    enabled: isAuthenticated && user,
+    enabled: isAuthenticated && !!user,
   });
 
   const cancelSubscriptionMutation = useMutation({
@@ -246,15 +246,18 @@ function DashboardContent() {
   const subscription = (subscriptionData as any)?.subscription;
   const invoices = (invoicesData as any)?.invoices || [];
 
-  const handleLogout = () => {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    queryClient.clear();
-    setLocation('/');
-    toast({
-      title: "Logged Out",
-      description: "You have been successfully logged out.",
-    });
+  const handleLogout = async () => {
+    try {
+      await logout();
+      queryClient.clear();
+      setLocation('/');
+      toast({
+        title: "Logged Out", 
+        description: "You have been successfully logged out.",
+      });
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   const handleSelectPlan = async (planName: string) => {
