@@ -730,6 +730,37 @@ export class AdumoService {
       // Generate payment data for the new plan
       const paymentData = this.generatePaymentData(newPlan, user);
       
+      // Find or create invoice for this subscription
+      const invoices = await storage.getUserInvoices(userId);
+      let invoice = invoices.find(inv => inv.subscriptionId === currentSubscription.id && inv.status === 'pending');
+      
+      if (!invoice) {
+        invoice = await storage.createInvoice({
+          userId,
+          subscriptionId: currentSubscription.id,
+          amount: newPlan.price,
+          currency: 'ZAR',
+          status: 'pending',
+          paidAt: null
+        });
+      }
+      
+      // Create transaction record for the payment
+      await storage.createTransaction({
+        invoiceId: invoice.id,
+        userId,
+        merchantReference: paymentData.merchantReference,
+        adumoTransactionId: null,
+        adumoStatus: 'PENDING',
+        paymentMethod: null,
+        gateway: 'ADUMO',
+        amount: newPlan.price,
+        currency: 'ZAR',
+        requestPayload: JSON.stringify(paymentData),
+        responsePayload: null,
+        notifyUrlResponse: null
+      });
+      
       return {
         subscriptionId: currentSubscription.adumoSubscriptionId,
         customerId: user.adumoCustomerId || '',
