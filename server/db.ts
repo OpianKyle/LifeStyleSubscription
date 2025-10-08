@@ -2,15 +2,26 @@ import { drizzle } from 'drizzle-orm/mysql2';
 import mysql from 'mysql2/promise';
 import * as schema from "@shared/schema";
 
-if (!process.env.DATABASE_URL) {
-  throw new Error('DATABASE_URL environment variable is not set');
+// Check for required database credentials
+const DB_HOST = process.env.DB_HOST;
+const DB_USER = process.env.DB_USER;
+const DB_PASSWORD = process.env.DB_PASSWORD;
+const DB_NAME = process.env.DB_NAME;
+const DB_PORT = process.env.DB_PORT || '3306';
+
+if (!DB_HOST || !DB_USER || !DB_PASSWORD || !DB_NAME) {
+  throw new Error('Missing database credentials. Please set DB_HOST, DB_USER, DB_PASSWORD, and DB_NAME environment variables.');
 }
 
 console.log('Connecting to MySQL database...');
 
-// Create MySQL connection pool using DATABASE_URL
+// Create MySQL connection pool using individual credentials
 export const pool = mysql.createPool({
-  uri: process.env.DATABASE_URL,
+  host: DB_HOST,
+  port: parseInt(DB_PORT),
+  user: DB_USER,
+  password: DB_PASSWORD,
+  database: DB_NAME,
   ssl: {
     rejectUnauthorized: false // Required for Xneelo SSL
   },
