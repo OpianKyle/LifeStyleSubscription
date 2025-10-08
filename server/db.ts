@@ -2,23 +2,20 @@ import { drizzle } from 'drizzle-orm/mysql2';
 import mysql from 'mysql2/promise';
 import * as schema from "@shared/schema";
 
-// MySQL connection configuration
-const MYSQL_CONFIG = {
-  host: 'dedi1350.jnb1.host-h.net',
-  port: 3306,
-  user: 'lifes',
-  password: '1S021z2A440Pj7',
-  database: 'lifestylerewards',
+if (!process.env.DATABASE_URL) {
+  throw new Error('DATABASE_URL environment variable is not set');
+}
+
+console.log('Connecting to MySQL database...');
+
+// Create MySQL connection pool using DATABASE_URL
+export const pool = mysql.createPool({
+  uri: process.env.DATABASE_URL,
   ssl: {
     rejectUnauthorized: false // Required for Xneelo SSL
   },
   charset: 'utf8mb4'
-};
-
-console.log('Connecting to MySQL database...');
-
-// Create MySQL connection pool
-export const pool = mysql.createPool(MYSQL_CONFIG);
+});
 
 export const db = drizzle(pool, { schema, mode: 'default' });
 
