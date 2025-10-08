@@ -324,6 +324,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Check if subscription is incomplete and needs payment
           if (existingSubscription.status === 'INCOMPLETE') {
             const paymentData = AdumoService.generatePaymentData(plan, user);
+            
+            // Find existing pending invoice or create a new one
+            const invoices = await storage.getUserInvoices(req.user.id);
+            let invoice = invoices.find(inv => inv.subscriptionId === existingSubscription.id && inv.status === 'pending');
+            
+            if (!invoice) {
+              invoice = await storage.createInvoice({
+                userId: req.user.id,
+                subscriptionId: existingSubscription.id,
+                amount: plan.price,
+                currency: 'ZAR',
+                status: 'pending',
+                paidAt: null
+              });
+            }
+            
+            // Create new transaction record for retry with new merchant reference
+            await storage.createTransaction({
+              invoiceId: invoice.id,
+              userId: req.user.id,
+              merchantReference: paymentData.merchantReference,
+              adumoTransactionId: null,
+              adumoStatus: 'PENDING',
+              paymentMethod: null,
+              gateway: 'ADUMO',
+              amount: plan.price,
+              currency: 'ZAR',
+              requestPayload: JSON.stringify(paymentData),
+              responsePayload: null,
+              notifyUrlResponse: null
+            });
+            
             return res.json({
               message: 'Subscription exists but payment is incomplete',
               subscription: existingSubscription,
