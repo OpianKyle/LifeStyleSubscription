@@ -103,12 +103,12 @@ export default function PaymentForm({ planName, planPrice, onSuccess, onCancel }
             </Alert>
           )}
 
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
             <div className="flex items-start space-x-3">
-              <Shield className="w-5 h-5 text-blue-600 mt-0.5" />
+              <Shield className="w-5 h-5 text-amber-600 mt-0.5" />
               <div className="text-sm">
-                <p className="font-medium text-blue-900 mb-1">Secure Payment with Adumo Online</p>
-                <p className="text-blue-700">
+                <p className="font-medium text-amber-900 mb-1">Secure Payment with Adumo Online</p>
+                <p className="text-amber-700">
                   You'll be redirected to our secure payment partner, Adumo Online, to complete your subscription.
                   Your payment information is protected with bank-level security.
                 </p>

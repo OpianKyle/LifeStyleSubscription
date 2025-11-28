@@ -304,7 +304,7 @@ export default function SubscriptionForm() {
             {/* Main Member Details */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-xl text-blue-800 bg-blue-100 p-3 rounded">
+                <CardTitle className="text-xl text-amber-800 bg-amber-100 p-3 rounded">
                   MAIN MEMBER DETAILS
                 </CardTitle>
               </CardHeader>
@@ -526,7 +526,7 @@ export default function SubscriptionForm() {
             {/* Partner Details */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-xl text-blue-800 bg-blue-100 p-3 rounded">
+                <CardTitle className="text-xl text-amber-800 bg-amber-100 p-3 rounded">
                   PARTNER DETAILS (Optional)
                 </CardTitle>
               </CardHeader>
@@ -642,7 +642,7 @@ export default function SubscriptionForm() {
             {/* Employment Details */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-xl text-blue-800 bg-blue-100 p-3 rounded">
+                <CardTitle className="text-xl text-amber-800 bg-amber-100 p-3 rounded">
                   EMPLOYMENT DETAILS
                 </CardTitle>
               </CardHeader>
@@ -839,9 +839,9 @@ export default function SubscriptionForm() {
             </Card>
 
             {/* Quote Summary */}
-            <Card className="border-2 border-blue-200 bg-blue-50">
+            <Card className="border-2 border-amber-200 bg-amber-50">
               <CardHeader>
-                <CardTitle className="text-xl text-blue-800 flex items-center">
+                <CardTitle className="text-xl text-amber-800 flex items-center">
                   <Calculator className="w-6 h-6 mr-2" />
                   SUBSCRIPTION QUOTE
                 </CardTitle>
@@ -856,7 +856,7 @@ export default function SubscriptionForm() {
                   <div className="border-t pt-3">
                     <div className="flex justify-between text-lg font-bold">
                       <span>Total Monthly Premium:</span>
-                      <span className="text-blue-600">R{quote.totalPrice.toFixed(2)}</span>
+                      <span className="text-amber-600">R{quote.totalPrice.toFixed(2)}</span>
                     </div>
                   </div>
                 </div>
@@ -882,7 +882,7 @@ export default function SubscriptionForm() {
                         <div className="space-y-1 leading-none">
                           <FormLabel>
                             I accept the{' '}
-                            <a href="/terms" className="text-blue-600 underline" target="_blank">
+                            <a href="/terms" className="text-amber-600 underline" target="_blank">
                               Terms and Conditions
                             </a>
                           </FormLabel>
@@ -907,7 +907,7 @@ export default function SubscriptionForm() {
                         <div className="space-y-1 leading-none">
                           <FormLabel>
                             I accept the{' '}
-                            <a href="/privacy" className="text-blue-600 underline" target="_blank">
+                            <a href="/privacy" className="text-amber-600 underline" target="_blank">
                               Privacy Policy
                             </a>
                           </FormLabel>
@@ -925,7 +925,7 @@ export default function SubscriptionForm() {
               <Button
                 type="submit"
                 size="lg"
-                className="w-full md:w-auto min-w-[300px] bg-blue-600 hover:bg-blue-700"
+                className="w-full md:w-auto min-w-[300px] bg-amber-500 hover:bg-amber-600 text-slate-900"
                 disabled={createSubscriptionMutation.isPending}
                 data-testid="button-submit-subscription"
               >
@@ -943,8 +943,8 @@ export default function SubscriptionForm() {
           {/* Quote Preview Sidebar */}
           <div className="lg:col-span-1">
             <div className="sticky top-24">
-              <Card className="shadow-lg border-2 border-blue-200">
-                <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
+              <Card className="shadow-lg border-2 border-amber-200">
+                <CardHeader className="bg-gradient-to-r from-amber-500 to-amber-600 text-slate-900">
                   <CardTitle className="flex items-center text-lg">
                     <Calculator className="w-5 h-5 mr-2" />
                     Your Quote
@@ -956,16 +956,16 @@ export default function SubscriptionForm() {
                     <div className="border-b pb-4">
                       <div className="flex justify-between items-center mb-2">
                         <span className="font-medium text-gray-700">{selectedPlan.name} Plan</span>
-                        <span className="font-semibold text-blue-600">R{parseFloat(selectedPlan.price).toFixed(2)}</span>
+                        <span className="font-semibold text-amber-600">R{parseFloat(selectedPlan.price).toFixed(2)}</span>
                       </div>
                       <p className="text-sm text-gray-500">{selectedPlan.description}</p>
                     </div>
 
                     {/* Total */}
-                    <div className="bg-blue-50 p-4 rounded-lg">
+                    <div className="bg-amber-50 p-4 rounded-lg">
                       <div className="flex justify-between items-center">
                         <span className="text-lg font-semibold text-gray-800">Monthly Total</span>
-                        <span className="text-2xl font-bold text-blue-600">
+                        <span className="text-2xl font-bold text-amber-600">
                           R{quote.totalPrice.toFixed(2)}
                         </span>
                       </div>

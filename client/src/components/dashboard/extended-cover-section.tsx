@@ -374,7 +374,7 @@ export default function ExtendedCoverSection() {
                             </Badge>
                           </TableCell>
                           <TableCell>R{Number(cover.coverAmount).toLocaleString()}</TableCell>
-                          <TableCell className="font-medium text-green-600">
+                          <TableCell className="font-medium text-amber-600">
                             R{Number(cover.monthlyPremium).toFixed(2)}
                           </TableCell>
                           <TableCell>
@@ -403,7 +403,7 @@ export default function ExtendedCoverSection() {
                       
                       {/* New members being added/edited */}
                       {familyMembers.filter(m => m.isNew || editingId === m.id).map((member) => (
-                        <TableRow key={member.id} className="bg-blue-50">
+                        <TableRow key={member.id} className="bg-amber-50">
                           <TableCell>
                             <Input
                               value={member.name}
