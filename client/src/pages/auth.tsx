@@ -9,7 +9,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { AlertCircle, CheckCircle } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
-import opianLogo from "@assets/opian-rewards-logo-Recovered_1755772691086.png";
+import opianLogo from "@assets/opian-success-systems-dark-Recovered-Recovered_1764313639664.png";
 import backgroundImage from "@assets/generated_images/Family_protection_lifestyle_background_dfcb1269.png";
 
 type AuthMode = 'login' | 'register' | 'verify-email' | 'reset-password' | 'forgot-password';

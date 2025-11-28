@@ -47,7 +47,7 @@ import {
   Activity
 } from "lucide-react";
 import PlanCard from "@/components/pricing/plan-card";
-import opianLogo from "@assets/opian-rewards-logo-Recovered_1755772691086.png";
+import opianLogo from "@assets/opian-success-systems-dark-Recovered-Recovered_1764313639664.png";
 import {
   Carousel,
   CarouselContent,

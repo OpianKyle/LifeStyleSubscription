@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { User, LogOut, Settings, Shield } from "lucide-react";
-import opianLogo from "@assets/opian-rewards-logo-Recovered_1755772691086.png";
+import opianLogo from "@assets/opian-success-systems-dark-Recovered-Recovered_1764313639664.png";
 
 export default function Navbar() {
   const [location, setLocation] = useLocation();
@@ -61,9 +61,7 @@ export default function Navbar() {
               <img 
                 src={opianLogo} 
                 alt="Opian Lifestyle" 
-                className={`h-12 w-auto transition-all duration-300 ${
-                  isScrolled ? 'filter-none' : 'brightness-0 invert'
-                }`}
+                className="h-12 w-auto transition-all duration-300"
                 data-testid="navbar-logo"
               />
             </Link>
