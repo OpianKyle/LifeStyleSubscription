@@ -120,7 +120,7 @@ export default function ExtendedCoverSection() {
 
   const { data: coversData, isLoading } = useQuery({
     queryKey: ["/api/extended-cover"],
-    enabled: isAuthenticated && user,
+    enabled: Boolean(isAuthenticated && user),
   });
 
   // Update family members when data changes
