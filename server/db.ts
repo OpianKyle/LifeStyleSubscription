@@ -25,7 +25,14 @@ export const pool = mysql.createPool({
   ssl: {
     rejectUnauthorized: false // Required for Xneelo SSL
   },
-  charset: 'utf8mb4'
+  charset: 'utf8mb4',
+  waitForConnections: true,
+  connectionLimit: 10,
+  maxIdle: 10,
+  idleTimeout: 60000,
+  queueLimit: 0,
+  enableKeepAlive: true,
+  keepAliveInitialDelay: 10000
 });
 
 export const db = drizzle(pool, { schema, mode: 'default' });
