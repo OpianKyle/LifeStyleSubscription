@@ -311,6 +311,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: 'Plan not found' });
       }
 
+      // Extract subscription details from request body for Adumo recurring billing
+      const subscriptionDetails = {
+        contactNumber: subscriptionData.mainMemberDetails?.contactNumber || req.user.phone || '',
+        mobileNumber: subscriptionData.mainMemberDetails?.contactNumber || req.user.phone || '',
+        collectionDay: subscriptionData.employmentDetails?.salaryPaymentDay || 7, // Default to 7th of month
+        frequency: 'MONTHLY' as const,
+        physicalAddress: subscriptionData.mainMemberDetails?.physicalAddress || '',
+        postalAddress: subscriptionData.mainMemberDetails?.postalAddress || '',
+        postalCode: subscriptionData.mainMemberDetails?.postalCode || ''
+      };
+
       // Check if user already has a subscription to avoid duplicates
       const existingSubscription = await storage.getUserSubscription(req.user.id);
       
@@ -323,7 +334,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           // Check if subscription is incomplete and needs payment
           if (existingSubscription.status === 'INCOMPLETE') {
-            const paymentData = AdumoService.generatePaymentData(plan, user);
+            const paymentData = AdumoService.generatePaymentData(plan, user, subscriptionDetails);
             
             // Find existing pending invoice or create a new one
             const invoices = await storage.getUserInvoices(req.user.id);
@@ -375,8 +386,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Update existing subscription to new plan
         adumoResult = await AdumoService.updateSubscription(req.user.id, plan.name);
       } else {
-        // Create new subscription with Adumo using plan name
-        adumoResult = await AdumoService.createSubscription(req.user.id, plan.name);
+        // Create new subscription with Adumo using plan name and subscription details for recurring billing
+        adumoResult = await AdumoService.createSubscription(req.user.id, plan.name, subscriptionDetails);
       }
       
       // Check if adumoResult has subscription info or is an error

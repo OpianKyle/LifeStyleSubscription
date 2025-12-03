@@ -524,7 +524,12 @@ export class AdumoService {
     }
   }
 
-  static async createSubscription(userId: string, planName: string) {
+  static async createSubscription(userId: string, planName: string, subscriptionDetails?: {
+    contactNumber?: string;
+    mobileNumber?: string;
+    collectionDay?: number;
+    frequency?: 'MONTHLY' | 'WEEKLY' | 'EVERY' | 'BIANNUALLY' | 'ANNUALLY' | 'QUARTERLY';
+  }) {
     try {
       const user = await storage.getUserById(userId);
       const plan = await storage.getSubscriptionPlanByName(planName);
@@ -548,13 +553,18 @@ export class AdumoService {
         return await this.updateSubscription(userId, planName);
       }
 
-      return await this.createNewSubscription(userId, planName);
+      return await this.createNewSubscription(userId, planName, subscriptionDetails);
     } catch (error) {
       throw error;
     }
   }
 
-  static async createNewSubscription(userId: string, planName: string) {
+  static async createNewSubscription(userId: string, planName: string, subscriptionDetails?: {
+    contactNumber?: string;
+    mobileNumber?: string;
+    collectionDay?: number;
+    frequency?: 'MONTHLY' | 'WEEKLY' | 'EVERY' | 'BIANNUALLY' | 'ANNUALLY' | 'QUARTERLY';
+  }) {
     const user = await storage.getUserById(userId);
     const plan = await storage.getSubscriptionPlanByName(planName);
     
@@ -572,8 +582,8 @@ export class AdumoService {
     
     const subscriptionId = `sub_${userId}_${Date.now()}`;
     
-    // Generate payment data early to get merchant reference
-    const paymentData = this.generatePaymentData(plan, user);
+    // Generate payment data with subscription details for recurring billing
+    const paymentData = this.generatePaymentData(plan, user, subscriptionDetails);
     
     const subscriptionData = {
       userId,
@@ -627,47 +637,90 @@ export class AdumoService {
     };
   }
 
-  static generatePaymentData(plan: any, user: any) {
-    // Prepare payment form data first to get values for JWT
-    const reference = `sub_${user.id}_${Date.now()}`;
-    const merchantReference = `OPIAN_${user.id.substring(0, 8)}_${Date.now()}`;
-    const amount = parseFloat(plan.price).toFixed(2); // Keep as decimal string per Adumo API docs
+  /**
+   * Generate payment data for Adumo Virtual Form Post with subscription/recurring billing fields
+   * This matches the Adumo Virtual Form Post format exactly as per the specification
+   */
+  static generatePaymentData(plan: any, user: any, subscriptionDetails?: {
+    contactNumber?: string;
+    mobileNumber?: string;
+    collectionDay?: number;
+    frequency?: 'MONTHLY' | 'WEEKLY' | 'EVERY' | 'BIANNUALLY' | 'ANNUALLY' | 'QUARTERLY';
+    accountNumber?: string;
+    physicalAddress?: string;
+    postalAddress?: string;
+    postalCode?: string;
+  }) {
+    const puid = crypto.randomUUID();
+    const merchantReference = `DEV_${crypto.randomBytes(4).toString('base64').replace(/[^a-zA-Z0-9]/g, '')}`;
+    const amount = parseFloat(plan.price).toFixed(2);
     const domain = process.env.REPLIT_DEV_DOMAIN;
     if (!domain) {
       throw new Error('REPLIT_DEV_DOMAIN environment variable is required for webhook configuration');
     }
-    const notificationURL = `https://${domain}/api/webhooks/adumo`;
     
-    // Generate JWT token with required Adumo fields
-    const issuedAt = Math.floor(Date.now() / 1000);
-    const expiresAt = issuedAt + 3600; // 1 hour from now
+    const successUrl = `https://${domain}/dashboard?payment=success&ref=${puid}`;
+    const failedUrl = `https://${domain}/choose-plan?payment=canceled`;
     
-    const payload = {
-      // Standard JWT claims
-      iss: ADUMO_CONFIG.merchantId, // issuer
-      sub: ADUMO_CONFIG.applicationId, // subject (application)
-      aud: 'https://staging-apiv3.adumoonline.com', // audience
-      iat: issuedAt, // issued at
-      exp: expiresAt, // expires at
+    // Calculate subscription dates - start on the collection day of next month
+    const now = new Date();
+    const collectionDay = subscriptionDetails?.collectionDay || 7; // Default to 7th of month if not specified
+    
+    // Set start date to the collection day of the next month
+    const startDate = new Date(now.getFullYear(), now.getMonth() + 1, collectionDay);
+    // Set end date to 2 years from start date
+    const endDate = new Date(startDate);
+    endDate.setFullYear(endDate.getFullYear() + 2);
+    
+    // Format phone numbers for Adumo (SA E.164 format: +27XXXXXXXXX)
+    const formatPhoneNumber = (phone: string): string => {
+      if (!phone) return '';
+      // Remove all non-digits
+      const cleaned = phone.replace(/\D/g, '');
       
-      // Required Adumo validation fields
-      mref: merchantReference, // Merchant Reference
-      amount: amount, // Amount as decimal string (e.g., "550.00")
-      auid: ADUMO_CONFIG.applicationId, // Application UID
-      cuid: ADUMO_CONFIG.merchantId, // Merchant UID
-      notificationURL: notificationURL, // Webhook URL
-      
-      // Additional fields for compatibility
-      merchantId: ADUMO_CONFIG.merchantId,
-      applicationId: ADUMO_CONFIG.applicationId,
-      timestamp: Date.now()
+      // Handle SA numbers starting with 0 (e.g., 0211234567 -> +27211234567)
+      if (cleaned.startsWith('0') && cleaned.length === 10) {
+        return '+27' + cleaned.substring(1);
+      }
+      // Handle numbers already starting with 27 (e.g., 27211234567 -> +27211234567)
+      if (cleaned.startsWith('27') && cleaned.length === 11) {
+        return '+' + cleaned;
+      }
+      // Already has + prefix
+      if (phone.startsWith('+')) {
+        return phone;
+      }
+      // Default: add +27 if 9 digits (without leading 0)
+      if (cleaned.length === 9) {
+        return '+27' + cleaned;
+      }
+      // Return original if format is unclear
+      return phone ? '+27' + cleaned.slice(-9) : '';
     };
     
-    if (process.env.NODE_ENV === 'development') {
-      console.log('🔐 Generating JWT with required Adumo fields:', JSON.stringify(payload, null, 2));
-    }
+    const contactNumber = formatPhoneNumber(subscriptionDetails?.contactNumber || user.phone || '');
+    const mobileNumber = formatPhoneNumber(subscriptionDetails?.mobileNumber || subscriptionDetails?.contactNumber || user.phone || '');
     
-    const token = jwt.sign(payload, ADUMO_CONFIG.jwtSecret, { 
+    // Generate account number for customer (use provided or generate)
+    const accountNumber = subscriptionDetails?.accountNumber || `ACC_${Date.now()}`;
+    
+    // Generate JWT token with required Adumo claims matching their specification
+    const issuedAt = Math.floor(Date.now() / 1000);
+    const expiresAt = issuedAt + 600; // 10 minutes validity as per Adumo docs
+    
+    // JWT payload following Adumo's expected format from their documentation
+    const jwtPayload = {
+      iss: 'Dev Center', // Issuer - matches Adumo example
+      cuid: ADUMO_CONFIG.merchantId, // Customer/Merchant UID
+      auid: ADUMO_CONFIG.applicationId, // Application UID
+      amount: amount, // Amount as decimal string
+      mref: merchantReference, // Merchant Reference - required claim
+      jti: crypto.randomBytes(24).toString('base64').replace(/[+/=]/g, ''), // Unique token ID
+      iat: issuedAt,
+      exp: expiresAt
+    };
+    
+    const token = jwt.sign(jwtPayload, ADUMO_CONFIG.jwtSecret, { 
       algorithm: 'HS256',
       header: {
         alg: 'HS256',
@@ -675,38 +728,75 @@ export class AdumoService {
       }
     });
     
-    const formData = {
+    // Build the complete form data matching Adumo Virtual Form Post format exactly
+    const formData: Record<string, string> = {
+      // Payment identification - required fields
+      puid: puid,
       MerchantID: ADUMO_CONFIG.merchantId,
       ApplicationID: ADUMO_CONFIG.applicationId,
-      TransactionReference: reference,
       MerchantReference: merchantReference,
+      
+      // Amount and currency - required fields
       Amount: amount,
-      CurrencyCode: 'ZAR',
-      Description: `${plan.name} Plan - Monthly Subscription`,
-      CustomerFirstName: user.name.split(' ')[0] || user.name,
-      CustomerLastName: user.name.split(' ').slice(1).join(' ') || '',
-      CustomerEmail: user.email,
-      ReturnURL: `https://${domain}/dashboard?payment=success&ref=${reference}`,
-      CancelURL: `https://${domain}/choose-plan?payment=canceled`,
-      WebhookURL: `https://${domain}/api/webhooks/adumo`,
-      Token: token
+      Token: token,
+      txtCurrencyCode: 'ZAR',
+      
+      // Redirect URLs - required for web flow
+      RedirectSuccessfulURL: successUrl,
+      RedirectFailedURL: failedUrl,
+      
+      // Additional merchant variables for tracking
+      Variable1: 'Subscription',
+      Variable2: `INV${Date.now()}`,
+      
+      // First item details for the subscription
+      Qty1: '1',
+      ItemRef1: `PLAN_${plan.id.substring(0, 8)}`,
+      ItemDescr1: `${plan.name} Plan - Monthly Subscription`,
+      ItemAmount1: amount,
+      
+      // Shipping/discount details (required even if zero)
+      ShippingCost: '0.00',
+      Discount: '0.00',
+      
+      // Customer shipping/billing details
+      Recipient: user.name || '',
+      ShippingAddress1: subscriptionDetails?.physicalAddress || user.address || '',
+      ShippingAddress2: subscriptionDetails?.postalAddress || '',
+      ShippingAddress3: '',
+      ShippingAddress4: subscriptionDetails?.postalCode || user.postalCode || '0000',
+      ShippingAddress5: 'South Africa',
+      
+      // Subscription/Recurring billing fields - CRITICAL for subscriptions
+      // Frequency options: EVERY, WEEKLY, MONTHLY, BIANNUALLY, ANNUALLY, QUARTERLY
+      frequency: subscriptionDetails?.frequency || 'MONTHLY',
+      collectionDay: collectionDay.toString(), // Day of month for collection
+      accountNumber: accountNumber,
+      startDate: startDate.toISOString().split('T')[0], // Format: YYYY-MM-DD
+      endDate: endDate.toISOString().split('T')[0], // Format: YYYY-MM-DD
+      collectionValue: amount, // Same as Amount for standard subscriptions
+      
+      // Contact details for subscription notifications
+      contactNumber: contactNumber,
+      mobileNumber: mobileNumber,
+      emailAddress: user.email || '',
+      shouldSendSms: 'false',
+      shouldSendEmail: 'true'
     };
     
     if (process.env.NODE_ENV === 'development') {
-      console.log('📝 Adumo form data being sent:', JSON.stringify(formData, null, 2));
-      console.log('🎯 JWT Token being sent:', token);
+      console.log('📝 Adumo Virtual Form Post data:', JSON.stringify(formData, null, 2));
+      console.log('🔐 JWT Token:', token);
+      console.log('🔐 JWT Payload:', JSON.stringify(jwtPayload, null, 2));
     }
     
     return {
-      // Form POST URL
       url: ADUMO_CONFIG.environment === 'production' ? ADUMO_CONFIG.prodUrl : ADUMO_CONFIG.testUrl,
-      
-      // Required form parameters for Adumo Virtual
       formData,
-      
-      reference,
+      reference: puid,
       merchantReference,
-      token
+      token,
+      accountNumber
     };
   }
 
