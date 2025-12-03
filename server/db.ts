@@ -196,6 +196,55 @@ async function createTablesIfNotExist(connection: mysql.PoolConnection) {
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
       FOREIGN KEY (user_id) REFERENCES users(id)
     );
+    
+    -- Member details table for storing main member and partner information
+    CREATE TABLE IF NOT EXISTS member_details (
+      id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
+      user_id VARCHAR(36) NOT NULL UNIQUE,
+      subscription_id VARCHAR(36),
+      -- Main member personal details
+      title VARCHAR(20),
+      gender VARCHAR(10),
+      surname VARCHAR(255),
+      first_name VARCHAR(255),
+      id_number VARCHAR(13),
+      date_of_birth VARCHAR(10),
+      age INT,
+      -- Contact details
+      physical_address TEXT,
+      postal_address TEXT,
+      postal_code VARCHAR(10),
+      contact_number VARCHAR(20),
+      email VARCHAR(255),
+      -- Partner details
+      partner_surname VARCHAR(255),
+      partner_first_name VARCHAR(255),
+      partner_id_number VARCHAR(13),
+      partner_date_of_birth VARCHAR(10),
+      partner_age INT,
+      partner_maiden_name VARCHAR(255),
+      -- Employment details
+      self_employed BOOLEAN DEFAULT FALSE,
+      main_occupation VARCHAR(255),
+      appointment_date VARCHAR(10),
+      permanently_employed BOOLEAN DEFAULT TRUE,
+      basic_salary DECIMAL(10, 2),
+      employer_name VARCHAR(255),
+      employer_address TEXT,
+      employment_sector VARCHAR(50),
+      salary_frequency VARCHAR(20),
+      salary_payment_day INT,
+      -- Banking details for debit orders
+      bank_name VARCHAR(100),
+      branch_code VARCHAR(20),
+      bank_account_number VARCHAR(50),
+      bank_account_type VARCHAR(20),
+      account_holder_name VARCHAR(255),
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
+      FOREIGN KEY (user_id) REFERENCES users(id),
+      FOREIGN KEY (subscription_id) REFERENCES subscriptions(id)
+    );
   `;
   
   // Check if subscription_plans table exists with wrong column structure
@@ -305,13 +354,21 @@ async function createTablesIfNotExist(connection: mysql.PoolConnection) {
       console.error('Error checking/adding invoices columns:', error);
     }
 
-    // Check and add other adumo columns
+    // Check and add other adumo columns including subscription billing fields
     const otherColumnsToCheck = [
       { table: 'users', column: 'adumo_customer_id', type: 'VARCHAR(255)' },
       { table: 'users', column: 'adumo_subscription_id', type: 'VARCHAR(255)' },
       { table: 'subscription_plans', column: 'adumo_product_id', type: 'VARCHAR(255)' },
       { table: 'subscription_plans', column: 'adumo_price_id', type: 'VARCHAR(255)' },
-      { table: 'subscriptions', column: 'adumo_subscription_id', type: 'VARCHAR(255)' }
+      { table: 'subscriptions', column: 'adumo_subscription_id', type: 'VARCHAR(255)' },
+      // New subscription billing columns for Adumo
+      { table: 'subscriptions', column: 'frequency', type: "ENUM('MONTHLY', 'WEEKLY', 'EVERY', 'BIANNUALLY', 'ANNUALLY', 'QUARTERLY') DEFAULT 'MONTHLY'" },
+      { table: 'subscriptions', column: 'collection_day', type: 'INT' },
+      { table: 'subscriptions', column: 'collection_value', type: 'DECIMAL(10, 2)' },
+      { table: 'subscriptions', column: 'billing_start_date', type: 'VARCHAR(10)' },
+      { table: 'subscriptions', column: 'billing_end_date', type: 'VARCHAR(10)' },
+      { table: 'subscriptions', column: 'account_number', type: 'VARCHAR(50)' },
+      { table: 'subscriptions', column: 'merchant_reference', type: 'VARCHAR(255)' }
     ];
     
     for (const { table, column, type } of otherColumnsToCheck) {

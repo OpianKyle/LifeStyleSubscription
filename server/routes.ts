@@ -395,6 +395,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json(adumoResult);
       }
 
+      // Save member details to the database
+      const memberDetailsData = {
+        userId: req.user.id,
+        subscriptionId: null, // Will be updated after subscription is confirmed
+        // Main member personal details
+        title: subscriptionData.mainMemberDetails?.title,
+        gender: subscriptionData.mainMemberDetails?.gender,
+        surname: subscriptionData.mainMemberDetails?.surname,
+        firstName: subscriptionData.mainMemberDetails?.firstName,
+        idNumber: subscriptionData.mainMemberDetails?.idNumber,
+        dateOfBirth: subscriptionData.mainMemberDetails?.dateOfBirth,
+        age: subscriptionData.mainMemberDetails?.age,
+        // Contact details
+        physicalAddress: subscriptionData.mainMemberDetails?.physicalAddress,
+        postalAddress: subscriptionData.mainMemberDetails?.postalAddress,
+        postalCode: subscriptionData.mainMemberDetails?.postalCode,
+        contactNumber: subscriptionData.mainMemberDetails?.contactNumber,
+        email: subscriptionData.mainMemberDetails?.email,
+        // Partner details
+        partnerSurname: subscriptionData.partnerDetails?.surname,
+        partnerFirstName: subscriptionData.partnerDetails?.firstName,
+        partnerIdNumber: subscriptionData.partnerDetails?.idNumber,
+        partnerDateOfBirth: subscriptionData.partnerDetails?.dateOfBirth,
+        partnerAge: subscriptionData.partnerDetails?.age,
+        partnerMaidenName: subscriptionData.partnerDetails?.maidenName,
+        // Employment details
+        selfEmployed: subscriptionData.employmentDetails?.selfEmployed || false,
+        mainOccupation: subscriptionData.employmentDetails?.mainOccupation,
+        appointmentDate: subscriptionData.employmentDetails?.appointmentDate,
+        permanentlyEmployed: subscriptionData.employmentDetails?.permanentlyEmployed || true,
+        basicSalary: subscriptionData.employmentDetails?.basicSalary?.toString(),
+        employerName: subscriptionData.employmentDetails?.employerName,
+        employerAddress: subscriptionData.employmentDetails?.employerAddress,
+        employmentSector: subscriptionData.employmentDetails?.employmentSector,
+        salaryFrequency: subscriptionData.employmentDetails?.salaryFrequency,
+        salaryPaymentDay: subscriptionData.employmentDetails?.salaryPaymentDay,
+        // Banking details
+        bankName: subscriptionData.bankingDetails?.bankName,
+        branchCode: subscriptionData.bankingDetails?.branchCode,
+        bankAccountNumber: subscriptionData.bankingDetails?.bankAccountNumber,
+        bankAccountType: subscriptionData.bankingDetails?.bankAccountType,
+        accountHolderName: subscriptionData.bankingDetails?.accountHolderName,
+      };
+
+      // Try to save or update member details
+      try {
+        const existingMemberDetails = await storage.getMemberDetailsByUserId(req.user.id);
+        if (existingMemberDetails) {
+          await storage.updateMemberDetails(req.user.id, memberDetailsData);
+        } else {
+          await storage.createMemberDetails(memberDetailsData);
+        }
+      } catch (error) {
+        console.error('Error saving member details:', error);
+        // Continue with subscription even if member details fail
+      }
+
       // Create extended cover entries for each family member
       if (subscriptionData.extendedMembers && subscriptionData.extendedMembers.length > 0) {
         for (const member of subscriptionData.extendedMembers) {

@@ -5,6 +5,7 @@ import {
   invoices,
   transactions,
   extendedCover,
+  memberDetails,
   type User, 
   type InsertUser,
   type SubscriptionPlan,
@@ -16,7 +17,9 @@ import {
   type Transaction,
   type InsertTransaction,
   type ExtendedCover,
-  type InsertExtendedCover
+  type InsertExtendedCover,
+  type MemberDetails,
+  type InsertMemberDetails
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, sql } from "drizzle-orm";
@@ -62,6 +65,11 @@ export interface IStorage {
   getUserExtendedCover(userId: string): Promise<ExtendedCover[]>;
   updateExtendedCover(id: string, cover: Partial<ExtendedCover>): Promise<ExtendedCover | undefined>;
   deleteExtendedCover(id: string): Promise<void>;
+  
+  // Member details operations
+  createMemberDetails(details: InsertMemberDetails): Promise<MemberDetails>;
+  getMemberDetailsByUserId(userId: string): Promise<MemberDetails | undefined>;
+  updateMemberDetails(userId: string, details: Partial<MemberDetails>): Promise<MemberDetails | undefined>;
   
   // Full subscription operations
   createFullSubscription(subscriptionData: any): Promise<Subscription>;
@@ -491,15 +499,57 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Full subscription operations
+  // Member details operations
+  async createMemberDetails(details: InsertMemberDetails): Promise<MemberDetails> {
+    await db
+      .insert(memberDetails)
+      .values(details);
+    
+    const [result] = await db
+      .select()
+      .from(memberDetails)
+      .where(eq(memberDetails.userId, details.userId));
+    return result!;
+  }
+
+  async getMemberDetailsByUserId(userId: string): Promise<MemberDetails | undefined> {
+    const [result] = await db
+      .select()
+      .from(memberDetails)
+      .where(eq(memberDetails.userId, userId));
+    return result;
+  }
+
+  async updateMemberDetails(userId: string, details: Partial<MemberDetails>): Promise<MemberDetails | undefined> {
+    await db
+      .update(memberDetails)
+      .set({ ...details, updatedAt: new Date() })
+      .where(eq(memberDetails.userId, userId));
+    
+    const [result] = await db
+      .select()
+      .from(memberDetails)
+      .where(eq(memberDetails.userId, userId));
+    return result;
+  }
+
   async createFullSubscription(subscriptionData: any): Promise<Subscription> {
-    // Create basic subscription record
-    const insertData = {
+    // Create subscription record with Adumo billing fields
+    const insertData: any = {
       userId: subscriptionData.userId,
       planId: subscriptionData.planId,
       adumoSubscriptionId: subscriptionData.adumoSubscriptionId,
       status: subscriptionData.status,
       currentPeriodStart: new Date(),
       currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+      // Adumo billing fields
+      frequency: subscriptionData.frequency || 'MONTHLY',
+      collectionDay: subscriptionData.collectionDay,
+      collectionValue: subscriptionData.collectionValue,
+      billingStartDate: subscriptionData.billingStartDate,
+      billingEndDate: subscriptionData.billingEndDate,
+      accountNumber: subscriptionData.accountNumber,
+      merchantReference: subscriptionData.merchantReference,
     };
 
     await db

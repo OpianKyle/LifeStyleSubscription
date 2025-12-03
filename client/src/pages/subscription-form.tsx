@@ -64,6 +64,13 @@ const subscriptionFormSchema = z.object({
   salaryFrequency: z.enum(['MONTHLY', 'FORTNIGHTLY', 'WEEKLY']),
   salaryPaymentDay: z.number().min(1).max(31),
   
+  // Banking Details for Debit Order
+  bankName: z.string().min(1, 'Bank name is required'),
+  branchCode: z.string().min(1, 'Branch code is required'),
+  bankAccountNumber: z.string().min(1, 'Account number is required'),
+  bankAccountType: z.enum(['SAVINGS', 'CHEQUE', 'TRANSMISSION']),
+  accountHolderName: z.string().min(1, 'Account holder name is required'),
+  
   // Terms and Conditions
   acceptTerms: z.boolean().refine(val => val === true, 'You must accept terms and conditions'),
   acceptPrivacy: z.boolean().refine(val => val === true, 'You must accept privacy policy'),
@@ -834,6 +841,122 @@ export default function SubscriptionForm() {
                       </FormItem>
                     )}
                   />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Banking Details for Debit Order */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-xl text-green-800 bg-green-100 p-3 rounded">
+                  BANKING DETAILS FOR DEBIT ORDER
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="bankName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Bank Name</FormLabel>
+                        <FormControl>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <SelectTrigger data-testid="select-bankName">
+                              <SelectValue placeholder="Select bank" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="ABSA">ABSA</SelectItem>
+                              <SelectItem value="FNB">First National Bank (FNB)</SelectItem>
+                              <SelectItem value="STANDARD_BANK">Standard Bank</SelectItem>
+                              <SelectItem value="NEDBANK">Nedbank</SelectItem>
+                              <SelectItem value="CAPITEC">Capitec</SelectItem>
+                              <SelectItem value="AFRICAN_BANK">African Bank</SelectItem>
+                              <SelectItem value="INVESTEC">Investec</SelectItem>
+                              <SelectItem value="TYMEBANK">TymeBank</SelectItem>
+                              <SelectItem value="DISCOVERY_BANK">Discovery Bank</SelectItem>
+                              <SelectItem value="BIDVEST_BANK">Bidvest Bank</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="branchCode"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Branch Code</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="e.g., 632005" data-testid="input-branchCode" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <FormField
+                  control={form.control}
+                  name="bankAccountNumber"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Bank Account Number</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Enter your account number" data-testid="input-bankAccountNumber" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="bankAccountType"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Account Type</FormLabel>
+                        <FormControl>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <SelectTrigger data-testid="select-bankAccountType">
+                              <SelectValue placeholder="Select account type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="SAVINGS">Savings</SelectItem>
+                              <SelectItem value="CHEQUE">Cheque/Current</SelectItem>
+                              <SelectItem value="TRANSMISSION">Transmission</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="accountHolderName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Account Holder Name</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="Name as it appears on account" data-testid="input-accountHolderName" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="p-4 bg-green-50 border border-green-200 rounded-md">
+                  <p className="text-sm text-green-800">
+                    Your subscription will be debited from this account on day {form.watch('salaryPaymentDay') || 'N/A'} of each month.
+                    The amount of R{selectedPlan?.price || '0.00'} will be collected monthly.
+                  </p>
                 </div>
               </CardContent>
             </Card>

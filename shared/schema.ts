@@ -56,7 +56,10 @@ export const subscriptionPlans = mysqlTable("subscription_plans", {
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 
-// Subscriptions table
+// Frequency enum for Adumo billing
+export const frequencyEnum = mysqlEnum('frequency', ['MONTHLY', 'WEEKLY', 'EVERY', 'BIANNUALLY', 'ANNUALLY', 'QUARTERLY']);
+
+// Subscriptions table - with Adumo billing fields
 export const subscriptions = mysqlTable("subscriptions", {
   id: varchar("id", { length: 36 }).primaryKey().default(sql`(UUID())`),
   userId: varchar("user_id", { length: 36 }).references(() => users.id).notNull(),
@@ -67,6 +70,69 @@ export const subscriptions = mysqlTable("subscriptions", {
   currentPeriodEnd: timestamp("current_period_end"),
   cancelAtPeriodEnd: boolean("cancel_at_period_end").default(false).notNull(),
   canceledAt: timestamp("canceled_at"),
+  
+  // Adumo billing fields
+  frequency: frequencyEnum.default('MONTHLY'),
+  collectionDay: int("collection_day"), // Day of month for collection (1-31)
+  collectionValue: decimal("collection_value", { precision: 10, scale: 2 }), // Amount to collect
+  billingStartDate: varchar("billing_start_date", { length: 10 }), // YYYY-MM-DD
+  billingEndDate: varchar("billing_end_date", { length: 10 }), // YYYY-MM-DD
+  accountNumber: varchar("account_number", { length: 50 }), // Customer account reference
+  merchantReference: varchar("merchant_reference", { length: 255 }), // Adumo merchant reference
+  
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP`).notNull(),
+});
+
+// Member details table - stores main member and partner information
+export const memberDetails = mysqlTable("member_details", {
+  id: varchar("id", { length: 36 }).primaryKey().default(sql`(UUID())`),
+  userId: varchar("user_id", { length: 36 }).references(() => users.id).notNull().unique(),
+  subscriptionId: varchar("subscription_id", { length: 36 }).references(() => subscriptions.id),
+  
+  // Main member personal details
+  title: varchar("title", { length: 20 }),
+  gender: varchar("gender", { length: 10 }),
+  surname: varchar("surname", { length: 255 }),
+  firstName: varchar("first_name", { length: 255 }),
+  idNumber: varchar("id_number", { length: 13 }),
+  dateOfBirth: varchar("date_of_birth", { length: 10 }),
+  age: int("age"),
+  
+  // Contact details
+  physicalAddress: text("physical_address"),
+  postalAddress: text("postal_address"),
+  postalCode: varchar("postal_code", { length: 10 }),
+  contactNumber: varchar("contact_number", { length: 20 }),
+  email: varchar("email", { length: 255 }),
+  
+  // Partner details
+  partnerSurname: varchar("partner_surname", { length: 255 }),
+  partnerFirstName: varchar("partner_first_name", { length: 255 }),
+  partnerIdNumber: varchar("partner_id_number", { length: 13 }),
+  partnerDateOfBirth: varchar("partner_date_of_birth", { length: 10 }),
+  partnerAge: int("partner_age"),
+  partnerMaidenName: varchar("partner_maiden_name", { length: 255 }),
+  
+  // Employment details
+  selfEmployed: boolean("self_employed").default(false),
+  mainOccupation: varchar("main_occupation", { length: 255 }),
+  appointmentDate: varchar("appointment_date", { length: 10 }),
+  permanentlyEmployed: boolean("permanently_employed").default(true),
+  basicSalary: decimal("basic_salary", { precision: 10, scale: 2 }),
+  employerName: varchar("employer_name", { length: 255 }),
+  employerAddress: text("employer_address"),
+  employmentSector: varchar("employment_sector", { length: 50 }),
+  salaryFrequency: varchar("salary_frequency", { length: 20 }),
+  salaryPaymentDay: int("salary_payment_day"),
+  
+  // Banking details for debit orders
+  bankName: varchar("bank_name", { length: 100 }),
+  branchCode: varchar("branch_code", { length: 20 }),
+  bankAccountNumber: varchar("bank_account_number", { length: 50 }),
+  bankAccountType: varchar("bank_account_type", { length: 20 }),
+  accountHolderName: varchar("account_holder_name", { length: 255 }),
+  
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP`).notNull(),
 });
@@ -137,11 +203,12 @@ export const extendedCover = mysqlTable("extended_cover", {
 });
 
 // Relations
-export const usersRelations = relations(users, ({ many }) => ({
+export const usersRelations = relations(users, ({ many, one }) => ({
   subscriptions: many(subscriptions),
   invoices: many(invoices),
   transactions: many(transactions),
   extendedCover: many(extendedCover),
+  memberDetails: one(memberDetails),
 }));
 
 export const subscriptionPlansRelations = relations(subscriptionPlans, ({ many }) => ({
@@ -168,6 +235,11 @@ export const transactionsRelations = relations(transactions, ({ one }) => ({
 
 export const extendedCoverRelations = relations(extendedCover, ({ one }) => ({
   user: one(users, { fields: [extendedCover.userId], references: [users.id] }),
+}));
+
+export const memberDetailsRelations = relations(memberDetails, ({ one }) => ({
+  user: one(users, { fields: [memberDetails.userId], references: [users.id] }),
+  subscription: one(subscriptions, { fields: [memberDetails.subscriptionId], references: [subscriptions.id] }),
 }));
 
 // Schema types - using basic insert schemas for MySQL compatibility
@@ -209,6 +281,12 @@ export const insertTransactionSchema = createInsertSchema(transactions).omit({
   updatedAt: true,
 });
 
+export const insertMemberDetailsSchema = createInsertSchema(memberDetails).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type SubscriptionPlan = typeof subscriptionPlans.$inferSelect;
@@ -221,3 +299,5 @@ export type Transaction = typeof transactions.$inferSelect;
 export type InsertTransaction = z.infer<typeof insertTransactionSchema>;
 export type ExtendedCover = typeof extendedCover.$inferSelect;
 export type InsertExtendedCover = z.infer<typeof insertExtendedCoverSchema>;
+export type MemberDetails = typeof memberDetails.$inferSelect;
+export type InsertMemberDetails = z.infer<typeof insertMemberDetailsSchema>;
