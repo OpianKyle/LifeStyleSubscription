@@ -77,6 +77,13 @@ Design preferences: Light stained glass effect with vibrant, prominent colors ap
 - **Logo Integration**: Official Opian Rewards logo implemented in navbar (August 21, 2025)
   - Replaced generic text logo with authentic Opian Lifestyle branding
   - Logo displays prominently in navigation across all pages
+- **Adumo Payment Integration Update**: Enhanced Virtual Form Post implementation (December 3, 2025)
+  - Updated JWT token claims to match Adumo's expected format (iss='Dev Center', mref claim for merchant reference)
+  - Improved phone number formatting with proper E.164 validation for SA numbers (+27XXXXXXXXX)
+  - Enhanced date handling for subscription start/end dates aligned with collection day
+  - Added complete Adumo form fields: frequency, collectionDay, accountNumber, startDate, endDate, collectionValue
+  - Included shipping/billing address fields and customer contact details
+  - Set proper frequency options: MONTHLY, WEEKLY, EVERY, BIANNUALLY, ANNUALLY, QUARTERLY
 
 ### Email Services
 - **SMTP Configuration**: Nodemailer with Gmail/custom SMTP support
