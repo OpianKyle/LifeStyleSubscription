@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLocation, useRoute } from 'wouter';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
 import { 
   Select, 
   SelectContent, 
@@ -25,8 +26,75 @@ import {
 } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
-import { ArrowLeft, Calculator } from 'lucide-react';
+import { ArrowLeft, Calculator, Plus, Trash2, Users } from 'lucide-react';
 import Navbar from '@/components/layout/navbar';
+
+interface ExtendedFamilyMember {
+  id: string;
+  name: string;
+  surname: string;
+  idNumber: string;
+  dateOfBirth: string;
+  age: number | null;
+  relation: 'SPOUSE' | 'CHILD' | 'PARENT' | 'EXTENDED_FAMILY';
+  coverAmount: number;
+  monthlyPremium: number;
+}
+
+const relationLabels = {
+  SPOUSE: 'Spouse',
+  CHILD: 'Child',
+  PARENT: 'Parent',
+  EXTENDED_FAMILY: 'Extended Family',
+};
+
+function getAvailableCoverAmounts(age: number | null): number[] {
+  if (!age) return [10000, 15000, 20000, 25000, 30000];
+  if (age < 50) {
+    return [10000, 15000, 20000, 25000, 30000, 40000, 50000, 60000, 70000, 80000, 90000, 100000];
+  } else {
+    return [10000, 15000, 20000, 25000, 30000];
+  }
+}
+
+function calculatePremium(age: number, relation: string, coverAmount: number): number {
+  const coverPer1000 = coverAmount / 1000;
+  
+  if (relation === 'SPOUSE') {
+    if (age >= 18 && age <= 45) return coverPer1000 * 2.55;
+    if (age >= 46 && age <= 50) return coverPer1000 * 2.95;
+    if (age >= 51 && age <= 60) return coverPer1000 * 3.55;
+    if (age >= 61 && age <= 70) return coverPer1000 * 3.55;
+  }
+  
+  if (relation === 'CHILD') {
+    if (age >= 0 && age <= 5) return coverPer1000 * 1.95;
+    if (age >= 6 && age <= 13) return coverPer1000 * 2.05;
+    if (age >= 14 && age <= 20) return coverPer1000 * 2.25;
+  }
+  
+  if (relation === 'PARENT') {
+    if (age >= 18 && age <= 25) return coverPer1000 * 2.48;
+    if (age >= 26 && age <= 30) return coverPer1000 * 3.88;
+    if (age >= 31 && age <= 35) return coverPer1000 * 4.72;
+    if (age >= 36 && age <= 40) return coverPer1000 * 5.48;
+    if (age >= 41 && age <= 45) return coverPer1000 * 5.64;
+    if (age >= 46 && age <= 50) return coverPer1000 * 6.44;
+    if (age >= 51 && age <= 55) return coverPer1000 * 6.44;
+    if (age >= 56 && age <= 60) return coverPer1000 * 8.94;
+    if (age >= 61 && age <= 65) return coverPer1000 * 13.12;
+    if (age >= 66 && age <= 70) return coverPer1000 * 20.08;
+    if (age >= 71 && age <= 75) return coverPer1000 * 21.84;
+  }
+  
+  if (relation === 'EXTENDED_FAMILY') {
+    if (age >= 18 && age <= 45) return coverPer1000 * 2.55;
+    if (age >= 46 && age <= 55) return coverPer1000 * 3.55;
+    if (age >= 56 && age <= 64) return coverPer1000 * 4.55;
+  }
+  
+  return coverPer1000 * 2.55;
+}
 
 // Form validation schema - cleaned up without banking fields
 const subscriptionFormSchema = z.object({
@@ -105,6 +173,7 @@ export default function SubscriptionForm() {
   const [match, params] = useRoute('/subscription-form/:planId');
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [extendedFamilyMembers, setExtendedFamilyMembers] = useState<ExtendedFamilyMember[]>([]);
 
   const form = useForm<SubscriptionFormData>({
     resolver: zodResolver(subscriptionFormSchema),
@@ -115,6 +184,55 @@ export default function SubscriptionForm() {
       acceptPrivacy: false,
     },
   });
+
+  const addFamilyMember = () => {
+    const newMember: ExtendedFamilyMember = {
+      id: `new-${Date.now()}`,
+      name: '',
+      surname: '',
+      idNumber: '',
+      dateOfBirth: '',
+      age: null,
+      relation: 'CHILD',
+      coverAmount: 10000,
+      monthlyPremium: 0,
+    };
+    setExtendedFamilyMembers([...extendedFamilyMembers, newMember]);
+  };
+
+  const removeFamilyMember = (id: string) => {
+    setExtendedFamilyMembers(extendedFamilyMembers.filter(m => m.id !== id));
+  };
+
+  const updateFamilyMember = (id: string, field: keyof ExtendedFamilyMember, value: any) => {
+    setExtendedFamilyMembers(prev => prev.map(member => {
+      if (member.id !== id) return member;
+      
+      const updated = { ...member, [field]: value };
+      
+      if (field === 'idNumber' && value.length === 13) {
+        const age = calculateAgeFromId(value);
+        updated.age = age;
+        if (age) {
+          const dob = `${value.substring(0, 2)}/${value.substring(2, 4)}/${value.substring(4, 6)}`;
+          updated.dateOfBirth = dob;
+          updated.monthlyPremium = calculatePremium(age, updated.relation, updated.coverAmount);
+        }
+      }
+      
+      if (field === 'relation' || field === 'coverAmount') {
+        if (updated.age) {
+          updated.monthlyPremium = calculatePremium(updated.age, updated.relation, updated.coverAmount);
+        }
+      }
+      
+      return updated;
+    }));
+  };
+
+  const getTotalExtendedFamilyPremium = () => {
+    return extendedFamilyMembers.reduce((total, member) => total + (member.monthlyPremium || 0), 0);
+  };
 
   // Get selected plan details
   const { data: plansData } = useQuery({
@@ -143,12 +261,14 @@ export default function SubscriptionForm() {
     }
   }, [watchedPartnerIdNumber, form]);
 
-  // Simplified quote calculation - only plan price
+  // Quote calculation including extended family premiums
   const calculateQuote = () => {
     const planPrice = parseFloat(selectedPlan?.price) || 0;
+    const extendedFamilyPremium = getTotalExtendedFamilyPremium();
     return {
       planPrice,
-      totalPrice: planPrice
+      extendedFamilyPremium,
+      totalPrice: planPrice + extendedFamilyPremium
     };
   };
 
@@ -194,8 +314,19 @@ export default function SubscriptionForm() {
           salaryFrequency: data.salaryFrequency,
           salaryPaymentDay: data.salaryPaymentDay,
         },
+        extendedFamilyMembers: extendedFamilyMembers.filter(m => m.name && m.surname && m.idNumber && m.age).map(m => ({
+          name: m.name,
+          surname: m.surname,
+          idNumber: m.idNumber,
+          dateOfBirth: m.dateOfBirth,
+          age: m.age,
+          relation: m.relation,
+          coverAmount: m.coverAmount,
+          monthlyPremium: m.monthlyPremium,
+        })),
         totalAmount: quote.totalPrice,
         planAmount: quote.planPrice,
+        extendedFamilyPremium: quote.extendedFamilyPremium,
       };
 
       return apiRequest('POST', '/api/subscriptions/create-full', subscriptionData);
@@ -646,6 +777,170 @@ export default function SubscriptionForm() {
               </CardContent>
             </Card>
 
+            {/* Extended Family Members */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-xl text-blue-800 bg-blue-100 p-3 rounded flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <Users className="w-5 h-5" />
+                    EXTENDED FAMILY COVER (Optional)
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={addFamilyMember}
+                    data-testid="button-add-family-member"
+                  >
+                    <Plus className="w-4 h-4 mr-1" />
+                    Add Family Member
+                  </Button>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-gray-600">
+                  Add extended family members to your cover. Each member will have their own cover amount and monthly premium calculated based on their age and relationship.
+                </p>
+                
+                {extendedFamilyMembers.length === 0 ? (
+                  <div className="text-center py-8 border-2 border-dashed border-gray-200 rounded-lg">
+                    <Users className="w-12 h-12 mx-auto text-gray-400 mb-3" />
+                    <p className="text-gray-500 mb-4">No extended family members added yet.</p>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={addFamilyMember}
+                      data-testid="button-add-first-family-member"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add Your First Family Member
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {extendedFamilyMembers.map((member, index) => (
+                      <div key={member.id} className="border rounded-lg p-4 bg-gray-50">
+                        <div className="flex items-center justify-between mb-4">
+                          <h4 className="font-medium text-gray-700">Family Member {index + 1}</h4>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeFamilyMember(member.id)}
+                            className="text-red-600"
+                            data-testid={`button-remove-family-member-${index}`}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                          <div>
+                            <label className="text-sm font-medium text-gray-700">First Name</label>
+                            <Input
+                              value={member.name}
+                              onChange={(e) => updateFamilyMember(member.id, 'name', e.target.value)}
+                              placeholder="First name"
+                              data-testid={`input-family-name-${index}`}
+                            />
+                          </div>
+                          
+                          <div>
+                            <label className="text-sm font-medium text-gray-700">Surname</label>
+                            <Input
+                              value={member.surname}
+                              onChange={(e) => updateFamilyMember(member.id, 'surname', e.target.value)}
+                              placeholder="Surname"
+                              data-testid={`input-family-surname-${index}`}
+                            />
+                          </div>
+                          
+                          <div>
+                            <label className="text-sm font-medium text-gray-700">ID Number</label>
+                            <Input
+                              value={member.idNumber}
+                              onChange={(e) => updateFamilyMember(member.id, 'idNumber', e.target.value)}
+                              placeholder="13-digit ID"
+                              maxLength={13}
+                              data-testid={`input-family-idNumber-${index}`}
+                            />
+                          </div>
+                          
+                          <div>
+                            <label className="text-sm font-medium text-gray-700">Age</label>
+                            <Input
+                              value={member.age || ''}
+                              readOnly
+                              className="bg-gray-100"
+                              placeholder="Auto-calculated"
+                              data-testid={`input-family-age-${index}`}
+                            />
+                          </div>
+                          
+                          <div>
+                            <label className="text-sm font-medium text-gray-700">Relationship</label>
+                            <Select
+                              value={member.relation}
+                              onValueChange={(value) => updateFamilyMember(member.id, 'relation', value)}
+                            >
+                              <SelectTrigger data-testid={`select-family-relation-${index}`}>
+                                <SelectValue placeholder="Select relationship" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="SPOUSE">Spouse</SelectItem>
+                                <SelectItem value="CHILD">Child</SelectItem>
+                                <SelectItem value="PARENT">Parent</SelectItem>
+                                <SelectItem value="EXTENDED_FAMILY">Extended Family</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          
+                          <div>
+                            <label className="text-sm font-medium text-gray-700">Cover Amount</label>
+                            <Select
+                              value={member.coverAmount.toString()}
+                              onValueChange={(value) => updateFamilyMember(member.id, 'coverAmount', parseInt(value))}
+                            >
+                              <SelectTrigger data-testid={`select-family-cover-${index}`}>
+                                <SelectValue placeholder="Select cover" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {getAvailableCoverAmounts(member.age).map((amount) => (
+                                  <SelectItem key={amount} value={amount.toString()}>
+                                    R{amount.toLocaleString()}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                        
+                        {member.monthlyPremium > 0 && (
+                          <div className="mt-4 flex items-center justify-between bg-blue-50 p-3 rounded">
+                            <span className="text-sm text-gray-600">Monthly Premium:</span>
+                            <Badge variant="secondary" className="text-blue-700 bg-blue-100">
+                              R{member.monthlyPremium.toFixed(2)}
+                            </Badge>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                    
+                    {extendedFamilyMembers.length > 0 && (
+                      <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+                        <div className="flex justify-between items-center">
+                          <span className="font-medium text-blue-800">Total Extended Family Premium:</span>
+                          <span className="text-xl font-bold text-blue-600">
+                            R{getTotalExtendedFamilyPremium().toFixed(2)}/month
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
             {/* Employment Details */}
             <Card>
               <CardHeader>
@@ -976,6 +1271,13 @@ export default function SubscriptionForm() {
                     <span className="font-medium">R{quote.planPrice.toFixed(2)}</span>
                   </div>
                   
+                  {quote.extendedFamilyPremium > 0 && (
+                    <div className="flex justify-between text-blue-700">
+                      <span className="font-medium">Extended Family Cover ({extendedFamilyMembers.filter(m => m.monthlyPremium > 0).length} members):</span>
+                      <span className="font-medium">R{quote.extendedFamilyPremium.toFixed(2)}</span>
+                    </div>
+                  )}
+                  
                   <div className="border-t pt-3">
                     <div className="flex justify-between text-lg font-bold">
                       <span>Total Monthly Premium:</span>
@@ -1083,6 +1385,19 @@ export default function SubscriptionForm() {
                       </div>
                       <p className="text-sm text-gray-500">{selectedPlan.description}</p>
                     </div>
+
+                    {/* Extended Family Details */}
+                    {quote.extendedFamilyPremium > 0 && (
+                      <div className="border-b pb-4">
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="font-medium text-gray-700">Extended Family</span>
+                          <span className="font-semibold text-blue-600">R{quote.extendedFamilyPremium.toFixed(2)}</span>
+                        </div>
+                        <p className="text-sm text-gray-500">
+                          {extendedFamilyMembers.filter(m => m.monthlyPremium > 0).length} family member(s) covered
+                        </p>
+                      </div>
+                    )}
 
                     {/* Total */}
                     <div className="bg-amber-50 p-4 rounded-lg">

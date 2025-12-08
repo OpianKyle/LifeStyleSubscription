@@ -453,19 +453,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Create extended cover entries for each family member
-      if (subscriptionData.extendedMembers && subscriptionData.extendedMembers.length > 0) {
-        for (const member of subscriptionData.extendedMembers) {
-          await storage.createExtendedCover({
-            userId: req.user.id,
-            name: member.firstName + ' ' + member.surname,
-            surname: member.surname,
-            age: 0, // Will be calculated from ID
-            relation: member.relation,
-            coverAmount: member.coverAmount.toString(),
-            monthlyPremium: '0', // Will be calculated
-            idNumber: member.idNumber,
-            dateOfBirth: null
-          });
+      const extendedMembers = subscriptionData.extendedFamilyMembers || subscriptionData.extendedMembers || [];
+      if (extendedMembers.length > 0) {
+        for (const member of extendedMembers) {
+          try {
+            await storage.createExtendedCover({
+              userId: req.user.id,
+              name: member.name || member.firstName,
+              surname: member.surname,
+              age: member.age || 0,
+              relation: member.relation,
+              coverAmount: member.coverAmount.toString(),
+              monthlyPremium: member.monthlyPremium?.toString() || '0',
+              idNumber: member.idNumber || null,
+              dateOfBirth: member.dateOfBirth || null
+            });
+          } catch (coverError) {
+            console.error('Error creating extended cover for member:', member.name || member.firstName, coverError);
+          }
         }
       }
       
