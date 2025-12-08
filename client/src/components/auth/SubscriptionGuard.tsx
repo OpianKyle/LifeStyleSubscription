@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useLocation } from 'wouter';
-import { useAuthState } from '@/hooks/useAuthState';
+import { useAuthState } from '@/contexts/AuthContext';
 import { useSubscriptionState } from '@/hooks/useSubscriptionState';
 import { useToast } from '@/hooks/use-toast';
 

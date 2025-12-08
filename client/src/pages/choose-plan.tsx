@@ -8,7 +8,7 @@ import Navbar from "@/components/layout/navbar";
 import Footer from "@/components/layout/footer";
 import PlanCard from "@/components/pricing/plan-card";
 import PaymentForm from "@/components/payment/payment-form";
-import { useAuthState } from "@/hooks/useAuthState";
+import { useAuthState } from "@/contexts/AuthContext";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Check, Loader2, Shield } from "lucide-react";

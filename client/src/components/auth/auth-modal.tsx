@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useAuthState } from "@/hooks/useAuthState";
+import { useAuthState } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { 
   Dialog, 

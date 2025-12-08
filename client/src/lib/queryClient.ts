@@ -1,5 +1,5 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
-import { getMemoryAccessToken } from "@/hooks/useAuthState";
+import { getMemoryAccessToken } from "@/contexts/AuthContext";
 
 // Flag to prevent infinite loops during token handling
 let isHandlingAuth = false;

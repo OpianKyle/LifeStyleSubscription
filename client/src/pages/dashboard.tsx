@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { useAuthState } from "@/hooks/useAuthState";
+import { useAuthState, getMemoryAccessToken } from "@/contexts/AuthContext";
 import { useSubscriptionState } from "@/hooks/useSubscriptionState";
 import { apiRequest } from "@/lib/queryClient";
-import { getMemoryAccessToken } from "@/hooks/useAuthState";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

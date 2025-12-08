@@ -7,7 +7,7 @@ import Navbar from "@/components/layout/navbar";
 import Footer from "@/components/layout/footer";
 import PlanCard from "@/components/pricing/plan-card";
 import Chatbot from "@/components/chat/chatbot";
-import { useAuthState } from "@/hooks/useAuthState";
+import { useAuthState } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowRight, Shield, Heart, Phone, Scale, Users, Check, Loader2 } from "lucide-react";
 

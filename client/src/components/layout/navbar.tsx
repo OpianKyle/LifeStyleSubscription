@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
-import { useAuthState } from "@/hooks/useAuthState";
+import { useAuthState } from "@/contexts/AuthContext";
 import { useSubscriptionState } from "@/hooks/useSubscriptionState";
 import { Button } from "@/components/ui/button";
 import { 
