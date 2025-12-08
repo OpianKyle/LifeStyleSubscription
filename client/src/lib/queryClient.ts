@@ -11,9 +11,29 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
-// Handle 401 errors by clearing tokens and redirecting to auth
+// Handle 401 errors - only redirect if token was expected to work
 function handleUnauthorized(): void {
   if (isHandlingAuth) return;
+  
+  const currentPath = window.location.pathname;
+  
+  // Don't handle auth errors on auth-related pages
+  if (currentPath.includes('/auth') || currentPath.includes('/verify-email')) {
+    return;
+  }
+  
+  // Check if we have a token - if not, this is expected (unauthenticated user)
+  let hasToken = false;
+  try {
+    hasToken = !!localStorage.getItem('opian_access_token');
+  } catch (e) {
+    // Ignore localStorage errors
+  }
+  
+  // Only clear and redirect if we had a token that's now invalid
+  if (!hasToken) {
+    return; // No token = expected 401, don't redirect
+  }
   
   isHandlingAuth = true;
   
@@ -24,12 +44,8 @@ function handleUnauthorized(): void {
     // Ignore localStorage errors
   }
   
-  // Only redirect if not already on auth page to prevent loops
-  const currentPath = window.location.pathname;
-  if (!currentPath.includes('/auth') && !currentPath.includes('/verify-email')) {
-    // Use replace to avoid back button issues
-    window.location.replace('/auth');
-  }
+  // Redirect to auth page
+  window.location.replace('/auth');
   
   // Reset flag after a delay
   setTimeout(() => {

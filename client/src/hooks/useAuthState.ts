@@ -90,15 +90,19 @@ export function useAuthState() {
     }
 
     const result = await res.json();
-    setUser(result.user);
     
-    // Store access token with localStorage persistence for iframe compatibility
+    // Store access token FIRST with localStorage persistence for iframe compatibility
     if (result.tokens?.accessToken) {
       setStoredToken(result.tokens.accessToken);
     }
     
-    // Force a re-check of authentication state to ensure immediate UI update
-    setIsChecked(false);
+    // Set user state after token is stored
+    setUser(result.user);
+    
+    // Mark as checked since we already have valid user from login response
+    // No need to re-check - we trust the login response
+    setIsChecked(true);
+    setIsLoading(false);
     
     return result;
   };
