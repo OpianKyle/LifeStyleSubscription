@@ -650,6 +650,8 @@ export class AdumoService {
     physicalAddress?: string;
     postalAddress?: string;
     postalCode?: string;
+    shouldSendSms?: boolean;
+    shouldSendEmail?: boolean;
   }) {
     const puid = crypto.randomUUID();
     const merchantReference = `DEV_${crypto.randomBytes(4).toString('base64').replace(/[^a-zA-Z0-9]/g, '')}`;
@@ -780,8 +782,8 @@ export class AdumoService {
       contactNumber: contactNumber,
       mobileNumber: mobileNumber,
       emailAddress: user.email || '',
-      shouldSendSms: 'false',
-      shouldSendEmail: 'true'
+      shouldSendSms: subscriptionDetails?.shouldSendSms ? 'true' : 'false',
+      shouldSendEmail: subscriptionDetails?.shouldSendEmail !== false ? 'true' : 'false'
     };
     
     if (process.env.NODE_ENV === 'development') {

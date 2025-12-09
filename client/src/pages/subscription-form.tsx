@@ -96,7 +96,7 @@ function calculatePremium(age: number, relation: string, coverAmount: number): n
   return coverPer1000 * 2.55;
 }
 
-// Form validation schema - cleaned up without banking fields
+// Form validation schema - matches Adumo Virtual Form Post format
 const subscriptionFormSchema = z.object({
   // Main Member Details
   title: z.string().min(1, 'Title is required'),
@@ -110,6 +110,7 @@ const subscriptionFormSchema = z.object({
   postalAddress: z.string().min(1, 'Postal address is required'),
   postalCode: z.string().min(4, 'Postal code is required'),
   contactNumber: z.string().min(10, 'Contact number is required'),
+  mobileNumber: z.string().min(10, 'Mobile number is required'),
   email: z.string().email('Valid email is required'),
   
   // Partner Details (optional)
@@ -132,12 +133,11 @@ const subscriptionFormSchema = z.object({
   salaryFrequency: z.enum(['MONTHLY', 'FORTNIGHTLY', 'WEEKLY']),
   salaryPaymentDay: z.number().min(1).max(31),
   
-  // Banking Details for Debit Order
-  bankName: z.string().min(1, 'Bank name is required'),
-  branchCode: z.string().min(1, 'Branch code is required'),
-  bankAccountNumber: z.string().min(1, 'Account number is required'),
-  bankAccountType: z.enum(['SAVINGS', 'CHEQUE', 'TRANSMISSION']),
-  accountHolderName: z.string().min(1, 'Account holder name is required'),
+  // Adumo Payment/Subscription Details
+  frequency: z.enum(['MONTHLY', 'WEEKLY', 'BIANNUALLY', 'ANNUALLY', 'QUARTERLY']),
+  collectionDay: z.number().min(1).max(31),
+  shouldSendSms: z.boolean(),
+  shouldSendEmail: z.boolean(),
   
   // Terms and Conditions
   acceptTerms: z.boolean().refine(val => val === true, 'You must accept terms and conditions'),
@@ -182,6 +182,10 @@ export default function SubscriptionForm() {
       permanentlyEmployed: true,
       acceptTerms: false,
       acceptPrivacy: false,
+      frequency: 'MONTHLY',
+      collectionDay: 7,
+      shouldSendSms: false,
+      shouldSendEmail: true,
     },
   });
 
@@ -272,12 +276,12 @@ export default function SubscriptionForm() {
     };
   };
 
-  // Submit subscription
+  // Submit subscription - creates Adumo Virtual Form Post
   const createSubscriptionMutation = useMutation({
     mutationFn: async (data: SubscriptionFormData) => {
       const quote = calculateQuote();
       
-      // Create subscription with simplified data
+      // Create subscription with Adumo payment details
       const subscriptionData = {
         planId: params?.planId,
         mainMemberDetails: {
@@ -292,6 +296,7 @@ export default function SubscriptionForm() {
           postalAddress: data.postalAddress,
           postalCode: data.postalCode,
           contactNumber: data.contactNumber,
+          mobileNumber: data.mobileNumber,
           email: data.email,
         },
         partnerDetails: data.partnerSurname ? {
@@ -313,6 +318,18 @@ export default function SubscriptionForm() {
           employmentSector: data.employmentSector,
           salaryFrequency: data.salaryFrequency,
           salaryPaymentDay: data.salaryPaymentDay,
+        },
+        // Adumo Virtual Form Post subscription details
+        subscriptionDetails: {
+          frequency: data.frequency,
+          collectionDay: data.collectionDay,
+          contactNumber: data.contactNumber,
+          mobileNumber: data.mobileNumber,
+          shouldSendSms: data.shouldSendSms,
+          shouldSendEmail: data.shouldSendEmail,
+          physicalAddress: data.physicalAddress,
+          postalAddress: data.postalAddress,
+          postalCode: data.postalCode,
         },
         extendedFamilyMembers: extendedFamilyMembers.filter(m => m.name && m.surname && m.idNumber && m.age).map(m => ({
           name: m.name,
@@ -635,9 +652,9 @@ export default function SubscriptionForm() {
                     name="contactNumber"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Contact Number</FormLabel>
+                        <FormLabel>Contact Number (Landline)</FormLabel>
                         <FormControl>
-                          <Input {...field} data-testid="input-contactNumber" />
+                          <Input {...field} placeholder="+27211234567" data-testid="input-contactNumber" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -646,18 +663,32 @@ export default function SubscriptionForm() {
                   
                   <FormField
                     control={form.control}
-                    name="email"
+                    name="mobileNumber"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Email</FormLabel>
+                        <FormLabel>Mobile Number</FormLabel>
                         <FormControl>
-                          <Input {...field} type="email" data-testid="input-email" />
+                          <Input {...field} placeholder="+27871234567" data-testid="input-mobileNumber" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
                 </div>
+
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email Address</FormLabel>
+                      <FormControl>
+                        <Input {...field} type="email" placeholder="email@domain.com" data-testid="input-email" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </CardContent>
             </Card>
 
@@ -1140,37 +1171,36 @@ export default function SubscriptionForm() {
               </CardContent>
             </Card>
 
-            {/* Banking Details for Debit Order */}
+            {/* Adumo Payment Settings */}
             <Card>
               <CardHeader>
                 <CardTitle className="text-xl text-green-800 bg-green-100 p-3 rounded">
-                  BANKING DETAILS FOR DEBIT ORDER
+                  PAYMENT SETTINGS
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                <p className="text-sm text-gray-600 mb-4">
+                  Your card details will be securely captured on the Adumo payment page. Configure your subscription preferences below.
+                </p>
+                
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
-                    name="bankName"
+                    name="frequency"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Bank Name</FormLabel>
+                        <FormLabel>Payment Frequency</FormLabel>
                         <FormControl>
                           <Select onValueChange={field.onChange} value={field.value}>
-                            <SelectTrigger data-testid="select-bankName">
-                              <SelectValue placeholder="Select bank" />
+                            <SelectTrigger data-testid="select-frequency">
+                              <SelectValue placeholder="Select frequency" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="ABSA">ABSA</SelectItem>
-                              <SelectItem value="FNB">First National Bank (FNB)</SelectItem>
-                              <SelectItem value="STANDARD_BANK">Standard Bank</SelectItem>
-                              <SelectItem value="NEDBANK">Nedbank</SelectItem>
-                              <SelectItem value="CAPITEC">Capitec</SelectItem>
-                              <SelectItem value="AFRICAN_BANK">African Bank</SelectItem>
-                              <SelectItem value="INVESTEC">Investec</SelectItem>
-                              <SelectItem value="TYMEBANK">TymeBank</SelectItem>
-                              <SelectItem value="DISCOVERY_BANK">Discovery Bank</SelectItem>
-                              <SelectItem value="BIDVEST_BANK">Bidvest Bank</SelectItem>
+                              <SelectItem value="MONTHLY">Monthly</SelectItem>
+                              <SelectItem value="WEEKLY">Weekly</SelectItem>
+                              <SelectItem value="QUARTERLY">Quarterly</SelectItem>
+                              <SelectItem value="BIANNUALLY">Bi-Annually</SelectItem>
+                              <SelectItem value="ANNUALLY">Annually</SelectItem>
                             </SelectContent>
                           </Select>
                         </FormControl>
@@ -1181,12 +1211,20 @@ export default function SubscriptionForm() {
                   
                   <FormField
                     control={form.control}
-                    name="branchCode"
+                    name="collectionDay"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Branch Code</FormLabel>
+                        <FormLabel>Collection Day (1-31)</FormLabel>
                         <FormControl>
-                          <Input {...field} placeholder="e.g., 632005" data-testid="input-branchCode" />
+                          <Input 
+                            {...field} 
+                            type="number" 
+                            min="1" 
+                            max="31"
+                            placeholder="e.g., 7"
+                            onChange={(e) => field.onChange(parseInt(e.target.value) || 7)}
+                            data-testid="input-collectionDay"
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -1194,54 +1232,43 @@ export default function SubscriptionForm() {
                   />
                 </div>
 
-                <FormField
-                  control={form.control}
-                  name="bankAccountNumber"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Bank Account Number</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="Enter your account number" data-testid="input-bankAccountNumber" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
-                    name="bankAccountType"
+                    name="shouldSendSms"
                     render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Account Type</FormLabel>
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 border rounded-md">
                         <FormControl>
-                          <Select onValueChange={field.onChange} value={field.value}>
-                            <SelectTrigger data-testid="select-bankAccountType">
-                              <SelectValue placeholder="Select account type" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="SAVINGS">Savings</SelectItem>
-                              <SelectItem value="CHEQUE">Cheque/Current</SelectItem>
-                              <SelectItem value="TRANSMISSION">Transmission</SelectItem>
-                            </SelectContent>
-                          </Select>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            data-testid="checkbox-shouldSendSms"
+                          />
                         </FormControl>
-                        <FormMessage />
+                        <div className="space-y-1 leading-none">
+                          <FormLabel>Send SMS Notifications</FormLabel>
+                          <p className="text-sm text-gray-500">Receive payment reminders via SMS</p>
+                        </div>
                       </FormItem>
                     )}
                   />
                   
                   <FormField
                     control={form.control}
-                    name="accountHolderName"
+                    name="shouldSendEmail"
                     render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Account Holder Name</FormLabel>
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 border rounded-md">
                         <FormControl>
-                          <Input {...field} placeholder="Name as it appears on account" data-testid="input-accountHolderName" />
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            data-testid="checkbox-shouldSendEmail"
+                          />
                         </FormControl>
-                        <FormMessage />
+                        <div className="space-y-1 leading-none">
+                          <FormLabel>Send Email Notifications</FormLabel>
+                          <p className="text-sm text-gray-500">Receive payment confirmations via email</p>
+                        </div>
                       </FormItem>
                     )}
                   />
@@ -1249,8 +1276,8 @@ export default function SubscriptionForm() {
 
                 <div className="p-4 bg-green-50 border border-green-200 rounded-md">
                   <p className="text-sm text-green-800">
-                    Your subscription will be debited from this account on day {form.watch('salaryPaymentDay') || 'N/A'} of each month.
-                    The amount of R{selectedPlan?.price || '0.00'} will be collected monthly.
+                    Your subscription of <strong>R{selectedPlan?.price || '0.00'}</strong> will be collected on day <strong>{form.watch('collectionDay') || '7'}</strong> of each {(form.watch('frequency') || 'MONTHLY').toLowerCase().replace('ly', '')} period.
+                    You will be redirected to the secure Adumo payment page to complete your first payment.
                   </p>
                 </div>
               </CardContent>

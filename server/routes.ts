@@ -311,15 +311,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: 'Plan not found' });
       }
 
-      // Extract subscription details from request body for Adumo recurring billing
+      // Extract subscription details from request body for Adumo Virtual Form Post
+      // Use explicit subscriptionDetails from frontend if provided, otherwise fall back to main member details
+      const frontendSubscriptionDetails = subscriptionData.subscriptionDetails || {};
       const subscriptionDetails = {
-        contactNumber: subscriptionData.mainMemberDetails?.contactNumber || req.user.phone || '',
-        mobileNumber: subscriptionData.mainMemberDetails?.contactNumber || req.user.phone || '',
-        collectionDay: subscriptionData.employmentDetails?.salaryPaymentDay || 7, // Default to 7th of month
-        frequency: 'MONTHLY' as const,
-        physicalAddress: subscriptionData.mainMemberDetails?.physicalAddress || '',
-        postalAddress: subscriptionData.mainMemberDetails?.postalAddress || '',
-        postalCode: subscriptionData.mainMemberDetails?.postalCode || ''
+        contactNumber: frontendSubscriptionDetails.contactNumber || subscriptionData.mainMemberDetails?.contactNumber || req.user.phone || '',
+        mobileNumber: frontendSubscriptionDetails.mobileNumber || subscriptionData.mainMemberDetails?.mobileNumber || subscriptionData.mainMemberDetails?.contactNumber || req.user.phone || '',
+        collectionDay: frontendSubscriptionDetails.collectionDay || subscriptionData.employmentDetails?.salaryPaymentDay || 7,
+        frequency: frontendSubscriptionDetails.frequency || 'MONTHLY' as const,
+        physicalAddress: frontendSubscriptionDetails.physicalAddress || subscriptionData.mainMemberDetails?.physicalAddress || '',
+        postalAddress: frontendSubscriptionDetails.postalAddress || subscriptionData.mainMemberDetails?.postalAddress || '',
+        postalCode: frontendSubscriptionDetails.postalCode || subscriptionData.mainMemberDetails?.postalCode || '',
+        shouldSendSms: frontendSubscriptionDetails.shouldSendSms ?? false,
+        shouldSendEmail: frontendSubscriptionDetails.shouldSendEmail ?? true
       };
 
       // Check if user already has a subscription to avoid duplicates
