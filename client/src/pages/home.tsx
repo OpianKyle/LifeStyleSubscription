@@ -140,10 +140,31 @@ export default function Home() {
             {/* Left side - Content */}
             <div className="max-w-2xl mx-auto md:mx-0">
               <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight animate-fade-in-left" style={{animationDelay: '0.2s'}}>
-                The Protection Program that works for you
+                Unlock Premium Lifestyle Benefits—Without the Premium Price!
               </h1>
-              <p className="text-lg sm:text-xl text-slate-300 mb-8 leading-relaxed animate-fade-in-left" style={{animationDelay: '0.4s'}}>
-                Make your money go further with our lifestyle protection plans. Our comprehensive program protects you when you do everyday activities, plus we provide expert guidance on financial planning to help you make smart decisions.
+              <p className="text-lg sm:text-xl text-slate-300 mb-4 leading-relaxed animate-fade-in-left" style={{animationDelay: '0.4s'}}>
+                Life's unexpected moments shouldn't break the bank. With Opian Lifestyle Plans, you get comprehensive coverage at unbeatable value—so your money works harder for you.
+              </p>
+              <ul className="text-lg sm:text-xl text-slate-300 mb-8 space-y-2 animate-fade-in-left" style={{animationDelay: '0.5s'}}>
+                <li className="flex items-start gap-2">
+                  <Check className="w-5 h-5 text-primary mt-1 flex-shrink-0" />
+                  <span>Effortless claims—just one call and you're covered.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="w-5 h-5 text-primary mt-1 flex-shrink-0" />
+                  <span>Peace of mind for life's little (and big) mishaps.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="w-5 h-5 text-primary mt-1 flex-shrink-0" />
+                  <span>Exclusive perks designed to elevate your everyday.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="w-5 h-5 text-primary mt-1 flex-shrink-0" />
+                  <span>Cash Back Bonuses paid every 3 years.</span>
+                </li>
+              </ul>
+              <p className="text-lg sm:text-xl text-white font-semibold mb-8 animate-fade-in-left" style={{animationDelay: '0.55s'}}>
+                Don't wait for "what if"—get protected today!
               </p>
               
               <div className="flex flex-col sm:flex-row gap-4 mb-12 animate-fade-in-left" style={{animationDelay: '0.6s'}}>
