@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,14 @@ import emergencyBannerImage from "@assets/generated_images/Emergency_response_te
 import familyBannerImage from "@assets/generated_images/Family_celebration_portrait_e106c10d.png";
 
 export default function Home() {
+  useEffect(() => {
+    document.title = "LifeGuard | Comprehensive Lifestyle Protection South Africa";
+    const metaDesc = document.querySelector('meta[name="description"]');
+    if (metaDesc) {
+      metaDesc.setAttribute("content", "Protect your family with LifeGuard's lifestyle protection plans. 24/7 medical assistance, legal support, and financial planning tailored for South Africans.");
+    }
+  }, []);
+
   const [, setLocation] = useLocation();
   const { isAuthenticated } = useAuthState();
   const { toast } = useToast();
